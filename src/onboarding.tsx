@@ -2,9 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronLeft, Sparkles, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { CompanionBuilder, type CompanionProfile } from './companion-builder'
+import { saveAIProfile, saveCompanionProfile } from './services/userService'
+import type { AIProfile } from './types/user'
 
 type Category = { id: string; label: string; question: string; options: string[]; tags: { methods?: string[]; visuals?: string[]; prompts?: string[] } }
-export type AIProfile = { difficultyAreas: string[]; preferredExplanationMethods: string[]; preferredVisualAssistance: string[]; promptFrequency: string; detailLevel: string; interactionStyle: string; explanationTone: string; preferredPromptTypes: string[] }
 
 // Add a record here to extend both the Step 2 picker and its conditional Step 3 question.
 const categories: Category[] = [
@@ -33,12 +34,12 @@ export function Onboarding({ open, onClose }: { open: boolean; onClose: () => vo
   const createProfile = () => {
     const selectedOptions = [...answers.values()].flatMap((options) => [...options])
     const profile: AIProfile = { difficultyAreas:selectedCategories.map(c=>c.label), preferredExplanationMethods:unique([...selectedCategories.flatMap(c=>c.tags.methods ?? []),...selectedOptions.filter(o=>!optionIsVisual(o))]), preferredVisualAssistance:unique([...selectedCategories.flatMap(c=>c.tags.visuals ?? []),...selectedOptions.filter(optionIsVisual)]), preferredPromptTypes:unique(selectedCategories.flatMap(c=>c.tags.prompts ?? [])), ...style }
-    localStorage.setItem('magifab-ai-profile', JSON.stringify(profile))
+    void saveAIProfile(profile)
     setStep(6)
   }
   const createCompanion = (companion: CompanionProfile) => {
     console.log('Companion profile:', companion)
-    localStorage.setItem('magifab-companion-profile', JSON.stringify(companion))
+    void saveCompanionProfile(companion)
     setStep(4)
   }
   const chip = (label: string, active: boolean, click: () => void) => <button type="button" onClick={click} className={`flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs font-medium transition ${active ? 'border-amber-300 bg-amber-300/15 text-amber-50' : 'border-white/15 bg-white/5 text-blue-100 hover:border-amber-200/70'}`}><span className={`grid h-4 w-4 place-items-center rounded-full border text-[9px] ${active ? 'border-amber-300 bg-amber-300 text-slate-900' : 'border-white/35'}`}>{active && <Check size={10}/>}</span>{label}</button>
