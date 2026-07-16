@@ -2,4 +2,12 @@ node_modules/
 dist/
 .vite/
 .DS_Store
+
 public/movies/
+
+.env
+.env.local
+.env.*.local
+
+.temp/
+supabase/.temp/
