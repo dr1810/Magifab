@@ -8,7 +8,7 @@ type MovieCardProps = {
 
 export function MovieCard({ movie, onSelect }: MovieCardProps) {
   return (
-    <article className="movie-card" tabIndex={0}>
+    <article className="movie-card" tabIndex={0} aria-label={`${movie.title}, ${movie.genre}`}>
       <img src={movie.posterUrl} alt={`${movie.title} poster`} className="movie-poster" />
       <div className="movie-content">
         <div className="movie-meta-row">
@@ -16,14 +16,14 @@ export function MovieCard({ movie, onSelect }: MovieCardProps) {
           <span className="rating-pill"><Star size={12} /> {movie.rating}</span>
         </div>
         <p>{movie.description}</p>
-        <p className="runtime"><Clock3 size={12} /> {movie.runtime}</p>
+        <p className="runtime"><Clock3 size={12} /> {movie.runtime} <span aria-hidden="true">·</span> {movie.genre}</p>
         <div className="tag-row">
           {movie.accessibilityTags.map((tag) => (
             <span key={tag} className="tag-pill">{tag}</span>
           ))}
         </div>
         <button className="primary-btn" onClick={() => onSelect(movie.id)}>
-          Start watching
+          Watch with Magifab
         </button>
       </div>
     </article>

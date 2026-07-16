@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FocusEvent, type MouseEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { TopBar } from './components/TopBar'
 import { MoviePlayer } from './components/MoviePlayer'
@@ -23,12 +23,13 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
   const { profile } = useCompanionProfile()
   const { settings } = useAccessibility()
 
-  const [playing, setPlaying] = useState(true)
+  const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(false)
   const [volume, setVolume] = useState(72)
   const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const [promptOpen, setPromptOpen] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(true)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [widgetOpen, setWidgetOpen] = useState(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
 
@@ -45,20 +46,6 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
     () => prompts.find((prompt) => prompt.id === selectedPromptId) ?? prompts[0],
     [prompts, selectedPromptId],
   )
-
-  useEffect(() => {
-    if (!playing || !movieData || !scene) return
-    const stepSeconds = 5
-    const timer = window.setInterval(() => {
-      setCurrentTime((value) => {
-        const next = Math.min(value + stepSeconds, totalDuration)
-        void updateScene(next)
-        return next
-      })
-    }, 1500)
-
-    return () => window.clearInterval(timer)
-  }, [playing, movieData, scene, totalDuration, updateScene])
 
   useEffect(() => {
     if (!selectedPrompt || !scene) return
@@ -100,14 +87,22 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
         onOpenDrawer={() => setDrawerOpen(true)}
       />
 
-      <div className="viewer-layout">
+      <div
+        className="viewer-layout"
+        style={{ position: 'relative' }}
+        onMouseMove={(event: MouseEvent<HTMLDivElement>) => {
+          const target = event.target
+          if (target instanceof Element && !target.closest('.visual-drawer, .drawer-hover-trigger, .hover-zone.bottom')) setDrawerOpen(false)
+        }}
+      >
         <MoviePlayer
+          movie={movieData}
           scene={scene}
           playing={playing}
           muted={muted}
           volume={volume}
           currentTime={currentTime}
-          totalTime={totalDuration}
+          totalTime={duration || totalDuration}
           onPlayToggle={() => setPlaying((value) => !value)}
           onMuteToggle={() => setMuted((value) => !value)}
           onVolumeChange={setVolume}
@@ -115,7 +110,11 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
             setCurrentTime(next)
             void updateScene(next)
           }}
-          onFullscreen={() => undefined}
+          onTimeChange={(next) => {
+            setCurrentTime(next)
+            void updateScene(next)
+          }}
+          onDurationChange={setDuration}
           onPromptZoneHover={() => setPromptOpen(true)}
           onDrawerZoneHover={() => setDrawerOpen(true)}
           overlays={
@@ -141,9 +140,30 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
               />
             </>
           }
+          drawerOverlay={
+            <>
+              <button
+                type="button"
+                className="drawer-hover-trigger"
+                aria-label="Open visual aids drawer"
+                onFocus={() => setDrawerOpen(true)}
+                onClick={() => setDrawerOpen(true)}
+                style={{ position: 'absolute', zIndex: 45, bottom: 0, left: 0, width: '100%', height: 18, opacity: 0 }}
+              />
+              <VisualDrawer
+                open={drawerOpen}
+                scene={scene}
+                onClose={() => setDrawerOpen(false)}
+                onMouseEnter={() => setDrawerOpen(true)}
+                onMouseLeave={() => setDrawerOpen(false)}
+                onFocus={() => setDrawerOpen(true)}
+                onBlur={(event: FocusEvent<HTMLElement>) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) setDrawerOpen(false)
+                }}
+              />
+            </>
+          }
         />
-
-        <VisualDrawer open={drawerOpen} scene={scene} onClose={() => setDrawerOpen(false)} />
       </div>
     </main>
   )

@@ -1,11 +1,14 @@
 import type { MovieData } from '../types/movie'
 
-export const insideOutData: MovieData = {
+type LegacyMovieData = Omit<MovieData, 'id'> & { id: 'insideOut' }
+
+export const insideOutData: LegacyMovieData = {
   id: 'insideOut',
   title: 'Inside Out',
   description:
     'Riley\'s emotions struggle for balance after a major move, revealing that sadness is essential too.',
   runtime: '1h 35m',
+  genre: 'Family · Comedy',
   rating: 'PG',
   accessibilityTags: [
     'Audio Description',
@@ -17,6 +20,7 @@ export const insideOutData: MovieData = {
   posterUrl:
     'https://images.unsplash.com/photo-1496497243327-9dccd845c35f?auto=format&fit=crop&w=1200&q=80',
   videoSrc: '/movies/inside-out-demo.mp4',
+  subtitleSrc: '',
   companionTheme: 'sun',
   scenes: [
     {

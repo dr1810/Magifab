@@ -54,7 +54,7 @@ function HomePage({ onSettings, onOnboardingComplete }: { onSettings: () => void
 
 function App() {
   const [tab, setTab] = useState<'home' | 'settings' | 'selector' | 'watch'>('home')
-  const [selectedMovie, setSelectedMovie] = useState<MovieId>('findingNemo')
+  const [selectedMovie, setSelectedMovie] = useState<MovieId>('bigBuckBunny')
 
   if (tab === 'watch') {
     return <MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} />

@@ -1,4 +1,4 @@
-import { Maximize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
+import { Maximize2, Minimize2, Pause, Play, Volume2, VolumeX } from 'lucide-react'
 
 type PlaybackControlsProps = {
   playing: boolean
@@ -10,6 +10,7 @@ type PlaybackControlsProps = {
   currentTime: number
   totalTime: number
   onSeek: (value: number) => void
+  isFullscreen: boolean
   onFullscreen: () => void
 }
 
@@ -28,6 +29,7 @@ export function PlaybackControls({
   currentTime,
   totalTime,
   onSeek,
+  isFullscreen,
   onFullscreen,
 }: PlaybackControlsProps) {
   return (
@@ -59,7 +61,14 @@ export function PlaybackControls({
         </div>
         <div className="right-cluster">
           <span>{formatTime(currentTime)} / {formatTime(totalTime)}</span>
-          <button className="chip-btn" onClick={onFullscreen}><Maximize2 size={15} /> Fullscreen</button>
+          <button
+            className="chip-btn"
+            onClick={onFullscreen}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />} {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
         </div>
       </div>
     </section>

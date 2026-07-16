@@ -1,4 +1,4 @@
-export type MovieId = 'findingNemo' | 'insideOut'
+export type MovieId = 'bigBuckBunny' | 'spriteFright'
 
 export type AccessibilityTag =
   | 'Audio Description'
@@ -66,10 +66,12 @@ export type MovieData = {
   title: string
   description: string
   runtime: string
+  genre: string
   rating: string
   accessibilityTags: AccessibilityTag[]
   posterUrl: string
   videoSrc: string
+  subtitleSrc: string
   companionTheme: CompanionTheme
   scenes: SceneData[]
 }

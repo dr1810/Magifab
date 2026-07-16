@@ -1,12 +1,12 @@
-import { findingNemoData } from './findingNemo'
-import { insideOutData } from './insideOut'
+import { bigBuckBunnyData } from './bigBuckBunny'
+import { spriteFrightData } from './spriteFright'
 import type { MovieData, MovieId, SceneData } from '../types/movie'
 
-export const demoMovies: MovieData[] = [findingNemoData, insideOutData]
+export const demoMovies: MovieData[] = [bigBuckBunnyData, spriteFrightData]
 
 export const movieById: Record<MovieId, MovieData> = {
-  findingNemo: findingNemoData,
-  insideOut: insideOutData,
+  bigBuckBunny: bigBuckBunnyData,
+  spriteFright: spriteFrightData,
 }
 
 export function getSceneAtTimestamp(movie: MovieData, timestamp: number): SceneData {

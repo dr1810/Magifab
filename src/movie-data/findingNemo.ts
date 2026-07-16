@@ -1,11 +1,14 @@
 import type { MovieData } from '../types/movie'
 
-export const findingNemoData: MovieData = {
+type LegacyMovieData = Omit<MovieData, 'id'> & { id: 'findingNemo' }
+
+export const findingNemoData: LegacyMovieData = {
   id: 'findingNemo',
   title: 'Finding Nemo',
   description:
     'Marlin crosses the ocean to find Nemo while learning to trust others and let his son grow.',
   runtime: '1h 40m',
+  genre: 'Family · Adventure',
   rating: 'G',
   accessibilityTags: [
     'Audio Description',
@@ -17,6 +20,7 @@ export const findingNemoData: MovieData = {
   posterUrl:
     'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80',
   videoSrc: '/movies/finding-nemo-demo.mp4',
+  subtitleSrc: '',
   companionTheme: 'ocean',
   scenes: [
     {
