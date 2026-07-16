@@ -19,7 +19,7 @@ type MoviePlayerProps = {
   onTimeChange: (value: number) => void
   onDurationChange: (value: number) => void
   onPromptZoneHover: () => void
-  onDrawerZoneHover: () => void
+  onOpenVisualDrawer: () => void
   overlays: ReactNode
   drawerOverlay?: ReactNode
 }
@@ -39,7 +39,7 @@ export function MoviePlayer({
   onTimeChange,
   onDurationChange,
   onPromptZoneHover,
-  onDrawerZoneHover,
+  onOpenVisualDrawer,
   overlays,
   drawerOverlay,
 }: MoviePlayerProps) {
@@ -111,7 +111,6 @@ export function MoviePlayer({
         <SubtitleOverlay subtitle={scene.subtitle} />
 
         <div className="hover-zone right" onMouseEnter={onPromptZoneHover} aria-hidden="true" />
-        <div className="hover-zone bottom" onMouseEnter={onDrawerZoneHover} aria-hidden="true" />
       </div>
 
       <PlaybackControls
@@ -124,6 +123,7 @@ export function MoviePlayer({
         currentTime={currentTime}
         totalTime={totalTime}
         onSeek={seek}
+        onOpenVisualDrawer={onOpenVisualDrawer}
         isFullscreen={isFullscreen}
         onFullscreen={toggleFullscreen}
       />

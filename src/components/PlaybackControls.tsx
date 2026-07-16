@@ -10,6 +10,7 @@ type PlaybackControlsProps = {
   currentTime: number
   totalTime: number
   onSeek: (value: number) => void
+  onOpenVisualDrawer: () => void
   isFullscreen: boolean
   onFullscreen: () => void
 }
@@ -29,6 +30,7 @@ export function PlaybackControls({
   currentTime,
   totalTime,
   onSeek,
+  onOpenVisualDrawer,
   isFullscreen,
   onFullscreen,
 }: PlaybackControlsProps) {
@@ -49,6 +51,9 @@ export function PlaybackControls({
           </button>
           <button className="chip-btn" onClick={onMuteToggle}>
             {muted ? <VolumeX size={15} /> : <Volume2 size={15} />} {muted ? 'Muted' : 'Volume'}
+          </button>
+          <button className="chip-btn" onClick={onOpenVisualDrawer} aria-label="Open visual aids drawer">
+            Visual Tray
           </button>
           <input
             type="range"

@@ -92,7 +92,7 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
         style={{ position: 'relative' }}
         onMouseMove={(event: MouseEvent<HTMLDivElement>) => {
           const target = event.target
-          if (target instanceof Element && !target.closest('.visual-drawer, .drawer-hover-trigger, .hover-zone.bottom')) setDrawerOpen(false)
+          if (target instanceof Element && !target.closest('.visual-drawer')) setDrawerOpen(false)
         }}
       >
         <MoviePlayer
@@ -116,7 +116,7 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
           }}
           onDurationChange={setDuration}
           onPromptZoneHover={() => setPromptOpen(true)}
-          onDrawerZoneHover={() => setDrawerOpen(true)}
+          onOpenVisualDrawer={() => setDrawerOpen(true)}
           overlays={
             <>
               <FloatingBubble
@@ -141,27 +141,17 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
             </>
           }
           drawerOverlay={
-            <>
-              <button
-                type="button"
-                className="drawer-hover-trigger"
-                aria-label="Open visual aids drawer"
-                onFocus={() => setDrawerOpen(true)}
-                onClick={() => setDrawerOpen(true)}
-                style={{ position: 'absolute', zIndex: 45, bottom: 0, left: 0, width: '100%', height: 18, opacity: 0 }}
-              />
-              <VisualDrawer
-                open={drawerOpen}
-                scene={scene}
-                onClose={() => setDrawerOpen(false)}
-                onMouseEnter={() => setDrawerOpen(true)}
-                onMouseLeave={() => setDrawerOpen(false)}
-                onFocus={() => setDrawerOpen(true)}
-                onBlur={(event: FocusEvent<HTMLElement>) => {
-                  if (!event.currentTarget.contains(event.relatedTarget)) setDrawerOpen(false)
-                }}
-              />
-            </>
+            <VisualDrawer
+              open={drawerOpen}
+              scene={scene}
+              onClose={() => setDrawerOpen(false)}
+              onMouseEnter={() => setDrawerOpen(true)}
+              onMouseLeave={() => setDrawerOpen(false)}
+              onFocus={() => setDrawerOpen(true)}
+              onBlur={(event: FocusEvent<HTMLElement>) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setDrawerOpen(false)
+              }}
+            />
           }
         />
       </div>
