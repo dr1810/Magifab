@@ -1,10 +1,11 @@
 import type { MovieData } from '../types/movie'
+import { getMovieVideoUrl, movieAssets } from '../config/movies'
 
 export const spriteFrightData: MovieData = {
   id: 'spriteFright', title: 'Sprite Fright',
   description: 'A young sprite explores a moonlit forest where a mischievous spell turns a quiet night into a surprising adventure.',
   runtime: '11 min', genre: 'Fantasy · Animation', rating: 'All ages',
-  accessibilityTags: ['Simple Language Prompts', 'Keyboard Navigation', 'Reduced Motion Supported'], posterUrl: '/posters/sprite-fright.png', videoSrc: '/movies/sprite-fright.webm', subtitleSrc: '/subtitles/sprite-fright.vtt', companionTheme: 'ocean',
+  accessibilityTags: ['Simple Language Prompts', 'Keyboard Navigation', 'Reduced Motion Supported'], posterUrl: movieAssets.spriteFright.posterUrl, videoSrc: getMovieVideoUrl('spriteFright'), subtitleSrc: movieAssets.spriteFright.subtitleSrc, companionTheme: 'ocean',
   scenes: [
     {
       sceneId: 'sf-01', timestamp: 0, subtitle: 'The sprite follows a glowing trail through the forest.',

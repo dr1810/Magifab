@@ -1,4 +1,5 @@
 import type { MovieData } from '../types/movie'
+import { getMovieVideoUrl } from '../config/movies'
 
 type LegacyMovieData = Omit<MovieData, 'id'> & { id: 'insideOut' }
 
@@ -19,7 +20,7 @@ export const insideOutData: LegacyMovieData = {
   ],
   posterUrl:
     'https://images.unsplash.com/photo-1496497243327-9dccd845c35f?auto=format&fit=crop&w=1200&q=80',
-  videoSrc: '/movies/inside-out-demo.mp4',
+  videoSrc: getMovieVideoUrl('insideOut'),
   subtitleSrc: '',
   companionTheme: 'sun',
   scenes: [

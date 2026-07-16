@@ -1,4 +1,5 @@
 import type { MovieData } from '../types/movie'
+import { getMovieVideoUrl } from '../config/movies'
 
 type LegacyMovieData = Omit<MovieData, 'id'> & { id: 'findingNemo' }
 
@@ -19,7 +20,7 @@ export const findingNemoData: LegacyMovieData = {
   ],
   posterUrl:
     'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80',
-  videoSrc: '/movies/finding-nemo-demo.mp4',
+  videoSrc: getMovieVideoUrl('findingNemo'),
   subtitleSrc: '',
   companionTheme: 'ocean',
   scenes: [

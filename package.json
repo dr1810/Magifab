@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "upload:movies": "node scripts/upload-movies.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
@@ -19,9 +20,11 @@
     "vite": "^6.0.5"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "framer-motion": "^12.4.1",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tus-js-client": "^4.3.1"
   }
 }

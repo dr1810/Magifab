@@ -1,4 +1,5 @@
 import type { MovieData } from '../types/movie'
+import { getMovieVideoUrl, movieAssets } from '../config/movies'
 
 export const bigBuckBunnyData: MovieData = {
   id: 'bigBuckBunny',
@@ -8,8 +9,8 @@ export const bigBuckBunnyData: MovieData = {
   genre: 'Comedy · Animation',
   rating: 'All ages',
   accessibilityTags: ['Simple Language Prompts', 'Keyboard Navigation', 'Reduced Motion Supported'],
-  posterUrl: '/posters/big-buck-bunny.jpg',
-  videoSrc: '/movies/big-buck-bunny.mov', subtitleSrc: '/subtitles/big-buck-bunny.srt',
+  posterUrl: movieAssets.bigBuckBunny.posterUrl,
+  videoSrc: getMovieVideoUrl('bigBuckBunny'), subtitleSrc: movieAssets.bigBuckBunny.subtitleSrc,
   companionTheme: 'sun',
   scenes: [
     {
