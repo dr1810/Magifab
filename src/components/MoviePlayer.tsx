@@ -132,6 +132,9 @@ export function MoviePlayer({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      const playerIsActive = document.fullscreenElement === rootRef.current || rootRef.current?.contains(document.activeElement)
+      if (!playerIsActive) return
+
       if (event.key === 'Escape') {
         if (document.fullscreenElement === rootRef.current) {
           void document.exitFullscreen()
@@ -210,6 +213,8 @@ export function MoviePlayer({
           onEnded={onPlayToggle}
           onError={() => setVideoFailed(true)}
           aria-label={`Playing ${movie.title}`}
+          tabIndex={0}
+          onPointerDown={() => videoRef.current?.focus()}
           onClick={handleVideoClick}
           onDoubleClick={handleVideoDoubleClick}
         >
