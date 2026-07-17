@@ -1,13 +1,13 @@
 import type { MovieId } from '../types/movie'
-import { getSupabasePublicUrl } from '../lib/supabaseClient'
 
 export type MovieAssetId = MovieId | 'insideOut' | 'findingNemo'
+
+const CLOUDFLARE_R2_BASE = 'https://pub-26547a0f0f74415f9e77724b24edd8fe.r2.dev'
 
 export type MovieAssetConfig = {
   id: MovieAssetId
   name: string
-  bucket: 'movies'
-  objectPath: string
+  videoUrl: string
   fileType: 'webm' | 'mov' | 'mp4'
   contentType: string
   subtitleSrc: string
@@ -18,18 +18,16 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   bigBuckBunny: {
     id: 'bigBuckBunny',
     name: 'Big Buck Bunny',
-    bucket: 'movies',
-    objectPath: 'big-buck-bunny.mov',
-    fileType: 'mov',
-    contentType: 'video/quicktime',
+    videoUrl: `${CLOUDFLARE_R2_BASE}/big-buck-bunny.mp4`,
+    fileType: 'mp4',
+    contentType: 'video/mp4',
     subtitleSrc: '/subtitles/big-buck-bunny.srt',
     posterUrl: '/posters/big-buck-bunny.jpg',
   },
   spriteFright: {
     id: 'spriteFright',
     name: 'Sprite Fright',
-    bucket: 'movies',
-    objectPath: 'sprite-fright.webm',
+    videoUrl: `${CLOUDFLARE_R2_BASE}/sprite-fright.webm`,
     fileType: 'webm',
     contentType: 'video/webm',
     subtitleSrc: '/subtitles/sprite-fright.vtt',
@@ -38,8 +36,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   insideOut: {
     id: 'insideOut',
     name: 'Inside Out (Demo)',
-    bucket: 'movies',
-    objectPath: 'inside-out-demo.mp4',
+    videoUrl: `${CLOUDFLARE_R2_BASE}/inside-out-demo.mp4`,
     fileType: 'mp4',
     contentType: 'video/mp4',
     subtitleSrc: '',
@@ -49,8 +46,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   findingNemo: {
     id: 'findingNemo',
     name: 'Finding Nemo (Demo)',
-    bucket: 'movies',
-    objectPath: 'finding-nemo-demo.mp4',
+    videoUrl: `${CLOUDFLARE_R2_BASE}/finding-nemo-demo.mp4`,
     fileType: 'mp4',
     contentType: 'video/mp4',
     subtitleSrc: '',
@@ -60,6 +56,5 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
 }
 
 export function getMovieVideoUrl(id: MovieAssetId): string {
-  const asset = movieAssets[id]
-  return getSupabasePublicUrl(asset.bucket, asset.objectPath)
+  return movieAssets[id].videoUrl
 }
