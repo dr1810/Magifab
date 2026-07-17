@@ -10,6 +10,7 @@ import { useAccessibility } from './accessibility-context'
 import { useMoviePlayback } from './hooks/useMoviePlayback'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
 import { askCompanion } from './services/assistantService'
+import { companionAIService } from './services/ai/CompanionAIService'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion, SceneData } from './types/movie'
@@ -35,6 +36,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const [widgetOpen, setWidgetOpen] = useState(false)
   const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
   const currentSceneIdRef = useRef<string>('')
+  const explanationRequestIdRef = useRef(0)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
 
   const prompts = scene?.prompts ?? []
@@ -121,6 +123,53 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setWidgetOpen(false)
     setActiveBubble(null)
 
+    const isCharacterQuestion = /\bwho\b/i.test(prompt.question) || /\bwho\b/i.test(prompt.label)
+    const requestId = ++explanationRequestIdRef.current
+
+    if (isCharacterQuestion) {
+      const loadingBubble = buildPromptBubble(scene, prompt)
+      setActiveBubble({
+        ...loadingBubble,
+        title: 'Looking closely',
+        relationship: '',
+        explanation: '',
+        highlightTarget: false,
+        loading: true,
+      })
+
+      void companionAIService.explainCharacter(scene, prompt.question)
+        .then((result) => {
+          if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId) return
+          const bubble = buildPromptBubble(scene, prompt)
+          setActiveBubble({
+            ...bubble,
+            title: result.character,
+            relationship: result.emotion,
+            explanation: result.explanation,
+          })
+          setAssistantText(result.explanation)
+          if (settings.voiceAssistance || settings.readPrompts) {
+            void speakText({ text: result.explanation, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
+          }
+        })
+        .catch(() => {
+          if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId) return
+          // Preserve the existing local companion path when Supabase is unavailable during development.
+          void askCompanion(movieData, scene.timestamp, prompt.question).then((result) => {
+            if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId) return
+            setActiveBubble(buildPromptBubble(scene, prompt, result.target))
+            setAssistantText(result.answer)
+            if (settings.voiceAssistance || settings.readPrompts) {
+              void speakText({ text: result.answer, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
+            }
+          }).catch(() => {
+            setActiveBubble(null)
+            setAssistantText('I’m still preparing this explanation. You can try the prompt again in a moment.')
+          })
+        })
+      return
+    }
+
     void askCompanion(movieData, scene.timestamp, prompt.question)
       .then((result) => {
         if (currentSceneIdRef.current !== scene.sceneId) return
@@ -151,6 +200,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setDrawerOpen(true)
   }
   const closeBubbles = () => {
+    explanationRequestIdRef.current += 1
     setActiveBubble(null)
     setWidgetOpen(false)
     setPromptOpen(false)
@@ -162,6 +212,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [])
 
   const closePromptBubble = useCallback(() => {
+    explanationRequestIdRef.current += 1
     setActiveBubble(null)
   }, [])
 
@@ -208,6 +259,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           onOpenVisualDrawer={openVisualDrawer}
           onOpenPromptPanel={openPromptPanel}
           onCloseOverlays={() => {
+            explanationRequestIdRef.current += 1
             setPromptOpen(false)
             setDrawerOpen(false)
             setActiveBubble(null)

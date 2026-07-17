@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Sparkles, X } from 'lucide-react'
+import { Loader2, Sparkles, X } from 'lucide-react'
 import type { CompanionTheme } from '../types/movie'
 
 type FloatingBubbleProps = {
@@ -20,6 +20,7 @@ export type PromptBubbleContent = {
   explanation: string
   anchor: { x: number; y: number }
   highlightTarget: boolean
+  loading?: boolean
 }
 
 function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpenCompanion, onClose }: FloatingBubbleProps) {
@@ -63,11 +64,19 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
             </button>
             <p className="eyebrow">{content.question}</p>
             <h4>{content.title}</h4>
-            <p className="bubble-relationship">{content.relationship}</p>
-            <p className="bubble-explanation">{content.explanation}</p>
-            <button type="button" className="bubble-open-companion" onClick={onOpenCompanion}>
-              <Sparkles size={14} /> Open companion
-            </button>
+            {content.loading ? (
+              <p className="bubble-explanation" aria-label="Preparing explanation">
+                <Loader2 className="spin" size={15} aria-hidden="true" /> Finding the character…
+              </p>
+            ) : (
+              <>
+                <p className="bubble-relationship">{content.relationship}</p>
+                <p className="bubble-explanation">{content.explanation}</p>
+                <button type="button" className="bubble-open-companion" onClick={onOpenCompanion}>
+                  <Sparkles size={14} /> Open companion
+                </button>
+              </>
+            )}
           </motion.aside>
         </>
       )}
