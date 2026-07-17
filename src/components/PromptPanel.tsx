@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import type { PromptQuestion } from '../types/movie'
@@ -15,12 +15,14 @@ type PromptPanelProps = {
 
 export function PromptPanel({ open, prompts, selectedPromptId, onSelectPrompt, onClose }: PromptPanelProps) {
   const [focusedIndex, setFocusedIndex] = useState(0)
+  const panelRef = useRef<HTMLElement | null>(null)
   const { settings } = useAccessibility()
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
 
   useEffect(() => {
     if (!open) return
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (!panelRef.current?.contains(document.activeElement)) return
       if (event.key === 'Escape') onClose()
       if (event.key === 'ArrowDown') {
         event.preventDefault()
@@ -46,7 +48,7 @@ export function PromptPanel({ open, prompts, selectedPromptId, onSelectPrompt, o
 
   return (
     <AnimatePresence initial={false}>
-      {open && <motion.aside className="prompt-panel" id="prompt-panel" aria-label="Prompt panel" initial={reduceMotion ? false : { x: '100%' }} animate={{ x: 0 }} exit={reduceMotion ? { x: 0 } : { x: '100%' }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}>
+      {open && <motion.aside ref={panelRef} tabIndex={-1} className="prompt-panel" id="prompt-panel" aria-label="Prompt panel" initial={reduceMotion ? false : { x: '100%' }} animate={{ x: 0 }} exit={reduceMotion ? { x: 0 } : { x: '100%' }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}>
         <div className="prompt-panel-header">
           <div>
             <p className="eyebrow">Prompt Guide</p>

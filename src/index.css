@@ -5,8 +5,22 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  body { margin: 0; min-width: 320px; font-family: 'DM Sans', system-ui, sans-serif; }
+  html, body, #app { width: 100%; min-height: 100%; }
+  html { background: #071a3b; }
+  body { margin: 0; min-width: 320px; overflow-x: hidden; background: #071a3b; font-family: 'DM Sans', system-ui, sans-serif; }
+  #app { overflow-x: clip; background: #071a3b; }
   button { font: inherit; cursor: pointer; }
   input[type='range'] { width: 100%; cursor: pointer; }
   button:focus-visible, input:focus-visible { outline: 3px solid #818cf8; outline-offset: 2px; }
+}
+
+/* The onboarding keeps its existing structure while inheriting Magifab's navy stage. */
+#app > .fixed.inset-0.z-50 {
+  background: rgba(4, 20, 47, .82);
+}
+
+#app > .fixed.inset-0.z-50 > section {
+  border-color: rgba(252, 211, 77, .3);
+  background: radial-gradient(circle at 90% 0%, rgba(66, 130, 187, .38), transparent 27%), #0b244c;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .42);
 }
