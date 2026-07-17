@@ -56,7 +56,7 @@ export function VisualDrawer({ open, scene, onClose, onMouseEnter, onMouseLeave,
           onMouseLeave={onMouseLeave}
           onFocus={onFocus}
           onBlur={onBlur}
-          style={{ position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'clamp(240px, 36vh, 420px)', overflow: 'auto' }}
+          style={{ position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'min(48%, 360px)', overflow: 'auto' }}
         >
           <div className="drawer-header">
             <div>

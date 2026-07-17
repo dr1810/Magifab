@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FocusEvent, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState, type FocusEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { TopBar } from './components/TopBar'
 import { MoviePlayer } from './components/MoviePlayer'
@@ -16,9 +16,10 @@ import type { MovieId, PromptQuestion } from './types/movie'
 type MovieViewerProps = {
   movie: MovieId
   onBack: () => void
+  onOpenAccessibilitySettings?: () => void
 }
 
-export function MovieViewer({ movie, onBack }: MovieViewerProps) {
+export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () => undefined }: MovieViewerProps) {
   const { movie: movieData, scene, loading, totalDuration, updateScene } = useMoviePlayback(movie)
   const { profile } = useCompanionProfile()
   const { settings } = useAccessibility()
@@ -69,6 +70,18 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
     setSelectedPromptId(prompt.id)
     setWidgetOpen(true)
   }
+  const openPromptPanel = () => {
+    setDrawerOpen(false)
+    setPromptOpen(true)
+  }
+  const togglePromptPanel = () => {
+    setDrawerOpen(false)
+    setPromptOpen((open) => !open)
+  }
+  const openVisualDrawer = () => {
+    setPromptOpen(false)
+    setDrawerOpen(true)
+  }
 
   if (loading || !movieData || !scene) {
     return (
@@ -83,18 +96,11 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
       <TopBar
         movie={movieData}
         onBack={onBack}
-        onOpenPrompts={() => setPromptOpen(true)}
-        onOpenDrawer={() => setDrawerOpen(true)}
+        onOpenPrompts={openPromptPanel}
+        onOpenDrawer={openVisualDrawer}
       />
 
-      <div
-        className="viewer-layout"
-        style={{ position: 'relative' }}
-        onMouseMove={(event: MouseEvent<HTMLDivElement>) => {
-          const target = event.target
-          if (target instanceof Element && !target.closest('.visual-drawer')) setDrawerOpen(false)
-        }}
-      >
+      <div className="viewer-layout" style={{ position: 'relative' }}>
         <MoviePlayer
           movie={movieData}
           scene={scene}
@@ -115,8 +121,11 @@ export function MovieViewer({ movie, onBack }: MovieViewerProps) {
             void updateScene(next)
           }}
           onDurationChange={setDuration}
-          onPromptZoneHover={() => setPromptOpen(true)}
-          onOpenVisualDrawer={() => setDrawerOpen(true)}
+          promptOpen={promptOpen}
+          onTogglePromptPanel={togglePromptPanel}
+          onOpenVisualDrawer={openVisualDrawer}
+          onOpenPromptPanel={openPromptPanel}
+          onOpenAccessibilitySettings={onOpenAccessibilitySettings}
           overlays={
             <>
               <FloatingBubble

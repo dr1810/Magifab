@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { MovieData, SceneData } from '../types/movie'
 import { SubtitleOverlay } from './SubtitleOverlay'
@@ -18,8 +19,11 @@ type MoviePlayerProps = {
   onSeek: (value: number) => void
   onTimeChange: (value: number) => void
   onDurationChange: (value: number) => void
-  onPromptZoneHover: () => void
+  promptOpen: boolean
+  onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
+  onOpenPromptPanel: () => void
+  onOpenAccessibilitySettings: () => void
   overlays: ReactNode
   drawerOverlay?: ReactNode
 }
@@ -38,8 +42,11 @@ export function MoviePlayer({
   onSeek,
   onTimeChange,
   onDurationChange,
-  onPromptZoneHover,
+  promptOpen,
+  onTogglePromptPanel,
   onOpenVisualDrawer,
+  onOpenPromptPanel,
+  onOpenAccessibilitySettings,
   overlays,
   drawerOverlay,
 }: MoviePlayerProps) {
@@ -108,9 +115,18 @@ export function MoviePlayer({
         </video>
         {videoFailed && <div className="video-notice" role="status">This browser cannot play this video format. Try Sprite Fright, or open Big Buck Bunny in a browser that supports its MOV codec.</div>}
         {overlays}
+        {drawerOverlay}
         <SubtitleOverlay subtitle={scene.subtitle} />
-
-        <div className="hover-zone right" onMouseEnter={onPromptZoneHover} aria-hidden="true" />
+        <button
+          type="button"
+          className="prompt-sidebar-toggle"
+          aria-label={promptOpen ? 'Collapse Prompt Panel' : 'Expand Prompt Panel'}
+          aria-controls="prompt-panel"
+          aria-expanded={promptOpen}
+          onClick={onTogglePromptPanel}
+        >
+          {promptOpen ? <ChevronRight size={18}/> : <ChevronLeft size={18}/>} 
+        </button>
       </div>
 
       <PlaybackControls
@@ -124,10 +140,11 @@ export function MoviePlayer({
         totalTime={totalTime}
         onSeek={seek}
         onOpenVisualDrawer={onOpenVisualDrawer}
+        onOpenPromptPanel={onOpenPromptPanel}
+        onOpenAccessibilitySettings={onOpenAccessibilitySettings}
         isFullscreen={isFullscreen}
         onFullscreen={toggleFullscreen}
       />
-      {drawerOverlay}
     </section>
   )
 }

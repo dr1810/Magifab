@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import type { PromptQuestion } from '../types/movie'
 import { PromptCard } from './PromptCard'
+import { useAccessibility } from '../accessibility-context'
 
 type PromptPanelProps = {
   open: boolean
@@ -13,6 +15,8 @@ type PromptPanelProps = {
 
 export function PromptPanel({ open, prompts, selectedPromptId, onSelectPrompt, onClose }: PromptPanelProps) {
   const [focusedIndex, setFocusedIndex] = useState(0)
+  const { settings } = useAccessibility()
+  const reduceMotion = settings.reduceMotion || settings.disableAnimations
 
   useEffect(() => {
     if (!open) return
@@ -40,32 +44,32 @@ export function PromptPanel({ open, prompts, selectedPromptId, onSelectPrompt, o
     if (selectedIndex >= 0) setFocusedIndex(selectedIndex)
   }, [prompts, selectedPromptId])
 
-  if (!open) return null
-
   return (
-    <aside className="prompt-panel" aria-label="Prompt panel">
-      <div className="prompt-panel-header">
-        <div>
-          <p className="eyebrow">Prompt Guide</p>
-          <h3>Scene Questions</h3>
+    <AnimatePresence initial={false}>
+      {open && <motion.aside className="prompt-panel" id="prompt-panel" aria-label="Prompt panel" initial={reduceMotion ? false : { x: '100%' }} animate={{ x: 0 }} exit={reduceMotion ? { x: 0 } : { x: '100%' }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}>
+        <div className="prompt-panel-header">
+          <div>
+            <p className="eyebrow">Prompt Guide</p>
+            <h3>Scene Questions</h3>
+          </div>
+          <button className="ghost-btn" onClick={onClose} aria-label="Close prompts">
+            <X size={15} />
+          </button>
         </div>
-        <button className="ghost-btn" onClick={onClose} aria-label="Close prompts">
-          <X size={15} />
-        </button>
-      </div>
-      <div className="prompt-list">
-        {prompts.map((prompt, index) => (
-          <PromptCard
-            key={prompt.id}
-            prompt={prompt}
-            active={selectedPromptId === prompt.id || focusedIndex === index}
-            onSelect={() => {
-              setFocusedIndex(index)
-              onSelectPrompt(prompt)
-            }}
-          />
-        ))}
-      </div>
-    </aside>
+        <div className="prompt-list">
+          {prompts.map((prompt, index) => (
+            <PromptCard
+              key={prompt.id}
+              prompt={prompt}
+              active={selectedPromptId === prompt.id || focusedIndex === index}
+              onSelect={() => {
+                setFocusedIndex(index)
+                onSelectPrompt(prompt)
+              }}
+            />
+          ))}
+        </div>
+      </motion.aside>}
+    </AnimatePresence>
   )
 }

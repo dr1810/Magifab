@@ -6,6 +6,10 @@ import { Onboarding } from './onboarding'
 import { MovieSelector } from './components/MovieSelector'
 import { MovieViewer } from './movie-viewer'
 import type { MovieId } from './types/movie'
+import { useAccessibilityProfile } from './hooks/useAccessibilityProfile'
+import { HomeProfileButton } from './components/HomeProfileButton'
+import { LandingPage } from './landing-page'
+import { ProfileEditor } from './components/ProfileEditor'
 
 type Key = keyof Settings
 const fontSizes: Settings['fontSize'][] = ['Small', 'Medium', 'Large', 'Extra Large']
@@ -53,17 +57,28 @@ function HomePage({ onSettings, onOnboardingComplete }: { onSettings: () => void
 }
 
 function App() {
-  const [tab, setTab] = useState<'home' | 'settings' | 'selector' | 'watch'>('home')
+  const { profile, loading, refresh } = useAccessibilityProfile()
+  const [tab, setTab] = useState<'home' | 'profile' | 'settings' | 'setup' | 'selector' | 'watch'>('home')
   const [selectedMovie, setSelectedMovie] = useState<MovieId>('bigBuckBunny')
 
+  if (loading) return <div className="loading-screen">Preparing your Magifab profile…</div>
+
+  if (tab === 'setup') {
+    return <Onboarding open onClose={() => setTab('home')} onComplete={() => { void refresh(); setTab('selector') }} />
+  }
+
+  if (tab === 'profile' && profile) {
+    return <ProfileEditor profile={profile} onClose={() => setTab('home')} onEdit={() => setTab('settings')} onSwitchCompanion={() => setTab('setup')} />
+  }
+
   if (tab === 'watch') {
-    return <MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} />
+    return <MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} onOpenAccessibilitySettings={() => setTab('settings')} />
   }
 
   if (tab === 'selector') {
     return (
       <MovieSelector
-        onBack={() => setTab('settings')}
+        onBack={() => setTab('home')}
         onSelect={(movieId) => {
           setSelectedMovie(movieId)
           setTab('watch')
@@ -73,10 +88,10 @@ function App() {
   }
 
   if (tab === 'settings') {
-    return <AccessibilityPage onHome={() => setTab('home')} onContinue={() => setTab('selector')} />
+    return <AccessibilityPage onHome={() => setTab('home')} onContinue={() => setTab(profile ? 'selector' : 'setup')} />
   }
 
-  return <HomePage onSettings={() => setTab('settings')} onOnboardingComplete={() => setTab('settings')} />
+  return <LandingPage profile={profile} onProfile={() => setTab(profile ? 'profile' : 'settings')} onSettings={() => setTab('settings')} onMovies={() => setTab('selector')} />
 }
 
 export default App

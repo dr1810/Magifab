@@ -11,6 +11,8 @@ type PlaybackControlsProps = {
   totalTime: number
   onSeek: (value: number) => void
   onOpenVisualDrawer: () => void
+  onOpenPromptPanel: () => void
+  onOpenAccessibilitySettings: () => void
   isFullscreen: boolean
   onFullscreen: () => void
 }
@@ -31,6 +33,8 @@ export function PlaybackControls({
   totalTime,
   onSeek,
   onOpenVisualDrawer,
+  onOpenPromptPanel,
+  onOpenAccessibilitySettings,
   isFullscreen,
   onFullscreen,
 }: PlaybackControlsProps) {
@@ -52,9 +56,6 @@ export function PlaybackControls({
           <button className="chip-btn" onClick={onMuteToggle}>
             {muted ? <VolumeX size={15} /> : <Volume2 size={15} />} {muted ? 'Muted' : 'Volume'}
           </button>
-          <button className="chip-btn" onClick={onOpenVisualDrawer} aria-label="Open visual aids drawer">
-            Visual Tray
-          </button>
           <input
             type="range"
             min={0}
@@ -75,6 +76,11 @@ export function PlaybackControls({
             {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />} {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           </button>
         </div>
+      </div>
+      <div className="player-action-row" aria-label="Movie assistance actions">
+        <button className="chip-btn" onClick={onOpenPromptPanel}>Prompt Panel</button>
+        <button className="chip-btn" onClick={onOpenVisualDrawer}>Visual Drawer</button>
+        <button className="chip-btn" onClick={onOpenAccessibilitySettings}>Accessibility Settings</button>
       </div>
     </section>
   )
