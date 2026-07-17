@@ -10,6 +10,7 @@ import { useAccessibilityProfile } from './hooks/useAccessibilityProfile'
 import { HomeProfileButton } from './components/HomeProfileButton'
 import { LandingPage } from './landing-page'
 import { ProfileEditor } from './components/ProfileEditor'
+import { resetPlaybackTimestamp } from './services/playbackSessionService'
 
 type Key = keyof Settings
 const fontSizes: Settings['fontSize'][] = ['Small', 'Medium', 'Large', 'Extra Large']
@@ -79,7 +80,8 @@ function App() {
     return (
       <MovieSelector
         onBack={() => setTab('home')}
-        onSelect={(movieId) => {
+        onSelect={(movieId, startOver) => {
+          if (startOver) resetPlaybackTimestamp(movieId)
           setSelectedMovie(movieId)
           setTab('watch')
         }}

@@ -13,6 +13,7 @@ type PlaybackControlsProps = {
   onOpenVisualDrawer: () => void
   onOpenPromptPanel: () => void
   onOpenAccessibilitySettings: () => void
+  onCloseBubbles: () => void
   isFullscreen: boolean
   onFullscreen: () => void
 }
@@ -35,6 +36,7 @@ export function PlaybackControls({
   onOpenVisualDrawer,
   onOpenPromptPanel,
   onOpenAccessibilitySettings,
+  onCloseBubbles,
   isFullscreen,
   onFullscreen,
 }: PlaybackControlsProps) {
@@ -80,6 +82,7 @@ export function PlaybackControls({
       <div className="player-action-row" aria-label="Movie assistance actions">
         <button className="chip-btn" onClick={onOpenPromptPanel}>Prompt Panel</button>
         <button className="chip-btn" onClick={onOpenVisualDrawer}>Visual Drawer</button>
+        <button className="chip-btn" onClick={onCloseBubbles}>Close Bubbles</button>
       </div>
     </section>
   )

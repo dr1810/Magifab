@@ -2,10 +2,11 @@ import { ArrowLeft, Loader2 } from 'lucide-react'
 import { useMovies } from '../hooks/useMovies'
 import type { MovieId } from '../types/movie'
 import { MovieCard } from './MovieCard'
+import { getPlaybackSession } from '../services/playbackSessionService'
 
 type MovieSelectorProps = {
   onBack: () => void
-  onSelect: (id: MovieId) => void
+  onSelect: (id: MovieId, startOver?: boolean) => void
 }
 
 export function MovieSelector({ onBack, onSelect }: MovieSelectorProps) {
@@ -23,7 +24,7 @@ export function MovieSelector({ onBack, onSelect }: MovieSelectorProps) {
       ) : (
         <section className="movie-grid" aria-label="Movie choices">
           {movies.slice(0, 2).map((movie) => (
-            <MovieCard key={movie.id} movie={movie} onSelect={onSelect} />
+            <MovieCard key={movie.id} movie={movie} playbackSession={getPlaybackSession(movie.id)} onSelect={onSelect} />
           ))}
         </section>
       )}

@@ -135,6 +135,12 @@
   margin: 10px 0;
 }
 
+.movie-experience .movie-resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .movie-experience .loading,
 .movie-experience .loading-screen {
   display: inline-flex;
@@ -497,14 +503,16 @@
   position: absolute;
   z-index: 24;
   transform: translate(-50%, -50%);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 999px;
   width: 56px;
   height: 56px;
   display: grid;
   place-items: center;
   color: white;
-  box-shadow: 0 0 30px rgba(170, 214, 255, 0.7);
+  background-color: rgba(92, 185, 237, 0.35);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.55), 0 10px 30px rgba(16, 102, 177, 0.45);
+  backdrop-filter: blur(10px);
 }
 
 .movie-experience .bubble.ocean {
@@ -513,6 +521,96 @@
 
 .movie-experience .bubble.sun {
   background: radial-gradient(circle at 30% 25%, #fff6cf, #f59e0b 45%, #ef4444);
+}
+
+.movie-experience .bubble-target-highlight {
+  position: absolute;
+  z-index: 26;
+  width: 64px;
+  height: 64px;
+  border: 2px solid rgba(163, 220, 255, 0.85);
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 6px rgba(106, 196, 255, 0.18), 0 0 26px rgba(66, 184, 255, 0.35);
+  pointer-events: none;
+}
+
+.movie-experience .bubble-callout {
+  position: absolute;
+  z-index: 28;
+  transform: translate(-50%, -100%);
+  width: min(320px, 74vw);
+  padding: 12px 14px;
+  border: 1px solid rgba(220, 241, 255, 0.38);
+  border-radius: 16px;
+  color: #eaf4ff;
+  background: linear-gradient(160deg, rgba(148, 210, 246, 0.26), rgba(21, 84, 151, 0.26));
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 34px rgba(2, 13, 34, 0.42);
+}
+
+.movie-experience .bubble-callout::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 18px;
+  height: 18px;
+  transform: translateX(-50%) rotate(45deg);
+  border-right: 1px solid rgba(220, 241, 255, 0.3);
+  border-bottom: 1px solid rgba(220, 241, 255, 0.3);
+  background: rgba(22, 73, 130, 0.72);
+}
+
+.movie-experience .bubble-callout.ocean {
+  background: linear-gradient(160deg, rgba(123, 211, 255, 0.24), rgba(16, 91, 158, 0.28));
+}
+
+.movie-experience .bubble-callout.sun {
+  background: linear-gradient(160deg, rgba(252, 219, 144, 0.28), rgba(176, 95, 33, 0.3));
+}
+
+.movie-experience .bubble-callout h4 {
+  margin: 3px 0 2px;
+  font-size: 1rem;
+}
+
+.movie-experience .bubble-relationship {
+  margin: 0;
+  font-size: 0.79rem;
+  color: #d2e9ff;
+}
+
+.movie-experience .bubble-explanation {
+  margin: 8px 0 10px;
+  font-size: 0.85rem;
+  line-height: 1.38;
+}
+
+.movie-experience .bubble-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #eaf4ff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.movie-experience .bubble-open-companion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(220, 241, 255, 0.3);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #f8fcff;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
 }
 
 .movie-experience .companion-widget {
@@ -525,7 +623,47 @@
   padding: 10px 12px;
   border: 1px solid rgba(196, 220, 255, 0.32);
   background: rgba(6, 15, 29, 0.8);
+  backdrop-filter: blur(14px);
 }
+
+.movie-experience .companion-widget-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.movie-experience .exit-movie-dialog-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 12, 29, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.movie-experience .exit-movie-dialog {
+  width: min(420px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(196, 220, 255, 0.3);
+  border-radius: 18px;
+  color: #f7fbff;
+  background: rgba(8, 26, 55, 0.94);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.movie-experience .exit-movie-dialog h2 { margin: 6px 0; }
+.movie-experience .exit-movie-dialog > p:not(.eyebrow) { color: #c8d9ed; }
+.movie-experience .exit-movie-dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
 
 .movie-experience .companion-widget.ocean {
   box-shadow: 0 16px 32px -26px rgba(36, 155, 220, 0.85);

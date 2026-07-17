@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState, type FocusEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { TopBar } from './components/TopBar'
 import { MoviePlayer } from './components/MoviePlayer'
 import { PromptPanel } from './components/PromptPanel'
 import { VisualDrawer } from './components/VisualDrawer'
-import { FloatingBubble } from './components/FloatingBubble'
+import { FloatingBubble, type PromptBubbleContent } from './components/FloatingBubble'
 import { CompanionWidget } from './components/CompanionWidget'
 import { useAccessibility } from './accessibility-context'
 import { useMoviePlayback } from './hooks/useMoviePlayback'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
-import { askAssistant } from './services/assistantService'
+import { askCompanion } from './services/assistantService'
 import { speakText, stopSpeech } from './services/speechService'
-import type { MovieId, PromptQuestion } from './types/movie'
+import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
+import type { MovieId, PromptQuestion, SceneData } from './types/movie'
 
 type MovieViewerProps = {
   movie: MovieId
@@ -32,6 +33,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const [promptOpen, setPromptOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [widgetOpen, setWidgetOpen] = useState(false)
+  const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
+  const currentSceneIdRef = useRef<string>('')
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
 
   const prompts = scene?.prompts ?? []
@@ -43,32 +46,97 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     }
   }, [prompts])
 
+  useEffect(() => {
+    const sceneId = scene?.sceneId ?? ''
+    currentSceneIdRef.current = sceneId
+    setActiveBubble((bubble) => bubble?.id.startsWith(`${sceneId}:`) ? bubble : null)
+  }, [scene?.sceneId])
+
+  useEffect(() => {
+    const savedTimestamp = getPlaybackTimestamp(movie)
+    if (import.meta.env.DEV) console.debug('[MagiFab playback] viewer resume request', { movieId: movie, currentTimeBeforeResume: currentTime, savedTimestamp })
+    setCurrentTime(savedTimestamp)
+    if (savedTimestamp > 0) void updateScene(savedTimestamp)
+    setActiveBubble(null)
+    setWidgetOpen(false)
+  }, [movie])
+
+  useEffect(() => {
+    if (!movieData) return
+    const timer = window.setTimeout(() => savePlaybackTimestamp(movie, currentTime, duration || totalDuration), 300)
+    return () => window.clearTimeout(timer)
+  }, [currentTime, duration, movie, movieData, totalDuration])
+
   const selectedPrompt = useMemo(
     () => prompts.find((prompt) => prompt.id === selectedPromptId) ?? prompts[0],
     [prompts, selectedPromptId],
   )
 
-  useEffect(() => {
-    if (!selectedPrompt || !scene) return
-    void askAssistant(scene.sceneId, selectedPrompt.question).then((result) => {
-      setAssistantText(result.answer)
-      if (settings.voiceAssistance || settings.readPrompts) {
-        void speakText({
-          text: result.answer,
-          rate: settings.voiceSpeed,
-          volume: Math.min(1, settings.voiceVolume / 100),
-        })
-      }
-    })
+  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, target?: { kind: string; label: string; anchor: { x: number; y: number } }): PromptBubbleContent => {
+    const normalizedQuestion = prompt.question.trim().toLowerCase()
+    const promptLabel = prompt.label.trim().toLowerCase()
+    const questionType = normalizedQuestion.includes('who') || promptLabel.includes('who')
+      ? 'Who is that?'
+      : normalizedQuestion.includes('what') && normalizedQuestion.includes('happened')
+        ? 'What just happened?'
+        : normalizedQuestion.includes('why') && normalizedQuestion.includes('sad')
+          ? 'Why are they sad?'
+          : normalizedQuestion.includes('object') || promptLabel.includes('object')
+            ? 'What is this object?'
+            : normalizedQuestion.includes('why') && normalizedQuestion.includes('matter')
+              ? 'Why does it matter?'
+              : 'Why did they do that?'
 
-    return () => {
-      void stopSpeech()
+    const knownCharacter = sceneData.characterList.find((character) => {
+      const name = character.name.toLowerCase()
+      return normalizedQuestion.includes(name) || prompt.explanation.toLowerCase().includes(name)
+    }) ?? sceneData.characterList[0]
+
+    const relationship = knownCharacter
+      ? sceneData.relationshipGraph.find((edge) => edge.from.includes(knownCharacter.name) || edge.to.includes(knownCharacter.name))
+      : undefined
+
+    const title = target?.label || (questionType === 'Who is that?' && knownCharacter
+      ? knownCharacter.name
+      : prompt.label)
+
+    return {
+      id: `${sceneData.sceneId}:${prompt.id}`,
+      question: questionType,
+      title,
+      relationship: target?.kind === 'object' ? sceneData.highlightObject.reason : questionType === 'Who is that?'
+        ? relationship?.label ?? knownCharacter?.role ?? 'Character context'
+        : sceneData.emotion,
+      explanation: prompt.explanation,
+      anchor: target?.anchor ?? { x: sceneData.companionPosition.x, y: Math.max(14, Math.min(76, sceneData.companionPosition.y)) },
+      highlightTarget: target?.kind === 'character' || target?.kind === 'object' || questionType === 'Who is that?',
     }
-  }, [scene, selectedPrompt, settings.voiceAssistance, settings.readPrompts, settings.voiceSpeed, settings.voiceVolume])
+  }, [])
 
   const selectPrompt = (prompt: PromptQuestion) => {
+    if (!scene || !movieData) return
     setSelectedPromptId(prompt.id)
-    setWidgetOpen(true)
+    setPromptOpen(false)
+    setDrawerOpen(false)
+    setWidgetOpen(false)
+    setActiveBubble(null)
+
+    void askCompanion(movieData, scene.timestamp, prompt.question)
+      .then((result) => {
+        if (currentSceneIdRef.current !== scene.sceneId) return
+        setActiveBubble(buildPromptBubble(scene, prompt, result.target))
+        setAssistantText(result.answer)
+        if (settings.voiceAssistance || settings.readPrompts) {
+          void speakText({
+            text: result.answer,
+            rate: settings.voiceSpeed,
+            volume: Math.min(1, settings.voiceVolume / 100),
+          })
+        }
+      })
+      .catch(() => {
+        setAssistantText('I’m still preparing this explanation. You can try the prompt again in a moment.')
+      })
   }
   const openPromptPanel = () => {
     setDrawerOpen(false)
@@ -82,6 +150,20 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setPromptOpen(false)
     setDrawerOpen(true)
   }
+  const closeBubbles = () => {
+    setActiveBubble(null)
+    setWidgetOpen(false)
+    setPromptOpen(false)
+    void stopSpeech()
+  }
+
+  const openCompanionFromBubble = useCallback(() => {
+    setWidgetOpen(true)
+  }, [])
+
+  const closePromptBubble = useCallback(() => {
+    setActiveBubble(null)
+  }, [])
 
   if (loading || !movieData || !scene) {
     return (
@@ -95,7 +177,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     <main className="movie-experience viewer-page">
       <TopBar
         movie={movieData}
-        onBack={onBack}
+        onBack={() => { savePlaybackTimestamp(movie, currentTime, duration || totalDuration); onBack() }}
         onOpenPrompts={openPromptPanel}
         onOpenDrawer={openVisualDrawer}
       />
@@ -128,22 +210,28 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           onCloseOverlays={() => {
             setPromptOpen(false)
             setDrawerOpen(false)
+            setActiveBubble(null)
           }}
           onOpenAccessibilitySettings={onOpenAccessibilitySettings}
+          onCloseBubbles={closeBubbles}
           reduceMotion={settings.reduceMotion || settings.disableAnimations}
           overlays={
             <>
               <FloatingBubble
-                scene={scene}
+                content={activeBubble}
                 theme={movieData.companionTheme}
                 reduceMotion={settings.reduceMotion || settings.disableAnimations}
-                onClick={() => setWidgetOpen((value) => !value)}
+                visible={Boolean(activeBubble)}
+                onOpenCompanion={openCompanionFromBubble}
+                onClose={closePromptBubble}
               />
               <CompanionWidget
                 open={widgetOpen}
                 name={profile?.name || 'Lumi'}
                 message={assistantText}
                 theme={movieData.companionTheme}
+                onClose={() => setWidgetOpen(false)}
+                reduceMotion={settings.reduceMotion || settings.disableAnimations}
               />
               <PromptPanel
                 open={promptOpen}

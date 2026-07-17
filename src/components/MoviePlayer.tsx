@@ -25,6 +25,7 @@ type MoviePlayerProps = {
   onOpenPromptPanel: () => void
   onCloseOverlays: () => void
   onOpenAccessibilitySettings: () => void
+  onCloseBubbles: () => void
   overlays: ReactNode
   drawerOverlay?: ReactNode
   reduceMotion: boolean
@@ -50,6 +51,7 @@ export function MoviePlayer({
   onOpenPromptPanel,
   onCloseOverlays,
   onOpenAccessibilitySettings,
+  onCloseBubbles,
   overlays,
   drawerOverlay,
   reduceMotion,
@@ -61,6 +63,19 @@ export function MoviePlayer({
   const [playbackFeedback, setPlaybackFeedback] = useState<'play' | 'pause' | null>(null)
   const clickTimerRef = useRef<number | null>(null)
   const feedbackTimerRef = useRef<number | null>(null)
+  const pendingResumeTimestampRef = useRef<number | null>(null)
+
+  const logPlayback = (event: string, details: Record<string, unknown>) => {
+    if (import.meta.env.DEV) console.debug(`[MagiFab playback] ${event}`, { movieId: movie.id, ...details })
+  }
+
+  const applyPendingResume = (video: HTMLVideoElement, phase: string) => {
+    const timestamp = pendingResumeTimestampRef.current ?? currentTime
+    if (timestamp <= 0) return
+    pendingResumeTimestampRef.current = timestamp
+    logPlayback('applying resume timestamp', { phase, requestedTimestamp: timestamp, currentTimeBefore: video.currentTime, readyState: video.readyState })
+    video.currentTime = timestamp
+  }
 
   const clearClickTimer = () => {
     if (clickTimerRef.current !== null) {
@@ -103,6 +118,22 @@ export function MoviePlayer({
     video.muted = muted
     video.volume = Math.max(0, Math.min(1, volume / 100))
   }, [muted, volume])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || currentTime <= 0 || Math.abs(video.currentTime - currentTime) < .35) return
+    if (video.readyState < HTMLMediaElement.HAVE_METADATA) {
+      pendingResumeTimestampRef.current = currentTime
+      logPlayback('queued resume before metadata', { requestedTimestamp: currentTime, currentTimeBefore: video.currentTime, readyState: video.readyState })
+      return
+    }
+    pendingResumeTimestampRef.current = currentTime
+    applyPendingResume(video, 'react-state')
+  }, [currentTime, movie.id])
+
+  useEffect(() => {
+    logPlayback('video source mounted', { videoSrc: movie.videoSrc, currentTime })
+  }, [movie.id, movie.videoSrc])
 
   useEffect(() => () => {
     clearClickTimer()
@@ -209,7 +240,20 @@ export function MoviePlayer({
           playsInline
           preload="metadata"
           onTimeUpdate={(event) => onTimeChange(event.currentTarget.currentTime)}
-          onLoadedMetadata={(event) => onDurationChange(event.currentTarget.duration)}
+          onLoadedMetadata={(event) => {
+            const video = event.currentTarget
+            logPlayback('loadedmetadata', { duration: video.duration, currentTimeBefore: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current, requestedCurrentTime: currentTime })
+            onDurationChange(video.duration)
+            applyPendingResume(video, 'loadedmetadata')
+          }}
+          onCanPlay={(event) => applyPendingResume(event.currentTarget, 'canplay')}
+          onSeeked={(event) => {
+            const video = event.currentTarget
+            logPlayback('resume seeked', { currentTimeAfter: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current })
+            if (pendingResumeTimestampRef.current !== null && Math.abs(video.currentTime - pendingResumeTimestampRef.current) < .35) {
+              pendingResumeTimestampRef.current = null
+            }
+          }}
           onEnded={onPlayToggle}
           onError={() => setVideoFailed(true)}
           aria-label={`Playing ${movie.title}`}
@@ -253,6 +297,7 @@ export function MoviePlayer({
         onOpenVisualDrawer={onOpenVisualDrawer}
         onOpenPromptPanel={onOpenPromptPanel}
         onOpenAccessibilitySettings={onOpenAccessibilitySettings}
+        onCloseBubbles={onCloseBubbles}
         isFullscreen={isFullscreen}
         onFullscreen={toggleFullscreen}
       />
