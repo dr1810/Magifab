@@ -125,7 +125,12 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           onTogglePromptPanel={togglePromptPanel}
           onOpenVisualDrawer={openVisualDrawer}
           onOpenPromptPanel={openPromptPanel}
+          onCloseOverlays={() => {
+            setPromptOpen(false)
+            setDrawerOpen(false)
+          }}
           onOpenAccessibilitySettings={onOpenAccessibilitySettings}
+          reduceMotion={settings.reduceMotion || settings.disableAnimations}
           overlays={
             <>
               <FloatingBubble
