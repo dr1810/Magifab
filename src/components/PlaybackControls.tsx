@@ -80,7 +80,6 @@ export function PlaybackControls({
       <div className="player-action-row" aria-label="Movie assistance actions">
         <button className="chip-btn" onClick={onOpenPromptPanel}>Prompt Panel</button>
         <button className="chip-btn" onClick={onOpenVisualDrawer}>Visual Drawer</button>
-        <button className="chip-btn" onClick={onOpenAccessibilitySettings}>Accessibility Settings</button>
       </div>
     </section>
   )
