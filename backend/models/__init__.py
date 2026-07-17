@@ -1,1 +1,1 @@
-"""Reserved for future model-agnostic domain contracts; intentionally empty in Phase 1."""
+"""Model-agnostic contracts used by application services."""
