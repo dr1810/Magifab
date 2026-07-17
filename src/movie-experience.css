@@ -292,6 +292,10 @@
   border-left: 1px solid rgba(179, 206, 250, 0.2);
   padding: 12px;
   backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .movie-experience .prompt-panel-header {
@@ -304,8 +308,9 @@
   margin-top: 10px;
   display: grid;
   gap: 8px;
-  max-height: calc(100% - 72px);
-  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .movie-experience .prompt-card {
