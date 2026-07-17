@@ -1,16 +1,20 @@
 import { supabase } from '../../lib/supabaseClient'
 import { getAccessibilityProfile } from '../accessibilityProfileService'
-import type { SceneData } from '../../types/movie'
 
 export type SceneExplanation = {
   explanation: string
   emotion: string
-  character: string
+  character: string | null
+  characterFound: boolean
+  confidence: number
+  anchor: { x: number; y: number; width: number; height: number }
+  visualAidType: 'magnifier' | 'highlight'
 }
 
-type ExplainSceneRequest = {
+type PersonalizeRequest = {
+  mode: 'personalize'
   question: string
-  scene: string
+  semanticContext: Record<string, unknown>
   companion: {
     personality: string
     conversationStyle: string
@@ -18,33 +22,25 @@ type ExplainSceneRequest = {
   }
 }
 
-function isSceneExplanation(value: unknown): value is SceneExplanation {
+export type PersonalizedExplanation = Pick<SceneExplanation, 'explanation' | 'emotion'>
+
+function isPersonalizedExplanation(value: unknown): value is PersonalizedExplanation {
   if (!value || typeof value !== 'object') return false
   const response = value as Record<string, unknown>
-  return [response.explanation, response.emotion, response.character]
-    .every((item) => typeof item === 'string' && item.trim().length > 0)
-}
-
-function buildSceneContext(scene: SceneData): string {
-  const characters = scene.characterList
-    .map((character) => `${character.name} (${character.role}; feeling ${character.emotionalState})`)
-    .join(', ')
-
-  return [
-    `Scene: ${scene.subtitle}`,
-    characters ? `Known characters: ${characters}.` : '',
-    scene.emotion ? `Scene emotion: ${scene.emotion}.` : '',
-  ].filter(Boolean).join(' ')
+  return typeof response.explanation === 'string' && response.explanation.trim().length > 0
+    && typeof response.emotion === 'string' && response.emotion.trim().length > 0
 }
 
 export class CompanionAIService {
-  async explainCharacter(scene: SceneData, question: string): Promise<SceneExplanation> {
+  /** GPT receives only verified semantic facts and turns them into accessible language. */
+  async personalizeExplanation(question: string, semanticContext: Record<string, unknown>): Promise<PersonalizedExplanation> {
     if (!supabase) throw new Error('Supabase is not configured.')
 
     const profile = await getAccessibilityProfile()
-    const request: ExplainSceneRequest = {
+    const request: PersonalizeRequest = {
+      mode: 'personalize',
       question,
-      scene: buildSceneContext(scene),
+      semanticContext,
       companion: {
         personality: profile?.companionProfile.personality ?? 'Warm and encouraging',
         conversationStyle: profile?.companionProfile.conversationStyle ?? 'Simple and direct',
@@ -54,11 +50,10 @@ export class CompanionAIService {
 
     const { data, error } = await supabase.functions.invoke('explain-scene', { body: request })
     if (error) throw error
-    if (!isSceneExplanation(data)) throw new Error('The AI service returned an invalid explanation.')
+    if (!isPersonalizedExplanation(data)) throw new Error('The AI service returned an invalid explanation.')
     return {
       explanation: data.explanation.trim(),
       emotion: data.emotion.trim(),
-      character: data.character.trim(),
     }
   }
 }

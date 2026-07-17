@@ -38,6 +38,14 @@ export type SemanticCharacter = {
   name: string
   role: string
   traits: string[]
+  /** Detector-safe labels that may be matched without asking a language model to guess. */
+  aliases?: string[]
+}
+
+export type VisibleCharacter = {
+  characterId: string
+  prominence: 'primary' | 'secondary' | 'background'
+  confidence: 'known' | 'uncertain'
 }
 
 export type SemanticRelationship = {
@@ -68,16 +76,30 @@ export type SemanticScene = {
   emotions: string[]
   importantEvents: string[]
   characterIds: string[]
+  visibleCharacters: VisibleCharacter[]
   objectIds: string[]
+  location: string
+  keyFrameTimestamps: number[]
   accessibilityMetadata: string[]
   confusionPoints: ConfusionPoint[]
   companionAnchor: { x: number; y: number }
+  /** Observations accepted by the semantic matcher, never raw model guesses. */
+  knownDetections?: VerifiedSemanticDetection[]
+}
+
+export type VerifiedSemanticDetection = {
+  detectionId: string
+  className: string
+  timestamp: number
+  confidence: number
+  characterId?: string
+  bbox: { x: number; y: number; width: number; height: number }
 }
 
 /** Optimized, timestamp-indexed output of the one-time movie-analysis stage. */
 export type SemanticMovieMemory = {
   movieId: string
-  version: 1
+  version: number
   createdAt: string
   characters: SemanticCharacter[]
   relationships: SemanticRelationship[]

@@ -31,7 +31,7 @@ export class SemanticMemoryService {
   public getScene(memory: SemanticMovieMemory, timestamp: number): SemanticScene {
     return memory.scenes.find((scene) => timestamp >= scene.range.start && timestamp < scene.range.end)
       ?? memory.scenes.at(-1)
-      ?? { sceneId: 'unknown', range: { start: 0, end: 0 }, summary: '', dialogue: [], emotions: [], importantEvents: [], characterIds: [], objectIds: [], accessibilityMetadata: [], confusionPoints: [], companionAnchor: { x: 50, y: 38 } }
+      ?? { sceneId: 'unknown', range: { start: 0, end: 0 }, summary: '', dialogue: [], emotions: [], importantEvents: [], characterIds: [], visibleCharacters: [], objectIds: [], location: 'Unknown', keyFrameTimestamps: [], accessibilityMetadata: [], confusionPoints: [], companionAnchor: { x: 50, y: 38 } }
   }
 
   /** Returns accessibility guidance associated with the current scene timestamp. */

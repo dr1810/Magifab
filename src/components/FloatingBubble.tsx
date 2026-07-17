@@ -19,6 +19,8 @@ export type PromptBubbleContent = {
   relationship: string
   explanation: string
   anchor: { x: number; y: number }
+  visualAnchor?: { x: number; y: number; width: number; height: number }
+  visualAidType?: 'magnifier' | 'highlight'
   highlightTarget: boolean
   loading?: boolean
 }
@@ -27,8 +29,14 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
   if (!content) return null
 
   const calloutClass = theme === 'ocean' ? 'bubble-callout ocean' : 'bubble-callout sun'
-  const targetTop = Math.min(content.anchor.y, 72)
-  const bubbleTop = Math.max(12, targetTop - 18)
+  const visualAnchor = content.visualAnchor ?? { ...content.anchor, width: 8, height: 8 }
+  const targetTop = Math.min(visualAnchor.y, 72)
+  const cardLeft = content.visualAnchor
+    ? content.visualAnchor.x <= 50
+      ? Math.min(84, content.visualAnchor.x + content.visualAnchor.width / 2 + 18)
+      : Math.max(16, content.visualAnchor.x - content.visualAnchor.width / 2 - 18)
+    : content.anchor.x
+  const bubbleTop = content.visualAnchor ? Math.max(22, Math.min(78, content.visualAnchor.y)) : Math.max(12, targetTop - 18)
 
   const stableAnimation = { opacity: 1, scale: 1, y: 0 }
 
@@ -38,8 +46,13 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
         <>
           {content.highlightTarget && (
             <motion.span
-              className="bubble-target-highlight"
-              style={{ left: `${content.anchor.x}%`, top: `${targetTop}%` }}
+              className={`bubble-target-highlight ${content.visualAidType ?? ''}`}
+              style={{
+                left: `${visualAnchor.x}%`,
+                top: `${targetTop}%`,
+                width: `${visualAnchor.width}%`,
+                height: `${visualAnchor.height}%`,
+              }}
               initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
@@ -51,7 +64,7 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
           <motion.aside
             key={content.id}
             className={calloutClass}
-            style={{ left: `${content.anchor.x}%`, top: `${bubbleTop}%` }}
+            style={{ left: `${cardLeft}%`, top: `${bubbleTop}%` }}
             initial={reduceMotion ? false : { opacity: 0, scale: 0.92, y: 10 }}
             animate={stableAnimation}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}

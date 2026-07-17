@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import type { MovieData, SceneData } from '../types/movie'
 import { SubtitleOverlay } from './SubtitleOverlay'
 import { PlaybackControls } from './PlaybackControls'
+import { captureVideoFrame, type CapturedVideoFrame } from '../services/ai/VideoFrameCaptureService'
 
 type MoviePlayerProps = {
   movie: MovieData
@@ -19,6 +20,9 @@ type MoviePlayerProps = {
   onSeek: (value: number) => void
   onTimeChange: (value: number) => void
   onDurationChange: (value: number) => void
+  onSeeking?: () => void
+  onSeekComplete?: (timestamp: number) => void
+  onVideoFrameCaptureReady?: (capture: (() => CapturedVideoFrame) | null) => void
   promptOpen: boolean
   onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
@@ -45,6 +49,9 @@ export function MoviePlayer({
   onSeek,
   onTimeChange,
   onDurationChange,
+  onSeeking,
+  onSeekComplete,
+  onVideoFrameCaptureReady,
   promptOpen,
   onTogglePromptPanel,
   onOpenVisualDrawer,
@@ -64,14 +71,19 @@ export function MoviePlayer({
   const clickTimerRef = useRef<number | null>(null)
   const feedbackTimerRef = useRef<number | null>(null)
   const pendingResumeTimestampRef = useRef<number | null>(null)
+  const wasPlayingBeforeSeekRef = useRef(false)
+  const isSeekingRef = useRef(false)
+  const lastReportedTimeRef = useRef(0)
+  const eventStateRef = useRef({ currentTime, playing, onTimeChange, onDurationChange, onSeekComplete, onSeeking, onPlayToggle })
+  eventStateRef.current = { currentTime, playing, onTimeChange, onDurationChange, onSeekComplete, onSeeking, onPlayToggle }
 
   const logPlayback = (event: string, details: Record<string, unknown>) => {
     if (import.meta.env.DEV) console.debug(`[MagiFab playback] ${event}`, { movieId: movie.id, ...details })
   }
 
   const applyPendingResume = (video: HTMLVideoElement, phase: string) => {
-    const timestamp = pendingResumeTimestampRef.current ?? currentTime
-    if (timestamp <= 0) return
+    const timestamp = pendingResumeTimestampRef.current
+    if (timestamp === null || timestamp <= 0) return
     pendingResumeTimestampRef.current = timestamp
     logPlayback('applying resume timestamp', { phase, requestedTimestamp: timestamp, currentTimeBefore: video.currentTime, readyState: video.readyState })
     video.currentTime = timestamp
@@ -140,9 +152,78 @@ export function MoviePlayer({
     if (feedbackTimerRef.current !== null) window.clearTimeout(feedbackTimerRef.current)
   }, [])
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const handleTimeUpdate = () => {
+      const nextTime = video.currentTime
+      if (nextTime >= lastReportedTimeRef.current && nextTime - lastReportedTimeRef.current < 0.1) return
+      lastReportedTimeRef.current = nextTime
+      eventStateRef.current.onTimeChange(nextTime)
+    }
+    const beginSeek = () => {
+      if (isSeekingRef.current) return
+      isSeekingRef.current = true
+      wasPlayingBeforeSeekRef.current = eventStateRef.current.playing && !video.ended
+      eventStateRef.current.onSeeking?.()
+    }
+    const handleLoadedMetadata = () => {
+      logPlayback('loadedmetadata', { duration: video.duration, currentTimeBefore: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current, requestedCurrentTime: eventStateRef.current.currentTime })
+      eventStateRef.current.onDurationChange(video.duration)
+      applyPendingResume(video, 'loadedmetadata')
+    }
+    const handleCanPlay = () => applyPendingResume(video, 'canplay')
+    const handleSeeked = () => {
+      logPlayback('resume seeked', { currentTimeAfter: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current })
+      if (pendingResumeTimestampRef.current !== null && Math.abs(video.currentTime - pendingResumeTimestampRef.current) < .35) {
+        pendingResumeTimestampRef.current = null
+      }
+      isSeekingRef.current = false
+      lastReportedTimeRef.current = video.currentTime
+      eventStateRef.current.onSeekComplete?.(video.currentTime)
+      if (wasPlayingBeforeSeekRef.current && eventStateRef.current.playing) void video.play().catch(() => undefined)
+      wasPlayingBeforeSeekRef.current = false
+    }
+    const handleEnded = () => eventStateRef.current.onPlayToggle()
+    const handleError = () => setVideoFailed(true)
+
+    video.addEventListener('timeupdate', handleTimeUpdate)
+    video.addEventListener('seeking', beginSeek)
+    video.addEventListener('seeked', handleSeeked)
+    video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('ended', handleEnded)
+    video.addEventListener('error', handleError)
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate)
+      video.removeEventListener('seeking', beginSeek)
+      video.removeEventListener('seeked', handleSeeked)
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('ended', handleEnded)
+      video.removeEventListener('error', handleError)
+    }
+  }, [])
+
+  useEffect(() => {
+    onVideoFrameCaptureReady?.(() => captureVideoFrame(videoRef.current))
+    return () => onVideoFrameCaptureReady?.(null)
+  }, [onVideoFrameCaptureReady])
+
   const seek = (value: number) => {
     const video = videoRef.current
-    if (video) video.currentTime = value
+    if (video && !isSeekingRef.current) {
+      isSeekingRef.current = true
+      wasPlayingBeforeSeekRef.current = playing && !video.ended
+      onSeeking?.()
+    }
+    if (video) {
+      pendingResumeTimestampRef.current = null
+      lastReportedTimeRef.current = value
+      video.currentTime = value
+    }
     onSeek(value)
   }
 
@@ -239,23 +320,6 @@ export function MoviePlayer({
           poster={movie.posterUrl}
           playsInline
           preload="metadata"
-          onTimeUpdate={(event) => onTimeChange(event.currentTarget.currentTime)}
-          onLoadedMetadata={(event) => {
-            const video = event.currentTarget
-            logPlayback('loadedmetadata', { duration: video.duration, currentTimeBefore: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current, requestedCurrentTime: currentTime })
-            onDurationChange(video.duration)
-            applyPendingResume(video, 'loadedmetadata')
-          }}
-          onCanPlay={(event) => applyPendingResume(event.currentTarget, 'canplay')}
-          onSeeked={(event) => {
-            const video = event.currentTarget
-            logPlayback('resume seeked', { currentTimeAfter: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current })
-            if (pendingResumeTimestampRef.current !== null && Math.abs(video.currentTime - pendingResumeTimestampRef.current) < .35) {
-              pendingResumeTimestampRef.current = null
-            }
-          }}
-          onEnded={onPlayToggle}
-          onError={() => setVideoFailed(true)}
           aria-label={`Playing ${movie.title}`}
           tabIndex={0}
           onPointerDown={() => videoRef.current?.focus()}
