@@ -22,10 +22,11 @@ class Settings(BaseSettings):
     # A catalog participant is not automatically visible. This threshold gates
     # inferred presence before it can reach accessibility presentation.
     semantic_presence_confidence_threshold: float = Field(default=0.6, ge=0, le=1)
+    semantic_prompt_cooldown_seconds: float = Field(default=8.0, ge=0)
     # Bump whenever prepared-scene output changes. Used in every cache key.
-    # Version 17 adds evidence-weighted character presence. Earlier records
-    # projected every catalog participant as visible and must be rebuilt.
-    semantic_cache_version: int = Field(default=17, ge=1)
+    # Version 18 adds claim-prioritized prompt generation and its response
+    # cache must not replay the previous card-driven prompt selection.
+    semantic_cache_version: int = Field(default=18, ge=1)
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
     debug_frames_dir: Path = Path("debug_frames")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))

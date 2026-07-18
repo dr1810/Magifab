@@ -13,7 +13,7 @@ from schemas.knowledge import KnowledgeRecord, SemanticMovieKnowledge
 class FileKnowledgeStore(KnowledgeStore):
     """Local persistence suitable for development and replaceable by a database-backed store."""
 
-    def __init__(self, root: Path, cache_version: int = 17):
+    def __init__(self, root: Path, cache_version: int = 18):
         self._base_root = root
         self._root = root / f"v{cache_version}"
         self._lock = Lock()
