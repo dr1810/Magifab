@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 
 from config import Settings, get_settings
 from services.object_detection import ObjectDetectionService
+from services.perception_fusion import PerceptionFusionService
 from services.vision_understanding import VisionUnderstandingService
 
 
@@ -29,6 +30,12 @@ def get_vision_understanding_service() -> VisionUnderstandingService:
     return VisionUnderstandingService(FlorenceAdapter(get_settings()))
 
 
+@lru_cache
+def get_perception_fusion_service() -> PerceptionFusionService:
+    """Model-independent singleton; fusing supplied evidence never loads an AI model."""
+    return PerceptionFusionService()
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the HTTP application without loading YOLO or Florence weights."""
     active_settings = settings or get_settings()
@@ -36,7 +43,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab perception backend. Phase 3 provides detection and scene understanding only.",
+        description="Modular MagiFab perception backend. Phase 4 adds model-independent perception fusion.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -56,9 +63,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     from routers.health import router as health_router
     from routers.detect import router as detect_router
+    from routers.fusion import router as fusion_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
     application.include_router(detect_router)
+    application.include_router(fusion_router)
     application.include_router(understand_router)
     return application
 
