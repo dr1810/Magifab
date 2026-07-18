@@ -1,9 +1,17 @@
-[
-  {
-    "AllowedOrigins": ["*"],
-    "AllowedMethods": ["GET", "HEAD"],
-    "AllowedHeaders": ["Range", "Origin", "Accept", "Content-Type"],
-    "ExposeHeaders": ["Accept-Ranges", "Content-Length", "Content-Range", "ETag"],
-    "MaxAgeSeconds": 86400
-  }
-]
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://magifab.vercel.app",
+          "http://localhost:5173",
+          "http://localhost:3000"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["Range"]
+      },
+      "exposeHeaders": ["Accept-Ranges", "Content-Length", "Content-Range", "ETag"],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}
