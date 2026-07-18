@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     face_onnx_providers: str = "CPUExecutionProvider"
     face_detection_size: int = 640
     face_verification_threshold: float = 0.6
+    grounding_dino_model_id: str = "IDEA-Research/grounding-dino-tiny"
+    grounding_dino_device: str = "auto"
+    grounding_dino_box_threshold: float = 0.35
+    grounding_dino_text_threshold: float = 0.25
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 

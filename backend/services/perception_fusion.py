@@ -1,9 +1,10 @@
 """Fusion service for perception evidence only; no semantic or character-level reasoning."""
 from collections.abc import Iterable
 
-from adapters.perception_evidence import ObjectDetectionEvidenceAdapter, VisionUnderstandingEvidenceAdapter
+from adapters.perception_evidence import GroundingEvidenceAdapter, ObjectDetectionEvidenceAdapter, VisionUnderstandingEvidenceAdapter
 from schemas.detection import DetectionResponse
 from schemas.fusion import PerceptionContribution, UnifiedEntity, UnifiedSceneRepresentation
+from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
 
 
@@ -14,20 +15,26 @@ class PerceptionFusionService:
         self,
         detection_adapter: ObjectDetectionEvidenceAdapter | None = None,
         vision_adapter: VisionUnderstandingEvidenceAdapter | None = None,
+        grounding_adapter: GroundingEvidenceAdapter | None = None,
     ):
         self._detection_adapter = detection_adapter or ObjectDetectionEvidenceAdapter()
         self._vision_adapter = vision_adapter or VisionUnderstandingEvidenceAdapter()
+        self._grounding_adapter = grounding_adapter or GroundingEvidenceAdapter()
 
     def fuse_current_outputs(
         self,
         object_detection: DetectionResponse,
         scene_understanding: UnderstandingResponse,
+        grounding: GroundingResponse | None = None,
     ) -> UnifiedSceneRepresentation:
-        """Fuse the two currently supported providers at a stable boundary."""
-        return self.fuse((
+        """Fuse detector, scene-understanding, and optional grounding evidence at a stable boundary."""
+        contributions = [
             self._detection_adapter.to_contribution(object_detection),
             self._vision_adapter.to_contribution(scene_understanding),
-        ))
+        ]
+        if grounding is not None:
+            contributions.append(self._grounding_adapter.to_contribution(grounding))
+        return self.fuse(contributions)
 
     def fuse(self, contributions: Iterable[PerceptionContribution]) -> UnifiedSceneRepresentation:
         """Fuse any future normalized contribution without changing downstream schemas."""

@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.detection import DetectionResponse
+from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
 
 EntityCategory = Literal["person", "animal", "object", "unknown"]
@@ -52,3 +53,4 @@ class FusionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     object_detection: DetectionResponse
     scene_understanding: UnderstandingResponse
+    grounding: GroundingResponse | None = None

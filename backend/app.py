@@ -12,6 +12,7 @@ from services.knowledge_retriever import KnowledgeRetriever
 from services.knowledge_expansion import KnowledgeExpansionEngine
 from services.accessibility_reasoning import AccessibilityReasoningEngine
 from services.face_verification import FaceVerificationService
+from services.object_grounding import ObjectGroundingService
 from services.gpt_personalization import GPTPersonalizationService
 from services.knowledge_store import FileKnowledgeStore
 from services.object_detection import ObjectDetectionService
@@ -88,6 +89,13 @@ def get_face_verification_service() -> FaceVerificationService:
 
 
 @lru_cache
+def get_object_grounding_service() -> ObjectGroundingService:
+    """Lazy text-guided localization dependency; it cannot match movie identities or call GPT."""
+    from adapters.grounding_dino_adapter import GroundingDINOAdapter
+    return ObjectGroundingService(GroundingDINOAdapter(get_settings()))
+
+
+@lru_cache
 def get_gpt_personalization_service() -> GPTPersonalizationService:
     """Lazy server-only OpenAI integration; importing the app never initializes a client or exposes a key."""
     from adapters.openai_personalizer import OpenAIGPTPersonalizer
@@ -101,7 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab backend. Phase 10 adds conservative face verification over enrolled semantic knowledge.",
+        description="Modular MagiFab backend. Phase 11 adds on-demand, text-guided object localization.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -127,6 +135,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.knowledge_expansion import router as knowledge_expansion_router
     from routers.accessibility_reasoning import router as accessibility_reasoning_router
     from routers.face_verification import router as face_verification_router
+    from routers.grounding import router as grounding_router
     from routers.personalization import router as personalization_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
@@ -137,6 +146,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(knowledge_expansion_router)
     application.include_router(accessibility_reasoning_router)
     application.include_router(face_verification_router)
+    application.include_router(grounding_router)
     application.include_router(personalization_router)
     application.include_router(understand_router)
     return application

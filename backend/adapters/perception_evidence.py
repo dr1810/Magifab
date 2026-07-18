@@ -2,6 +2,7 @@
 from models.perception_evidence_adapter import PerceptionEvidenceAdapter
 from schemas.detection import DetectionResponse
 from schemas.fusion import PerceptionContribution, UnifiedEntity
+from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
 
 _ANIMAL_LABELS = frozenset({
@@ -60,5 +61,26 @@ class VisionUnderstandingEvidenceAdapter(PerceptionEvidenceAdapter[Understanding
             environment=evidence.environment,
             actions=evidence.detected_actions,
             interactions=evidence.interactions,
+            visual_attributes={"models": [evidence.model]},
+        )
+
+
+class GroundingEvidenceAdapter(PerceptionEvidenceAdapter[GroundingResponse]):
+    """Converts text-guided localization results into generic visual evidence."""
+
+    def to_contribution(self, evidence: GroundingResponse) -> PerceptionContribution:
+        return PerceptionContribution(
+            provider="object_grounding",
+            entities=[
+                UnifiedEntity(
+                    label=match.matched_object,
+                    category=classify_entity(match.matched_object),
+                    bounding_box=match.bbox,
+                    confidence=match.confidence,
+                    sources=["object_grounding"],
+                    visual_attributes={"model": [evidence.model]},
+                )
+                for match in evidence.matches
+            ],
             visual_attributes={"models": [evidence.model]},
         )

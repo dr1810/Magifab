@@ -2,10 +2,10 @@
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 10 adds conservative face verification using RetinaFace detection and ArcFace embeddings. Semantic Movie Knowledge remains the only authority for character identities; the frontend is not integrated.
+This is the modular backend for MagiFab. Phase 11 adds on-demand Grounding DINO object localization for requested visual objects. It returns boxes and confidence without semantic matching, GPT, or frontend integration.
 
 ```text
-Movie frame → YOLO / Florence / RetinaFace + ArcFace → Semantic Knowledge → Accessibility Reasoning → GPT-5.6 language personalization
+Movie frame → YOLO / Florence / RetinaFace + ArcFace / Grounding DINO → Perception Fusion → Semantic Knowledge → Accessibility Reasoning → GPT-5.6 language personalization
 ```
 
 ## Status
@@ -20,7 +20,8 @@ Movie frame → YOLO / Florence / RetinaFace + ArcFace → Semantic Knowledge �
 - Completed: Phase 8 — deterministic, profile-adapted accessibility reasoning.
 - Completed: Phase 9 — GPT-5.6 language-only personalization over structured facts.
 - Completed: Phase 10 — lazy face detection, embedding generation, and conservative identity verification.
-- Pending: Grounding DINO.
+- Completed: Phase 11 — lazy, text-guided Grounding DINO object localization fused as perception evidence.
+- Pending: no additional phases currently scheduled.
 
 ## Structure
 
@@ -32,6 +33,7 @@ backend/
   adapters/florence_adapter.py   # Florence-2-specific implementation
   adapters/perception_evidence.py # Output normalization adapters
   adapters/retinaface_arcface_adapter.py # InsightFace-specific face perception
+  adapters/grounding_dino_adapter.py # Grounding-DINO-specific localization
   models/object_detector.py      # Replaceable ObjectDetector contract
   models/vision_language_model.py # Replaceable VisionLanguageModel contract
   models/perception_evidence_adapter.py # Future perception-provider contract
@@ -40,6 +42,7 @@ backend/
   models/accessibility_reasoner.py # Replaceable accessibility-reasoning contract
   models/language_personalizer.py # Replaceable language-personalization contract
   models/face_embedding_extractor.py # Replaceable face detection/embedding contract
+  models/text_guided_object_localizer.py # Replaceable object-grounding contract
   routers/detect.py              # POST /api/v1/detect
   routers/understand.py          # POST /api/v1/understand
   routers/fusion.py              # POST /api/v1/fuse
@@ -49,6 +52,7 @@ backend/
   routers/accessibility_reasoning.py # POST /api/v1/accessibility/reason
   routers/personalization.py     # POST /api/v1/personalize
   routers/face_verification.py   # POST /api/v1/face-verification
+  routers/grounding.py           # POST /api/v1/ground
   services/object_detection.py   # Model-independent service
   services/vision_understanding.py # Model-independent service
   services/perception_fusion.py  # Evidence fusion service
@@ -60,6 +64,7 @@ backend/
   services/accessibility_reasoning.py # Deterministic accessibility content engine
   services/gpt_personalization.py # Language-only personalization service
   services/face_verification.py  # Knowledge-reference face verification service
+  services/object_grounding.py   # Text-guided object localization service
   schemas/detection.py           # Detection HTTP schemas
   schemas/understanding.py       # Scene-understanding HTTP schemas
   schemas/fusion.py              # Unified-scene and fusion HTTP schemas
@@ -70,6 +75,7 @@ backend/
   schemas/accessibility_reasoning.py # Accessibility request/result schemas
   schemas/personalization.py     # GPT personalization request/result schemas
   schemas/face_verification.py   # Face-verification request/result schemas
+  schemas/grounding.py           # Grounding request/result schemas
   utils/image.py                 # Safe base64 image decoder
   cache/                 # Runtime cache mount point
   Dockerfile
@@ -87,11 +93,11 @@ pip install -r requirements.txt
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Open [Swagger](http://127.0.0.1:8000/docs). The available endpoints include `GET /`, `GET /health`, the perception/matching endpoints, `POST /api/v1/face-verification`, and knowledge retrieval routes under `/api/v1/knowledge`.
+Open [Swagger](http://127.0.0.1:8000/docs). The available endpoints include `GET /`, `GET /health`, perception/matching endpoints, `POST /api/v1/face-verification`, `POST /api/v1/ground`, and knowledge retrieval routes under `/api/v1/knowledge`.
 
 ## Configuration
 
-Settings use the `MAGIFAB_` prefix. Phase 2 adds `MAGIFAB_YOLO_MODEL_ID`, `MAGIFAB_YOLO_DEVICE` (`auto`, `mps`, or `cpu`), and `MAGIFAB_DETECTION_CONFIDENCE_THRESHOLD`. Phase 3 adds `MAGIFAB_FLORENCE_MODEL_ID`, `MAGIFAB_FLORENCE_DEVICE`, and `MAGIFAB_FLORENCE_MAX_NEW_TOKENS`. Phase 10 adds `MAGIFAB_FACE_MODEL_PACK` (default `buffalo_l`), `MAGIFAB_FACE_ONNX_PROVIDERS` (default CPU), `MAGIFAB_FACE_DETECTION_SIZE`, and `MAGIFAB_FACE_VERIFICATION_THRESHOLD`. Model identifiers are configured centrally; business services never name a model.
+Settings use the `MAGIFAB_` prefix. Phase 2 adds `MAGIFAB_YOLO_MODEL_ID`, `MAGIFAB_YOLO_DEVICE` (`auto`, `mps`, or `cpu`), and `MAGIFAB_DETECTION_CONFIDENCE_THRESHOLD`. Phase 3 adds `MAGIFAB_FLORENCE_MODEL_ID`, `MAGIFAB_FLORENCE_DEVICE`, and `MAGIFAB_FLORENCE_MAX_NEW_TOKENS`. Phase 10 adds `MAGIFAB_FACE_MODEL_PACK` (default `buffalo_l`), `MAGIFAB_FACE_ONNX_PROVIDERS` (default CPU), `MAGIFAB_FACE_DETECTION_SIZE`, and `MAGIFAB_FACE_VERIFICATION_THRESHOLD`. Phase 11 adds `MAGIFAB_GROUNDING_DINO_MODEL_ID` (default `IDEA-Research/grounding-dino-tiny`), `MAGIFAB_GROUNDING_DINO_DEVICE`, `MAGIFAB_GROUNDING_DINO_BOX_THRESHOLD`, and `MAGIFAB_GROUNDING_DINO_TEXT_THRESHOLD`. Model identifiers are configured centrally; business services never name a model.
 
 ## Deployment
 
@@ -168,3 +174,11 @@ Set `OPENAI_API_KEY` only in the backend environment; it is never a browser vari
 Verification compares each generated embedding only with `face_references` enrolled in the supplied Semantic Movie Knowledge. A reference is usable only if its `character_id` exists in the knowledge's `characters` list. The endpoint returns `verified: true` and `verified_character_id` only when exactly one enrolled character passes the configured similarity threshold. Multiple candidates, no candidate, dimension mismatches, and unknown references all return `verified: false`; the service never creates, guesses, or directly assigns a character identity.
 
 Face analysis is an independent perception component. It does not alter movie knowledge, invoke GPT, perform semantic matching, or communicate with the frontend. A different detector/embedding implementation can replace `RetinaFaceArcFaceAdapter` without changing the service or endpoint contract. Review the selected pretrained model's license before production deployment; InsightFace documents that model-pack weights can have separate usage terms.
+
+## Phase 11: Grounding DINO Object Localization
+
+`POST /api/v1/ground` accepts a base64 image and one or more explicit visual-object phrases, such as `"squirrel"`, `"flower"`, or `"object being held"`. It lazily loads the configured Hugging Face Grounding DINO model on the first request and returns `{ "matched_object", "confidence", "bbox" }` matches in pixel-space `[x, y, width, height]` format.
+
+Grounding DINO does not know movie-character identities. For a question such as “What is Buck holding?”, a caller must supply a visual grounding phrase for the sought object; resolving `Buck` remains a separate Semantic Movie Knowledge verification concern. The grounding response can be supplied as the optional `grounding` field to `POST /api/v1/fuse`, where `GroundingEvidenceAdapter` adds it to the model-independent `UnifiedSceneRepresentation` with provider provenance.
+
+No result is sent to GPT, semantic matching, or the frontend in this phase. Empty matches are valid and mean the requested phrase was not localized with sufficient confidence. Grounding DINO's text-guided post-processing follows the Hugging Face Grounding DINO interface; replace `GroundingDINOAdapter` to change models without changing the API or fusion service.

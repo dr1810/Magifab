@@ -13,5 +13,5 @@ def fuse(
     request: FusionRequest,
     service: PerceptionFusionService = Depends(get_perception_fusion_service),
 ) -> UnifiedSceneRepresentation:
-    """Fuse supplied detection and scene-understanding evidence; no model inference occurs here."""
-    return service.fuse_current_outputs(request.object_detection, request.scene_understanding)
+    """Fuse supplied detector, scene, and optional grounding evidence; no model inference occurs here."""
+    return service.fuse_current_outputs(request.object_detection, request.scene_understanding, request.grounding)
