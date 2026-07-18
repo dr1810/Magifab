@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from config import Settings, get_settings
 from services.object_detection import ObjectDetectionService
 from services.perception_fusion import PerceptionFusionService
+from services.semantic_matching import SemanticMatchingService
 from services.vision_understanding import VisionUnderstandingService
 
 
@@ -36,6 +37,12 @@ def get_perception_fusion_service() -> PerceptionFusionService:
     return PerceptionFusionService()
 
 
+@lru_cache
+def get_semantic_matching_service() -> SemanticMatchingService:
+    """Pure structured matcher; it does not load a perception or language model."""
+    return SemanticMatchingService(get_settings())
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the HTTP application without loading YOLO or Florence weights."""
     active_settings = settings or get_settings()
@@ -43,7 +50,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab perception backend. Phase 4 adds model-independent perception fusion.",
+        description="Modular MagiFab backend. Phase 5 adds conservative structured semantic matching.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -64,10 +71,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.health import router as health_router
     from routers.detect import router as detect_router
     from routers.fusion import router as fusion_router
+    from routers.match import router as match_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
     application.include_router(detect_router)
     application.include_router(fusion_router)
+    application.include_router(match_router)
     application.include_router(understand_router)
     return application
 
