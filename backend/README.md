@@ -2,10 +2,10 @@
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 7 adds retrieval-first Knowledge Expansion: existing movie knowledge returns immediately, while a true miss can run the perception pipeline and persist only observed facts. It does not invoke GPT or integrate with the frontend.
+This is the modular backend for MagiFab. Phase 8 adds deterministic Accessibility Reasoning that turns verified movie knowledge and onboarding selections into structured accessibility content. It does not invoke GPT or integrate with the frontend.
 
 ```text
-Movie frame → Perception → Fusion → Knowledge Expansion → Semantic Movie Knowledge → [later personalization]
+Movie frame → Perception → Knowledge Expansion → Semantic Movie Knowledge → Accessibility Reasoning → [later GPT personalization]
 ```
 
 ## Status
@@ -17,6 +17,7 @@ Movie frame → Perception → Fusion → Knowledge Expansion → Semantic Movie
 - Completed: Phase 5 — conservative semantic matching against structured movie knowledge.
 - Completed: Phase 6 — versioned Semantic Movie Knowledge storage, graph lookup, and retrieval-first access.
 - Completed: Phase 7 — retrieval-first knowledge expansion, observation merge, and cache-versioned results.
+- Completed: Phase 8 — deterministic, profile-adapted accessibility reasoning.
 - Pending: GPT personalization; face verification; Grounding DINO.
 
 ## Structure
@@ -33,12 +34,14 @@ backend/
   models/perception_evidence_adapter.py # Future perception-provider contract
   models/semantic_matcher.py      # Replaceable SemanticMatcher contract
   models/knowledge_store.py       # Replaceable knowledge persistence contract
+  models/accessibility_reasoner.py # Replaceable accessibility-reasoning contract
   routers/detect.py              # POST /api/v1/detect
   routers/understand.py          # POST /api/v1/understand
   routers/fusion.py              # POST /api/v1/fuse
   routers/match.py               # POST /api/v1/match
   routers/knowledge.py           # Versioned knowledge storage/retrieval endpoints
   routers/knowledge_expansion.py # POST /api/v1/knowledge/expand
+  routers/accessibility_reasoning.py # POST /api/v1/accessibility/reason
   services/object_detection.py   # Model-independent service
   services/vision_understanding.py # Model-independent service
   services/perception_fusion.py  # Evidence fusion service
@@ -47,6 +50,7 @@ backend/
   services/knowledge_retriever.py # Retrieval-first service
   services/movie_knowledge_graph.py # Scene/timeline graph traversal
   services/knowledge_expansion.py # Retrieval-first perception-to-knowledge engine
+  services/accessibility_reasoning.py # Deterministic accessibility content engine
   schemas/detection.py           # Detection HTTP schemas
   schemas/understanding.py       # Scene-understanding HTTP schemas
   schemas/fusion.py              # Unified-scene and fusion HTTP schemas
@@ -54,6 +58,7 @@ backend/
   schemas/matching.py            # Semantic-match request and result schemas
   schemas/knowledge.py           # Versioned movie-knowledge record schemas
   schemas/knowledge_expansion.py # Expansion request/result schemas
+  schemas/accessibility_reasoning.py # Accessibility request/result schemas
   utils/image.py                 # Safe base64 image decoder
   cache/                 # Runtime cache mount point
   Dockerfile
@@ -126,3 +131,13 @@ Character matching uses only a knowledge character's explicit `perception_labels
 4. The `FileKnowledgeStore` persists the next revision and the result returns a versioned cache key such as `movie-id:v1:scene-id`.
 
 The expansion engine never creates character identities, relationships, events, or dialogue from perception. `merge_observations` is exposed as a pure structured merge operation for future verified-update workflows; the endpoint's normal policy deliberately avoids reprocessing an existing record.
+
+## Phase 8: Accessibility Reasoning
+
+`POST /api/v1/accessibility/reason` accepts Semantic Movie Knowledge, the current scene and timestamp, an Accessibility Profile, and a Companion Profile. It returns structured JSON only:
+
+- Likely confusion predictions and contextual prompt bubbles
+- Accessibility drawer content: character cards, relationship and timeline summaries, verified emotion summaries, memory reminders, vocabulary help, and current-dialogue simplifications
+- Suggested follow-up questions and a companion tone descriptor
+
+The engine adapts output through onboarding selections: `accessibility_needs` decide which cards, summaries, prompts, reminders, and simplifications appear; `detail_level` controls the number of items; preferred prompt types filter suggestions; vocabulary and conversation toggles control their corresponding sections. It uses only explicit stored facts. Missing emotion, dialogue, relationship, or vocabulary facts produce empty structured sections rather than invented content. No GPT, image inference, semantic matching, cache mutation, or frontend change occurs in this phase.

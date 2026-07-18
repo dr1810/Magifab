@@ -10,6 +10,7 @@ from config import Settings, get_settings
 from models.knowledge_store import KnowledgeStore
 from services.knowledge_retriever import KnowledgeRetriever
 from services.knowledge_expansion import KnowledgeExpansionEngine
+from services.accessibility_reasoning import AccessibilityReasoningEngine
 from services.knowledge_store import FileKnowledgeStore
 from services.object_detection import ObjectDetectionService
 from services.perception_fusion import PerceptionFusionService
@@ -71,6 +72,12 @@ def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
     )
 
 
+@lru_cache
+def get_accessibility_reasoning_engine() -> AccessibilityReasoningEngine:
+    """Pure deterministic reasoning engine; no model loading and no GPT dependency."""
+    return AccessibilityReasoningEngine()
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the HTTP application without loading YOLO or Florence weights."""
     active_settings = settings or get_settings()
@@ -78,7 +85,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab backend. Phase 7 adds retrieval-first knowledge expansion without GPT.",
+        description="Modular MagiFab backend. Phase 8 adds deterministic accessibility reasoning without GPT.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -102,6 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.match import router as match_router
     from routers.knowledge import router as knowledge_router
     from routers.knowledge_expansion import router as knowledge_expansion_router
+    from routers.accessibility_reasoning import router as accessibility_reasoning_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
     application.include_router(detect_router)
@@ -109,6 +117,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(match_router)
     application.include_router(knowledge_router)
     application.include_router(knowledge_expansion_router)
+    application.include_router(accessibility_reasoning_router)
     application.include_router(understand_router)
     return application
 

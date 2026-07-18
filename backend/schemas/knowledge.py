@@ -118,6 +118,26 @@ class ObservationHistoryItem(BaseModel):
     source: str = Field(min_length=1)
 
 
+class EmotionFact(BaseModel):
+    """A verified emotion supplied by movie knowledge, never inferred by accessibility reasoning."""
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    scene_id: str | None = None
+    character_id: str | None = None
+    emotion: str = Field(min_length=1)
+    evidence: str = Field(min_length=1)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+
+
+class VocabularyEntry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    term: str = Field(min_length=1)
+    simple_definition: str = Field(min_length=1)
+    scene_ids: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+
+
 class SemanticMovieKnowledge(BaseModel):
     """Versioned, structured movie knowledge; no automatic enrichment occurs here."""
     model_config = ConfigDict(extra="forbid")
@@ -135,6 +155,8 @@ class SemanticMovieKnowledge(BaseModel):
     known_aliases: list[KnownAlias] = Field(default_factory=list)
     visual_anchors: list[VisualAnchor] = Field(default_factory=list)
     observation_history: list[ObservationHistoryItem] = Field(default_factory=list)
+    emotions: list[EmotionFact] = Field(default_factory=list)
+    vocabulary: list[VocabularyEntry] = Field(default_factory=list)
 
 
 class KnowledgeRecord(BaseModel):
