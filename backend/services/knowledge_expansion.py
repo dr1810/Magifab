@@ -49,7 +49,7 @@ class KnowledgeExpansionEngine:
         observation_factory: ObservationFactory | None = None,
         graph_builder: SemanticGraphBuilder | None = None,
         movie_knowledge_provider: MovieKnowledgeProvider | None = None,
-        cache_version: int = 16,
+        cache_version: int = 17,
     ):
         self._store = store
         self._retriever = retriever

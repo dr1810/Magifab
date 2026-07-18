@@ -19,10 +19,13 @@ class Settings(BaseSettings):
     florence_device: str = "auto"
     florence_max_new_tokens: int = 256
     semantic_match_confidence_threshold: float = 0.8
+    # A catalog participant is not automatically visible. This threshold gates
+    # inferred presence before it can reach accessibility presentation.
+    semantic_presence_confidence_threshold: float = Field(default=0.6, ge=0, le=1)
     # Bump whenever prepared-scene output changes. Used in every cache key.
-    # Version 16 makes catalog scene membership and timeline placement part of
-    # semantic matching. Earlier exact-label-only records must be rebuilt.
-    semantic_cache_version: int = Field(default=16, ge=1)
+    # Version 17 adds evidence-weighted character presence. Earlier records
+    # projected every catalog participant as visible and must be rebuilt.
+    semantic_cache_version: int = Field(default=17, ge=1)
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
     debug_frames_dir: Path = Path("debug_frames")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))

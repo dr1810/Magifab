@@ -17,6 +17,7 @@ class SemanticMatchingService(SemanticMatcher):
 
     def __init__(self, settings: Settings):
         self._threshold = settings.semantic_match_confidence_threshold
+        self._presence_threshold = settings.semantic_presence_confidence_threshold
 
     def match(
         self,
@@ -46,70 +47,47 @@ class SemanticMatchingService(SemanticMatcher):
         )
 
     def _match_characters(self, scene, knowledge, catalog_scene, nearby_scenes, timestamp_seconds):
-        exact_matches: list[CharacterMatch] = []
-        matched_ids: set[str] = set()
-        for entity in scene.entities:
-            verified_ids = set(entity.visual_attributes.get("verified_character_id", []))
-            candidates = [character for character in knowledge.characters if character.id in verified_ids] or [
-                character for character in knowledge.characters
-                if _matches(entity.label, [*character.perception_labels, *character.aliases, character.name])
-            ]
-            if len(candidates) != 1:
-                continue
-            character = candidates[0]
-            confidence = entity.confidence if entity.confidence is not None else 0.5
-            # A known label is useful evidence even when Florence supplies no
-            # box confidence; do not discard it solely for that reason.
-            if confidence < self._threshold and "scene_understanding" not in entity.sources and not verified_ids:
-                continue
-            exact_matches.append(CharacterMatch(
-                id=character.id, label=character.name, confidence=max(confidence, 0.8),
-                evidence=[
-                    f"entity:{entity.label}",
-                    "face_embedding_identity" if character.id in verified_ids else "catalog_alias_evidence",
-                ], entity=entity,
-            ))
-            matched_ids.add(character.id)
-
-        if catalog_scene is None:
-            return _unique_facts(exact_matches)
-
-        # The catalog is primary for a supported movie.  A curated scene says
-        # who participates; current-frame labels only corroborate that fact.
-        # This avoids losing Victoria merely because Florence calls her a
-        # "young boy" or YOLO emits the generic "person" label.
+        """Separate scene membership from evidence-weighted visual presence."""
         character_by_id = {character.id: character for character in knowledge.characters}
-        history_ids = _previous_character_ids(knowledge, timestamp_seconds)
+        participant_ids = set(catalog_scene.character_ids) if catalog_scene else set()
+        direct_evidence = _direct_character_evidence(scene, knowledge)
+        candidate_ids = participant_ids | set(direct_evidence)
+        previous = _previous_presence(knowledge, timestamp_seconds)
         nearby_ids = {item for nearby in nearby_scenes for item in nearby.character_ids}
-        generic_evidence = _generic_person_evidence(scene)
-        for character_id in catalog_scene.character_ids:
-            if character_id in matched_ids or character_id not in character_by_id:
+        matches: list[CharacterMatch] = []
+
+        for character_id in candidate_ids:
+            character = character_by_id.get(character_id)
+            if character is None:
                 continue
-            character = character_by_id[character_id]
-            evidence = [f"catalog_scene:{catalog_scene.scene_id}", "known_scene_participant"]
-            confidence = 0.82
-            if character_id in history_ids:
-                confidence = 0.9
-                evidence.append("previous_semantic_memory")
-            if character_id in nearby_ids:
-                confidence = max(confidence, 0.86)
-                evidence.append("neighboring_scene_continuity")
-            if generic_evidence is not None:
-                evidence.append(f"perception_evidence:{generic_evidence.label}")
-            exact_matches.append(CharacterMatch(
-                id=character.id,
-                label=character.name,
-                confidence=confidence,
-                evidence=evidence,
-                # This is evidence of a person/animal in the frame, not a
-                # textual identity assertion. The graph builder recognizes the
-                # catalog evidence and emits an independent participant claim.
-                entity=generic_evidence or UnifiedEntity(
-                    label=f"catalog participant: {character.name}", category="person",
-                    confidence=None, sources=["movie_knowledge"],
-                ),
+            direct = direct_evidence.get(character_id)
+            scores = {
+                "scene_catalogue": 1.0 if character_id in participant_ids else 0.0,
+                "timeline": 0.95 if catalog_scene is not None else 0.0,
+                "visual_detection": direct["visual"] if direct else 0.0,
+                "grounding": direct["grounding"] if direct else 0.0,
+                "caption": direct["caption"] if direct else 0.0,
+                "temporal_continuity": previous.get(character_id, 0.0),
+            }
+            confidence = _presence_confidence(scores)
+            state = _presence_state(confidence, direct, self._presence_threshold)
+            evidence = [
+                *( [f"catalog_scene:{catalog_scene.scene_id}", "known_scene_participant"] if character_id in participant_ids else [] ),
+                *(direct["evidence"] if direct else []),
+                *( ["neighboring_scene_continuity"] if character_id in nearby_ids else [] ),
+                *( ["previous_semantic_memory"] if scores["temporal_continuity"] else [] ),
+                *(f"presence_{name}:{score:.2f}" for name, score in scores.items()),
+                f"presence_state:{state}",
+            ]
+            entity = direct["entity"] if direct else UnifiedEntity(
+                label=f"catalog participant: {character.name}", category="person",
+                confidence=None, sources=["movie_knowledge"],
+            )
+            matches.append(CharacterMatch(
+                id=character.id, label=character.name, confidence=confidence,
+                evidence=evidence, entity=entity,
             ))
-        return _unique_facts(exact_matches)
+        return _unique_facts(matches)
 
     def _match_locations(self, scene, knowledge, catalog_scene, timestamp_seconds):
         matches = []
@@ -142,7 +120,10 @@ class SemanticMatchingService(SemanticMatcher):
         return _unique_facts(matches)
 
     def _match_relationships(self, characters, knowledge, catalog_scene):
-        character_ids = {character.id for character in characters}
+        character_ids = {
+            character.id for character in characters
+            if _presence_is_active(character.evidence)
+        }
         # Use explicit scene relationship annotations when available; otherwise
         # the movie relationship graph and active participants provide the
         # continuity evidence.
@@ -209,15 +190,75 @@ def _nearby_scenes(knowledge, current):
     return [item for item in scenes[max(0, index - 1):index + 2] if item.scene_id != current.scene_id]
 
 
-def _previous_character_ids(knowledge, timestamp_seconds):
+def _previous_presence(knowledge, timestamp_seconds):
     if timestamp_seconds is None:
-        return set()
-    return {claim.subject_id for claim in knowledge.semantic_claims
-            if claim.kind == "character_present" and claim.timestamp_seconds < timestamp_seconds}
+        return {}
+    # Only prior claims that were themselves sufficiently supported can carry
+    # identity forward. A scene-membership claim can never snowball into proof.
+    previous: dict[str, float] = {}
+    for claim in knowledge.semantic_claims:
+        if claim.kind != "character_present" or claim.timestamp_seconds >= timestamp_seconds:
+            continue
+        age = timestamp_seconds - claim.timestamp_seconds
+        if age > 15:
+            continue
+        previous[claim.subject_id] = max(previous.get(claim.subject_id, 0.0), claim.confidence * (1 - age / 20))
+    return previous
 
 
-def _generic_person_evidence(scene):
-    return next((entity for entity in scene.entities if entity.category in {"person", "animal"}), None)
+def _direct_character_evidence(scene, knowledge):
+    """Collect identity evidence by provider; generic people identify nobody."""
+    result: dict[str, dict] = {}
+    for entity in scene.entities:
+        verified_ids = set(entity.visual_attributes.get("verified_character_id", []))
+        aliases = [
+            character for character in knowledge.characters
+            if _matches(entity.label, [*character.perception_labels, *character.aliases, character.name])
+        ]
+        candidates = [character for character in knowledge.characters if character.id in verified_ids] or aliases
+        if len(candidates) != 1:
+            continue
+        character = candidates[0]
+        score = entity.confidence if entity.confidence is not None else 0.5
+        item = result.setdefault(character.id, {"visual": 0.0, "grounding": 0.0, "caption": 0.0, "face_verified": False, "evidence": [], "entity": entity})
+        item["entity"] = entity if score >= (item["entity"].confidence or 0.0) else item["entity"]
+        if character.id in verified_ids:
+            item["visual"] = max(item["visual"], max(score, 0.95))
+            item["face_verified"] = True
+            item["evidence"].append("face_embedding_identity")
+        if "object_detection" in entity.sources:
+            item["visual"] = max(item["visual"], score)
+            item["evidence"].append(f"yolo_identity:{entity.label}")
+        if "object_grounding" in entity.sources:
+            item["grounding"] = max(item["grounding"], score)
+            item["evidence"].append(f"grounding_identity:{entity.label}")
+        if "scene_understanding" in entity.sources:
+            item["caption"] = max(item["caption"], score)
+            item["evidence"].append(f"caption_identity:{entity.label}")
+    return result
+
+
+def _presence_confidence(scores: dict[str, float]) -> float:
+    """Weighted, bounded evidence score; scene membership alone stays weak."""
+    weights = {
+        "scene_catalogue": 0.25,
+        "timeline": 0.20,
+        "visual_detection": 0.30,
+        "grounding": 0.15,
+        "caption": 0.05,
+        "temporal_continuity": 0.05,
+    }
+    return round(sum(weights[name] * scores[name] for name in weights), 3)
+
+
+def _presence_state(confidence: float, direct, threshold: float) -> str:
+    if direct and direct["face_verified"]:
+        return "visually_confirmed"
+    return "likely_present" if confidence >= threshold else "scene_member"
+
+
+def _presence_is_active(evidence: list[str]) -> bool:
+    return any(value in {"presence_state:likely_present", "presence_state:visually_confirmed"} for value in evidence)
 
 
 def _matches(value: str, aliases: list[str]) -> bool:

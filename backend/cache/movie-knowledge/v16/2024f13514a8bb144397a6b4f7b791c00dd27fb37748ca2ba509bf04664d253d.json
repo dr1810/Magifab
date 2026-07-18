@@ -1,0 +1,451 @@
+{
+  "movie_id": "bigBuckBunny",
+  "revision": 1,
+  "created_at": "2026-07-18T17:49:39.285641Z",
+  "updated_at": "2026-07-18T17:49:39.285641Z",
+  "knowledge": {
+    "movie_id": "bigBuckBunny",
+    "version": 1,
+    "movie_knowledge_version": 1,
+    "cache_version": 16,
+    "confidence": 0.3833838701248169,
+    "official_title": "Big Buck Bunny",
+    "plot_summary": "Big Buck Bunny's peaceful forest routine is disrupted by three mischievous rodents, and he responds with inventive but nonviolent pranks.",
+    "knowledge_source": "curated_local_catalog",
+    "source_urls": [
+      "https://studio.blender.org/films/big-buck-bunny/"
+    ],
+    "characters": [
+      {
+        "id": "character-big-buck-bunny",
+        "name": "Big Buck Bunny",
+        "perception_labels": [
+          "rabbit",
+          "bunny",
+          "buck"
+        ],
+        "aliases": [
+          "Big Buck Bunny",
+          "Buck",
+          "bunny",
+          "rabbit"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "id": "character-frank",
+        "name": "Frank",
+        "perception_labels": [
+          "frank"
+        ],
+        "aliases": [
+          "Frank"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "id": "character-rinky",
+        "name": "Rinky",
+        "perception_labels": [
+          "rinky"
+        ],
+        "aliases": [
+          "Rinky"
+        ],
+        "confidence": 1.0
+      },
+      {
+        "id": "character-gimera",
+        "name": "Gimera",
+        "perception_labels": [
+          "gimera"
+        ],
+        "aliases": [
+          "Gimera"
+        ],
+        "confidence": 1.0
+      }
+    ],
+    "locations": [
+      {
+        "id": "location-forest",
+        "name": "Forest",
+        "aliases": [
+          "forest",
+          "woodland"
+        ]
+      }
+    ],
+    "objects": [
+      {
+        "id": "object-carrot",
+        "name": "Carrot",
+        "perception_labels": [
+          "carrot"
+        ],
+        "aliases": [
+          "carrot"
+        ],
+        "confidence": 0.95
+      },
+      {
+        "id": "object-38a81e87e79631e6",
+        "name": "person",
+        "perception_labels": [
+          "person"
+        ],
+        "aliases": [
+          "person"
+        ],
+        "confidence": 0.0
+      },
+      {
+        "id": "object-3daffc9f49977836",
+        "name": "big buck bunny",
+        "perception_labels": [
+          "big buck bunny"
+        ],
+        "aliases": [
+          "big buck bunny"
+        ],
+        "confidence": 0.3833838701248169
+      }
+    ],
+    "relationships": [
+      {
+        "id": "relationship-rodents-buck",
+        "from_character_id": "character-frank",
+        "to_character_id": "character-big-buck-bunny",
+        "description": "Frank and the other rodents antagonize Big Buck Bunny."
+      }
+    ],
+    "events": [
+      {
+        "id": "event-rodent-prank",
+        "description": "The rodents disrupt Big Buck Bunny's peaceful day.",
+        "evidence_terms": [
+          "rabbit",
+          "squirrel"
+        ],
+        "timeline_position_id": null
+      }
+    ],
+    "timeline_positions": [
+      {
+        "id": "timeline-opening",
+        "start_seconds": 0.0,
+        "end_seconds": 160.0,
+        "description": "Big Buck Bunny's quiet forest routine."
+      },
+      {
+        "id": "timeline-conflict",
+        "start_seconds": 160.0,
+        "end_seconds": 600.0,
+        "description": "The rodents' pranks lead Big Buck Bunny to respond."
+      }
+    ],
+    "dialogue": [],
+    "scene_summaries": [
+      {
+        "scene_id": "bbb-01",
+        "frame_hash": "f4e13d0a2eac90ed04339d3be319ccfbab3983fa717c80066b77822dc5cb9e20",
+        "start_seconds": 1.0,
+        "end_seconds": 1.0,
+        "summary": "Visible: Big Buck Bunny, big buck bunny. Actions: looking.",
+        "confidence": 0.3833838701248169,
+        "visible_entities": [
+          {
+            "id": "010778ee-840f-4bc5-b0be-1a097fc54b36",
+            "label": "person",
+            "category": "person",
+            "bbox": null,
+            "confidence": 0.5,
+            "sources": [
+              "scene_understanding"
+            ],
+            "semantic_id": "character-big-buck-bunny"
+          },
+          {
+            "id": "d9e3f359-2264-4ae3-a304-f02979d876fc",
+            "label": "big buck bunny",
+            "category": "object",
+            "bbox": [
+              10.334426879882812,
+              118.85670471191406,
+              434.5436553955078,
+              303.5622100830078
+            ],
+            "confidence": 0.3833838701248169,
+            "sources": [
+              "object_grounding"
+            ],
+            "semantic_id": null
+          }
+        ],
+        "actions": [
+          "looking"
+        ],
+        "interactions": [],
+        "environment": "sky",
+        "potential_confusions": [
+          "The visible action may need a simple explanation."
+        ],
+        "prepared": true,
+        "preparation_version": 16
+      }
+    ],
+    "movie_scenes": [
+      {
+        "scene_id": "bbb-01",
+        "start_seconds": 0.0,
+        "end_seconds": 160.0,
+        "description": "Big Buck Bunny is in the forest before the conflict escalates.",
+        "character_ids": [
+          "character-big-buck-bunny"
+        ],
+        "object_ids": [
+          "object-carrot"
+        ],
+        "relationship_ids": [],
+        "event_ids": []
+      },
+      {
+        "scene_id": "bbb-02",
+        "start_seconds": 160.0,
+        "end_seconds": 340.0,
+        "description": "The rodents disrupt Big Buck Bunny's routine.",
+        "character_ids": [
+          "character-big-buck-bunny",
+          "character-frank",
+          "character-rinky",
+          "character-gimera"
+        ],
+        "object_ids": [],
+        "relationship_ids": [
+          "relationship-rodents-buck"
+        ],
+        "event_ids": [
+          "event-rodent-prank"
+        ]
+      }
+    ],
+    "known_aliases": [
+      {
+        "semantic_id": "object-38a81e87e79631e6",
+        "alias": "person",
+        "kind": "observed_entity",
+        "confidence": 0.0
+      },
+      {
+        "semantic_id": "object-3daffc9f49977836",
+        "alias": "big buck bunny",
+        "kind": "observed_entity",
+        "confidence": 0.3833838701248169
+      }
+    ],
+    "visual_anchors": [
+      {
+        "id": "9756e2a4-a9cb-4167-af07-f92fa4f84f86",
+        "semantic_id": "object-3daffc9f49977836",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "bbox": [
+          10.334426879882812,
+          118.85670471191406,
+          434.5436553955078,
+          303.5622100830078
+        ],
+        "confidence": 0.3833838701248169
+      }
+    ],
+    "face_references": [],
+    "observation_history": [
+      {
+        "id": "42b99962-74e5-4aac-ac53-b94259d09424",
+        "timestamp_seconds": 1.0,
+        "entity_label": "person",
+        "semantic_id": "object-38a81e87e79631e6",
+        "confidence": 0.0,
+        "source": "scene_understanding"
+      },
+      {
+        "id": "1756d2ca-7cef-4514-921b-44ea4e80e65e",
+        "timestamp_seconds": 1.0,
+        "entity_label": "big buck bunny",
+        "semantic_id": "object-3daffc9f49977836",
+        "confidence": 0.3833838701248169,
+        "source": "object_grounding"
+      }
+    ],
+    "emotions": [],
+    "vocabulary": [],
+    "observations": [
+      {
+        "id": "observation-b32d9ac2d23871af3561",
+        "movie_id": "bigBuckBunny",
+        "scene_id": "bbb-01",
+        "frame_hash": "f4e13d0a2eac90ed04339d3be319ccfbab3983fa717c80066b77822dc5cb9e20",
+        "timestamp_seconds": 1.0,
+        "model_sources": [
+          "yolo11n.pt",
+          "microsoft/Florence-2-base",
+          "IDEA-Research/grounding-dino-tiny"
+        ],
+        "raw_florence_caption": "The image shows a large plume of smoke rising up into the sky. The smoke is a reddish-brown color and appears to be thick and billowing upwards. The sky is dark and cloudy, and there are trees visible in the foreground. The image is taken from a low angle, looking up at the smoke. The overall mood of the image is somber and ominous.",
+        "yolo_detections": [],
+        "grounding_detections": [
+          {
+            "id": "grounding-2003d4a700fab88d761d",
+            "label": "big buck bunny",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.3833838701248169,
+            "bounding_box": [
+              10.334426879882812,
+              118.85670471191406,
+              434.5436553955078,
+              303.5622100830078
+            ]
+          }
+        ],
+        "actions": [
+          "looking"
+        ],
+        "interactions": []
+      }
+    ],
+    "semantic_claims": [
+      {
+        "id": "claim-ab3f31e3b4a28361",
+        "kind": "character_present",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "person-38a81e87e79631e6",
+        "predicate": "present_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.5,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      },
+      {
+        "id": "claim-d39cf1c7f4d5db12",
+        "kind": "timeline_change",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "person-38a81e87e79631e6",
+        "predicate": "appears_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.5,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      },
+      {
+        "id": "claim-01b827f7a2ffa5fb",
+        "kind": "object_present",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "object-3daffc9f49977836",
+        "predicate": "present_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.3833838701248169,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      },
+      {
+        "id": "claim-ee9eedc7e85ab6bc",
+        "kind": "timeline_change",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "object-3daffc9f49977836",
+        "predicate": "appears_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.3833838701248169,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      },
+      {
+        "id": "claim-60f7a2d95ae0d74d",
+        "kind": "character_present",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "present_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.86,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-big-buck-bunny"
+        ]
+      },
+      {
+        "id": "claim-d96d54fca02e08b2",
+        "kind": "timeline_change",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "appears_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 0.86,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-big-buck-bunny"
+        ]
+      },
+      {
+        "id": "claim-ad3263f0ed57f263",
+        "kind": "event",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "event-14f22c3ccfb754c8",
+        "predicate": "occurs_in",
+        "object_id": "bbb-01",
+        "value": "looking",
+        "confidence": 0.5,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      },
+      {
+        "id": "claim-befb0fb8dc4e418b",
+        "kind": "scene_state",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "scene-5b2c950f1ba8469d",
+        "predicate": "has_state",
+        "object_id": "bbb-01",
+        "value": "Visible: Big Buck Bunny, big buck bunny. Actions: looking.",
+        "confidence": 0.3833838701248169,
+        "observation_ids": [
+          "observation-b32d9ac2d23871af3561"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      }
+    ]
+  }
+}

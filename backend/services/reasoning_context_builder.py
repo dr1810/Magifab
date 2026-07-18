@@ -2,14 +2,24 @@
 from schemas.knowledge import SemanticMovieKnowledge
 from schemas.profiles import AccessibilityProfile
 from schemas.reasoning_context import ContextRelationship, ReasoningContext, ReasoningEntity
+from config import get_settings
 
 
 class ReasoningContextBuilder:
     """Selects semantic claims; it never returns raw observations or perception fields."""
 
+    def __init__(self, presence_threshold: float | None = None):
+        self._presence_threshold = (
+            get_settings().semantic_presence_confidence_threshold
+            if presence_threshold is None else presence_threshold
+        )
+
     def build(self, *, knowledge: SemanticMovieKnowledge, scene_id: str, timestamp_seconds: float, accessibility_profile: AccessibilityProfile) -> ReasoningContext:
         scene_claims = [claim for claim in knowledge.semantic_claims if claim.scene_id == scene_id]
-        active_character_claims = [claim for claim in scene_claims if claim.kind == "character_present"]
+        active_character_claims = [
+            claim for claim in scene_claims
+            if claim.kind == "character_present" and claim.confidence >= self._presence_threshold
+        ]
         active_object_claims = [claim for claim in scene_claims if claim.kind == "object_present"]
         character_by_id = {character.id: character for character in knowledge.characters}
         object_by_id = {item.id: item for item in knowledge.objects}
@@ -57,12 +67,19 @@ class ReasoningContextBuilder:
 
 def _entities(claims, entities_by_id) -> list[ReasoningEntity]:
     """Only registered semantic entities receive display names in a user context."""
-    result: list[ReasoningEntity] = []
-    seen: set[str] = set()
+    grouped: dict[str, list] = {}
     for claim in claims:
         entity = entities_by_id.get(claim.subject_id)
-        if entity is None or entity.id in seen:
+        if entity is None:
             continue
-        seen.add(entity.id)
-        result.append(ReasoningEntity(id=entity.id, name=entity.name, confidence=entity.confidence, claim_ids=[claim.id]))
+        grouped.setdefault(entity.id, []).append(claim)
+    result: list[ReasoningEntity] = []
+    for entity_id, entity_claims in grouped.items():
+        entity = entities_by_id[entity_id]
+        result.append(ReasoningEntity(
+            id=entity.id,
+            name=entity.name,
+            confidence=max(claim.confidence for claim in entity_claims),
+            claim_ids=[claim.id for claim in entity_claims],
+        ))
     return result

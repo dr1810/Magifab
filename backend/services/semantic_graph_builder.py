@@ -26,7 +26,7 @@ class SemanticGraphBuilder:
         verified = {
             match.entity.label.lower(): match
             for match in matches.characters
-            if {"catalog_alias_evidence", "face_embedding_identity"}.intersection(match.evidence)
+            if _direct_identity_evidence(match.evidence) and _presence_is_active(match.evidence)
         }
         claims: list[SemanticClaim] = []
         prior_labels = {
@@ -40,7 +40,7 @@ class SemanticGraphBuilder:
             object_match = _object_match(entity.label, matches, existing)
             semantic_id = (character_match.id if character_match else object_match.id if object_match else _stable_id(entity.category, entity.label))
             kind = "character_present" if entity.category in {"person", "animal"} else "object_present"
-            confidence = entity.confidence if entity.confidence is not None else 0.5
+            confidence = character_match.confidence if character_match else (entity.confidence if entity.confidence is not None else 0.5)
             knowledge_ids = [character_match.id] if character_match else [object_match.id] if object_match else []
             claims.append(_claim(
                 observation, kind, semantic_id, "present_in", observation.scene_id, confidence,
@@ -50,7 +50,11 @@ class SemanticGraphBuilder:
                 claims.append(_claim(observation, "timeline_change", semantic_id, "appears_in", observation.scene_id, confidence))
         emitted_character_ids = {claim.subject_id for claim in claims if claim.kind == "character_present"}
         for character in matches.characters:
-            if character.id in emitted_character_ids or "known_scene_participant" not in character.evidence:
+            if (
+                character.id in emitted_character_ids
+                or "known_scene_participant" not in character.evidence
+                or not _presence_is_active(character.evidence)
+            ):
                 continue
             claims.append(_claim(
                 observation, "character_present", character.id, "present_in", observation.scene_id,
@@ -108,7 +112,10 @@ def _claim(
 
 
 def _scene_state(perception: UnifiedSceneRepresentation, matches: SemanticMatchResult) -> str:
-    matched_names = [*([item.label for item in matches.characters]), *([item.label for item in matches.objects])]
+    matched_names = [
+        *(item.label for item in matches.characters if _presence_is_active(item.evidence)),
+        *(item.label for item in matches.objects),
+    ]
     matched_labels = {
         item.entity.label.lower() for item in matches.characters
     }
@@ -134,6 +141,14 @@ def _object_match(label: str, matches: SemanticMatchResult, knowledge: SemanticM
         if normalized in {value.strip().lower() for value in aliases}:
             return match
     return None
+
+
+def _direct_identity_evidence(evidence: list[str]) -> bool:
+    return any(value == "face_embedding_identity" or value.startswith(("yolo_identity:", "grounding_identity:", "caption_identity:")) for value in evidence)
+
+
+def _presence_is_active(evidence: list[str]) -> bool:
+    return any(value in {"presence_state:likely_present", "presence_state:visually_confirmed"} for value in evidence)
 
 
 def _scene_confidence(perception: UnifiedSceneRepresentation) -> float:
