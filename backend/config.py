@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))
     openai_model: str = Field(default="gpt-5.6", validation_alias=AliasChoices("OPENAI_MODEL", "MAGIFAB_OPENAI_MODEL"))
     openai_max_output_tokens: int = 300
+    face_model_pack: str = "buffalo_l"
+    face_onnx_providers: str = "CPUExecutionProvider"
+    face_detection_size: int = 640
+    face_verification_threshold: float = 0.6
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 

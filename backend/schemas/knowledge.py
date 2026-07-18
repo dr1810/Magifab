@@ -108,6 +108,16 @@ class VisualAnchor(BaseModel):
     confidence: float = Field(ge=0, le=1)
 
 
+class FaceReference(BaseModel):
+    """An enrolled embedding for verification against a known Semantic Movie Knowledge character."""
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    character_id: str = Field(min_length=1)
+    embedding: list[float] = Field(min_length=1)
+    model: str = Field(min_length=1)
+    confidence: float = Field(default=1.0, ge=0, le=1)
+
+
 class ObservationHistoryItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str = Field(min_length=1)
@@ -154,6 +164,7 @@ class SemanticMovieKnowledge(BaseModel):
     scene_summaries: list[SceneSummary] = Field(default_factory=list)
     known_aliases: list[KnownAlias] = Field(default_factory=list)
     visual_anchors: list[VisualAnchor] = Field(default_factory=list)
+    face_references: list[FaceReference] = Field(default_factory=list)
     observation_history: list[ObservationHistoryItem] = Field(default_factory=list)
     emotions: list[EmotionFact] = Field(default_factory=list)
     vocabulary: list[VocabularyEntry] = Field(default_factory=list)
