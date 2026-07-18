@@ -56,7 +56,7 @@ type BackendRequest = {
   scene_summary: string
   question: string
   intent: string
-  image: string
+  image?: string
   grounding_queries: string[]
   verify_faces: boolean
   accessibility_profile: {
@@ -69,18 +69,33 @@ type BackendRequest = {
   companion_profile: { name: string; personality: string; conversation_style: string }
 }
 
+/** Matches FastAPI's ScenePreparationRequest exactly; preparation does not need prompt intent. */
+type ScenePreparationRequest = Pick<
+  BackendRequest,
+  'movie_id' | 'timestamp_seconds' | 'scene_id' | 'scene_summary' | 'image' | 'accessibility_profile' | 'companion_profile'
+> & { image: string }
+
 type RespondOptions = {
   movieId: string
   scene: SceneData
   question: string
-  frame: CapturedVideoFrame
+  timestamp: number
   settings: Settings
   companion: CompanionProfile | null
   signal?: AbortSignal
 }
 
+type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp'> & { frame: CapturedVideoFrame }
+
 const configuredBackendUrl = import.meta.env.VITE_MAGIFAB_BACKEND_URL?.trim()
-const backendBaseUrl = (configuredBackendUrl || 'http://127.0.0.1:8000').replace(/\/$/, '')
+/**
+ * Development requests go through Vite's same-origin `/api` proxy. This avoids
+ * treating the browser's loopback interface as the backend host. Deployments
+ * provide their public backend origin through `VITE_MAGIFAB_BACKEND_URL`.
+ */
+const companionEndpoint = configuredBackendUrl
+  ? `${configuredBackendUrl.replace(/\/$/, '')}/api/v1/companion/respond`
+  : '/api/v1/companion/respond'
 
 function promptIntent(question: string): string {
   const value = question.toLowerCase()
@@ -130,17 +145,16 @@ export class CompanionBackendService {
     const intent = promptIntent(options.question)
     const payload: BackendRequest = {
       movie_id: options.movieId,
-      timestamp_seconds: options.frame.timestamp,
+      timestamp_seconds: options.timestamp,
       scene_id: options.scene.sceneId,
       scene_summary: options.scene.subtitle || options.scene.voiceNarration || 'Current movie scene.',
       question: options.question,
       intent,
-      image: options.frame.dataUrl,
-      grounding_queries: intent === 'object_location' ? [options.scene.highlightObject.name] : [],
-      verify_faces: intent === 'character_identity',
+      grounding_queries: [],
+      verify_faces: false,
       ...profilePayload(options.settings, options.companion, savedProfile),
     }
-    const response = await fetch(`${backendBaseUrl}/api/v1/companion/respond`, {
+    const response = await fetch(companionEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -153,6 +167,29 @@ export class CompanionBackendService {
     }
     if (!isBackendResponse(body)) throw new Error('The companion backend returned an invalid response.')
     return body
+  }
+
+  async prepareScene(options: PrepareOptions): Promise<CompanionBackendResponse> {
+    const savedProfile = await getAccessibilityProfile()
+    const payload: ScenePreparationRequest = {
+      movie_id: options.movieId, timestamp_seconds: options.frame.timestamp, scene_id: options.scene.sceneId,
+      scene_summary: options.scene.subtitle || options.scene.voiceNarration || 'Current movie scene.',
+      image: options.frame.dataUrl, ...profilePayload(options.settings, options.companion, savedProfile),
+    }
+    const payloadJson = JSON.stringify(payload)
+    if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare payload', payloadJson)
+    const response = await fetch(companionEndpoint.replace('/respond', '/prepare'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson, signal: options.signal,
+    })
+    const body: unknown = await response.json().catch(() => null)
+    if (!response.ok) {
+      const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The scene preparation service is unavailable.'
+      throw new Error(detail)
+    }
+    if (!body || typeof body !== 'object' || !('accessibility_content' in body) || !('knowledge_revision' in body)) {
+      throw new Error('The scene preparation service returned an invalid response.')
+    }
+    return { ...(body as Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'>), response_cache_hit: false, cache_key: '', response: { response: '', model: 'scene-preparation' } }
   }
 }
 

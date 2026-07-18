@@ -22,7 +22,7 @@ type MoviePlayerProps = {
   onDurationChange: (value: number) => void
   onSeeking?: () => void
   onSeekComplete?: (timestamp: number) => void
-  onVideoFrameCaptureReady?: (capture: (() => CapturedVideoFrame) | null) => void
+  onVideoFrameCaptureReady?: (capture: (() => Promise<CapturedVideoFrame>) | null) => void
   promptOpen: boolean
   onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
@@ -316,6 +316,7 @@ export function MoviePlayer({
         <video
           ref={videoRef}
           className="movie-video"
+          crossOrigin="anonymous"
           src={movie.videoSrc}
           poster={movie.posterUrl}
           playsInline

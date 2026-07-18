@@ -31,7 +31,17 @@ Scene-level Semantic Movie Knowledge retrieval
 
 ## Retrieval and caching
 
-`POST /api/v1/companion/respond` is the integrated runtime endpoint.
+`POST /api/v1/companion/prepare` is the preparation endpoint. It is the only companion endpoint permitted to run perception for an unknown scene. `POST /api/v1/companion/respond` is retrieval-only: it reads a prepared scene and never decodes an image, runs a perception model, or calls GPT.
+
+## Preparation-first runtime
+
+```
+Representative scene frame → YOLO / Florence / optional grounding → Perception Fusion
+→ Semantic Matching → Semantic Movie Knowledge (visible entities, anchors, actions)
+→ deterministic prompt bubbles and drawer
+```
+
+Each `SceneSummary` is marked `prepared` only after the perception record has been persisted. Prompt bubbles are derived from its `visible_entities`; unnamed animals or people can be described generically, but cannot be promoted to movie characters. Title/loading frames are not prepared by the frontend until playback has advanced beyond its initial buffer.
 
 1. It retrieves the requested movie scene before decoding an image or loading a model.
 2. A known scene bypasses all perception models.

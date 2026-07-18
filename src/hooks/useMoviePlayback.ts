@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getMovie, getScene } from '../services/movieService'
-import { movieAnalysisService } from '../services/gpt/MovieAnalysisService'
 import type { MovieData, MovieId, SceneData } from '../types/movie'
 
 export function useMoviePlayback(movieId: MovieId) {
@@ -18,7 +17,6 @@ export function useMoviePlayback(movieId: MovieId) {
 
     void getMovie(movieId).then((response) => {
       if (!mounted) return
-      if (response) movieAnalysisService.ensureMovieKnowledge(response)
       setMovie(response)
       setScene(response?.scenes[0] ?? null)
       sceneRef.current = response?.scenes[0] ?? null

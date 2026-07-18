@@ -112,7 +112,6 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
     return CompanionPipelineService(
         expansion=get_knowledge_expansion_engine(),
         accessibility=get_accessibility_reasoning_engine(),
-        personalizer=get_gpt_personalization_service(),
         response_cache=get_response_cache(),
         settings=get_settings(),
     )

@@ -46,12 +46,6 @@ Swagger is available at `http://127.0.0.1:8000/docs`.
 
 ### Frontend
 
-Create `.env.local` in the project root:
-
-```bash
-VITE_MAGIFAB_BACKEND_URL=http://127.0.0.1:8000
-```
-
 Then run:
 
 ```bash
@@ -59,7 +53,11 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite. The browser must be able to reach the configured backend URL. The OpenAI key belongs only in the backend environment—never in `.env.local` or frontend code.
+Open the URL printed by Vite. Local `/api` requests are proxied to FastAPI on port 8000. For a deployed frontend, set `VITE_MAGIFAB_BACKEND_URL` to the public backend URL. The OpenAI key belongs only in the backend environment—never in `.env.local` or frontend code.
+
+### Cloudflare R2 movie CORS
+
+Frame capture draws the active `<video>` frame onto a canvas. This is permitted only when the R2 media response includes CORS headers. Apply [config/r2-cors.json](/Users/rameshlathimuthu/Desktop/Magifab/config/r2-cors.json) to the bucket. It permits public, credential-free reads from any origin, matching the public R2 movie host and enabling both localhost and Render. The player uses `crossOrigin="anonymous"`, so no credentials are sent and R2 must return `Access-Control-Allow-Origin` for the requesting origin. Vite proxies R2 assets through `/r2-movies` locally; production and Render clients load the same assets directly from R2 and require the bucket policy.
 
 ## Deployment
 

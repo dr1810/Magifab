@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FocusEvent } from 'react'
-import { Loader2 } from 'lucide-react'
 import { TopBar } from './components/TopBar'
 import { MoviePlayer } from './components/MoviePlayer'
 import { PromptPanel } from './components/PromptPanel'
@@ -9,6 +8,8 @@ import { CompanionWidget } from './components/CompanionWidget'
 import { useAccessibility } from './accessibility-context'
 import { useMoviePlayback } from './hooks/useMoviePlayback'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
+import { useExperiencePreparation } from './hooks/useExperiencePreparation'
+import { ExperiencePreparationScreen } from './components/ExperiencePreparationScreen'
 import type { CapturedVideoFrame } from './services/ai/VideoFrameCaptureService'
 import { companionBackendService, type BackendAccessibilityContent } from './services/backend/CompanionBackendService'
 import { speakText, stopSpeech } from './services/speechService'
@@ -23,8 +24,9 @@ type MovieViewerProps = {
 
 export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () => undefined }: MovieViewerProps) {
   const { movie: movieData, scene, loading, totalDuration, updateScene } = useMoviePlayback(movie)
-  const { profile } = useCompanionProfile()
+  const { profile, loading: companionProfileLoading } = useCompanionProfile()
   const { settings } = useAccessibility()
+  const preparation = useExperiencePreparation(movieData, companionProfileLoading)
 
   const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -38,7 +40,11 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const currentSceneIdRef = useRef<string>('')
   const explanationRequestIdRef = useRef(0)
   const promptAbortControllerRef = useRef<AbortController | null>(null)
-  const frameCaptureRef = useRef<(() => CapturedVideoFrame) | null>(null)
+  const frameCaptureRef = useRef<(() => Promise<CapturedVideoFrame>) | null>(null)
+  const preparedFrameRef = useRef<CapturedVideoFrame | null>(null)
+  const preparedSceneIdsRef = useRef<Set<string>>(new Set())
+  const preparationAbortControllerRef = useRef<AbortController | null>(null)
+  const [frameCaptureAvailable, setFrameCaptureAvailable] = useState(false)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
   const [accessibilityContent, setAccessibilityContent] = useState<BackendAccessibilityContent | null>(null)
@@ -49,7 +55,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     question: prompt.question,
     explanation: '',
   })) ?? [], [accessibilityContent])
-  const prompts = backendPrompts.length > 0 ? backendPrompts : scene?.prompts ?? []
+  const prompts = backendPrompts
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
   useEffect(() => {
@@ -66,6 +72,28 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [scene?.sceneId])
 
   useEffect(() => {
+    if (!movieData || !scene || !frameCaptureAvailable || currentTime < 2 || preparedSceneIdsRef.current.has(scene.sceneId) || isSeekingRef.current) return
+    const capture = frameCaptureRef.current
+    if (!capture) return
+    const abortController = new AbortController()
+    preparationAbortControllerRef.current?.abort()
+    preparationAbortControllerRef.current = abortController
+    preparedSceneIdsRef.current.add(scene.sceneId)
+    void capture().then((frame) => {
+      if (abortController.signal.aborted || isSeekingRef.current) return
+      preparedFrameRef.current = frame
+      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings, companion: profile, signal: abortController.signal })
+    }).then((result) => {
+      if (!result || abortController.signal.aborted || isSeekingRef.current || currentSceneIdRef.current !== scene.sceneId) return
+      setAccessibilityContent(result.accessibility_content)
+    }).catch((error: unknown) => {
+      if (import.meta.env.DEV) console.debug('[MagiFab companion] scene preparation skipped', error)
+      preparedSceneIdsRef.current.delete(scene.sceneId)
+    })
+    return () => abortController.abort()
+  }, [movieData, scene, frameCaptureAvailable, currentTime, settings, profile])
+
+  useEffect(() => {
     const savedTimestamp = getPlaybackTimestamp(movie)
     if (import.meta.env.DEV) console.debug('[MagiFab playback] viewer resume request', { movieId: movie, currentTimeBeforeResume: currentTime, savedTimestamp })
     setCurrentTime(savedTimestamp)
@@ -73,6 +101,10 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setActiveBubble(null)
     setWidgetOpen(false)
   }, [movie])
+
+  useEffect(() => {
+    if (preparation.phase === 'ready') setPlaying(true)
+  }, [preparation.phase])
 
   useEffect(() => {
     if (!movieData) return
@@ -106,7 +138,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     }
   }, [])
 
-  const selectPrompt = (prompt: PromptQuestion) => {
+  const selectPrompt = async (prompt: PromptQuestion) => {
     if (!scene || !movieData || isSeekingRef.current) return
     setSelectedPromptId(prompt.id)
     setPromptOpen(false)
@@ -120,26 +152,25 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const requestId = ++explanationRequestIdRef.current
     const loadingAnchor = { x: scene.companionPosition.x, y: scene.companionPosition.y }
     setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:loading`, question: prompt.question, title: 'Preparing help', relationship: '', explanation: '', anchor: loadingAnchor, highlightTarget: false, loading: true })
-    let frame: CapturedVideoFrame
-    try {
-      frame = frameCaptureRef.current?.() ?? (() => { throw new Error('Frame capture is unavailable.') })()
-    } catch (error) {
-      setActiveBubble(null)
-      setAssistantText(error instanceof Error ? error.message : 'The current movie frame is not ready yet.')
+    const frame = preparedFrameRef.current
+    if (!frame || !accessibilityContent) {
+      setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:not-prepared`, question: prompt.question, title: 'Preparing this scene', relationship: '', explanation: 'Please wait a moment while this scene is prepared.', anchor: loadingAnchor, highlightTarget: false, loading: true })
       return
     }
-    void companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, frame, settings, companion: profile, signal: abortController.signal }).then((result) => {
+    try {
+      const result = await companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, timestamp: frame.timestamp, settings, companion: profile, signal: abortController.signal })
       if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
       setAccessibilityContent(result.accessibility_content)
       setActiveBubble(buildPromptBubble(scene, prompt, result, frame))
       setAssistantText(result.response.response)
       if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: result.response.response, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
-    }).catch((error: unknown) => {
+    } catch (error: unknown) {
       if (error instanceof DOMException && error.name === 'AbortError') return
       if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-      setActiveBubble(null)
-      setAssistantText(error instanceof Error ? error.message : 'The companion is unavailable. Please try again.')
-    })
+      const message = error instanceof Error ? error.message : 'The companion is unavailable. Please try again.'
+      setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:request-error`, question: prompt.question, title: 'Companion unavailable', relationship: '', explanation: message, anchor: loadingAnchor, highlightTarget: false })
+      setAssistantText(message)
+    }
   }
   const openPromptPanel = () => {
     setDrawerOpen(false)
@@ -166,13 +197,15 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     isSeekingRef.current = true
     explanationRequestIdRef.current += 1
     promptAbortControllerRef.current?.abort()
+    preparationAbortControllerRef.current?.abort()
     setActiveBubble(null)
     setWidgetOpen(false)
     void stopSpeech()
   }, [])
 
-  const handleFrameCaptureReady = useCallback((capture: (() => CapturedVideoFrame) | null) => {
+  const handleFrameCaptureReady = useCallback((capture: (() => Promise<CapturedVideoFrame>) | null) => {
     frameCaptureRef.current = capture
+    setFrameCaptureAvailable(Boolean(capture))
   }, [])
 
   const openCompanionFromBubble = useCallback(() => {
@@ -185,16 +218,10 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setActiveBubble(null)
   }, [])
 
-  if (loading || !movieData || !scene) {
-    return (
-      <div className="loading-screen">
-        <Loader2 className="spin" /> Preparing viewer...
-      </div>
-    )
-  }
+  if (loading || !movieData || !scene) return <ExperiencePreparationScreen milestones={preparation.milestones} phase={preparation.phase === 'ready' ? 'transitioning' : preparation.phase} reduceMotion={settings.reduceMotion || settings.disableAnimations} />
 
   return (
-    <main className="movie-experience viewer-page">
+    <main className={`movie-experience viewer-page ${preparation.phase === 'ready' ? 'playback-ready' : ''}`}>
       <TopBar
         movie={movieData}
         onBack={() => { savePlaybackTimestamp(movie, currentTime, duration || totalDuration); onBack() }}
@@ -286,6 +313,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           }
         />
       </div>
+      {preparation.phase !== 'ready' && <ExperiencePreparationScreen milestones={preparation.milestones} phase={preparation.phase} reduceMotion={settings.reduceMotion || settings.disableAnimations} />}
     </main>
   )
 }

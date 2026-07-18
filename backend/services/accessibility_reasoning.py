@@ -34,7 +34,7 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         vocabulary = self._vocabulary(request, limit)
         conversations = self._conversations(request, limit)
         confusions = self._confusions(needs, cards, relationships, timeline, emotions, vocabulary, conversations)
-        prompts = self._prompts(needs, cards, relationships, timeline, emotions, vocabulary, limit, request.accessibility_profile.preferred_prompt_types)
+        prompts = self._prompts(scene_summary, needs, cards, relationships, timeline, emotions, vocabulary, limit, request.accessibility_profile.preferred_prompt_types)
         drawer = AccessibilityDrawerContent(
             character_cards=cards if _needs(needs, "remember characters", "characters") else [],
             relationship_summaries=relationships if _needs(needs, "relationships") else [],
@@ -123,17 +123,26 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             predictions.append(ConfusionPrediction(kind="conversation", confidence=max(item.confidence for item in conversations), reason="Current dialogue can be shown in simpler form."))
         return predictions
 
-    def _prompts(self, needs, cards, relationships, timeline, emotions, vocabulary, limit: int, preferred: list[str]) -> list[PromptBubbleSuggestion]:
+    def _prompts(self, scene_summary, needs, cards, relationships, timeline, emotions, vocabulary, limit: int, preferred: list[str]) -> list[PromptBubbleSuggestion]:
+        """Offer only questions grounded in entities/actions stored for this exact scene."""
         prompts: list[PromptBubbleSuggestion] = []
-        if cards and _needs(needs, "remember characters", "characters"):
-            prompts.append(PromptBubbleSuggestion(id="character-memory", kind="character", label="Who is that?", question=f"Who is {cards[0].name}?", priority=1))
-        if relationships and _needs(needs, "relationships"):
+        visible = scene_summary.visible_entities if scene_summary and scene_summary.prepared else []
+        visible_people = [entity for entity in visible if entity.category in {"person", "animal"}]
+        visible_objects = [entity for entity in visible if entity.category == "object"]
+        if cards and visible_people and _needs(needs, "remember characters", "characters"):
+            prompts.append(PromptBubbleSuggestion(id="visible-character", kind="character", label="Who is that?", question=f"Who is {cards[0].name}?", priority=1))
+        elif visible_people and _needs(needs, "remember characters", "characters"):
+            label = visible_people[0].label
+            prompts.append(PromptBubbleSuggestion(id="visible-person", kind="visible_entity", label="Who is that?", question=f"What is the {label} doing?", priority=1))
+        if relationships and len(cards) > 1 and _needs(needs, "relationships"):
             prompts.append(PromptBubbleSuggestion(id="relationship", kind="relationship", label="How are they connected?", question="How are these characters connected?", priority=2))
-        if emotions and _needs(needs, "emotions", "understand emotions"):
+        if emotions and visible_people and _needs(needs, "emotions", "understand emotions"):
             prompts.append(PromptBubbleSuggestion(id="emotion", kind="emotion", label="How do they feel?", question="How does this person feel?", priority=3))
-        if timeline and _needs(needs, "plot", "timeline"):
-            prompts.append(PromptBubbleSuggestion(id="timeline", kind="timeline", label="What just happened?", question="What just happened?", priority=4))
-        if vocabulary:
+        if scene_summary and scene_summary.actions and _needs(needs, "plot", "timeline"):
+            prompts.append(PromptBubbleSuggestion(id="visible-action", kind="scene", label="What is happening?", question="What is happening in this scene?", priority=4))
+        if visible_objects:
+            prompts.append(PromptBubbleSuggestion(id="visible-object", kind="object", label="What is that?", question=f"What is the {visible_objects[0].label}?", priority=5))
+        if vocabulary and scene_summary and scene_summary.prepared:
             prompts.append(PromptBubbleSuggestion(id="vocabulary", kind="vocabulary", label="What does that mean?", question=f"What does {vocabulary[0].term} mean?", priority=5))
         if preferred:
             preferred_set = {_normalize(item) for item in preferred}

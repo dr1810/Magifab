@@ -10,7 +10,7 @@ from schemas.personalization import GPTPersonalizationResponse
 
 
 class CompanionPipelineRequest(BaseModel):
-    """Frame input is required only when the requested scene is missing from movie knowledge."""
+    """Interaction requests retrieve prepared scene knowledge; they never carry an image."""
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
     timestamp_seconds: float = Field(ge=0)
@@ -38,6 +38,27 @@ class CompanionPipelineResponse(BaseModel):
     cache_key: str
     knowledge_revision: int = Field(ge=1)
     response: GPTPersonalizationResponse
+    accessibility_content: AccessibilityReasoningResult
+    perception: UnifiedSceneRepresentation | None = None
+    semantic_matches: SemanticMatchResult | None = None
+
+
+class ScenePreparationRequest(BaseModel):
+    """One representative frame for a scene, supplied before prompts are exposed."""
+    model_config = ConfigDict(extra="forbid")
+    movie_id: str = Field(min_length=1)
+    scene_id: str = Field(min_length=1)
+    timestamp_seconds: float = Field(ge=0)
+    scene_summary: str = Field(min_length=1)
+    image: str = Field(min_length=8)
+    accessibility_profile: AccessibilityProfile
+    companion_profile: CompanionProfile
+
+
+class ScenePreparationResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    knowledge_source: Literal["retrieved", "expanded"]
+    knowledge_revision: int = Field(ge=1)
     accessibility_content: AccessibilityReasoningResult
     perception: UnifiedSceneRepresentation | None = None
     semantic_matches: SemanticMatchResult | None = None

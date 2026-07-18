@@ -75,6 +75,18 @@ class DialogueSegment(BaseModel):
         return self
 
 
+class VisibleSceneEntity(BaseModel):
+    """Perception evidence bound to one scene; a semantic_id is present only after verification."""
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    label: str = Field(min_length=1)
+    category: str = Field(min_length=1)
+    bbox: list[float] | None = Field(default=None, min_length=4, max_length=4)
+    confidence: float = Field(ge=0, le=1)
+    sources: list[str] = Field(default_factory=list)
+    semantic_id: str | None = None
+
+
 class SceneSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
     scene_id: str = Field(min_length=1)
@@ -82,6 +94,12 @@ class SceneSummary(BaseModel):
     end_seconds: float = Field(ge=0)
     summary: str = Field(min_length=1)
     confidence: float = Field(default=1.0, ge=0, le=1)
+    visible_entities: list[VisibleSceneEntity] = Field(default_factory=list)
+    actions: list[str] = Field(default_factory=list)
+    interactions: list[str] = Field(default_factory=list)
+    environment: str = ""
+    potential_confusions: list[str] = Field(default_factory=list)
+    prepared: bool = False
 
     @model_validator(mode="after")
     def validate_range(self) -> "SceneSummary":

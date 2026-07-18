@@ -7,7 +7,12 @@ torchvision>=0.20
 pillow>=10.4
 numpy>=2.0
 opencv-python-headless>=4.10
-transformers>=4.49,<6.0
+# Florence-2's trusted remote configuration is compatible with Transformers 4.x,
+# but not with the current 5.x configuration API.
+transformers>=4.49,<5.0
+# Required by Florence-2's trusted remote model implementation.
+einops>=0.8,<1.0
+timm>=1.0,<2.0
 accelerate>=1.2
 openai>=1.0,<3.0
 insightface>=0.7.3,<1.0

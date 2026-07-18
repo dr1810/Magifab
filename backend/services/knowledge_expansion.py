@@ -14,6 +14,7 @@ from schemas.knowledge import (
     SemanticMovieKnowledge,
     SemanticObject,
     VisualAnchor,
+    VisibleSceneEntity,
 )
 from schemas.knowledge_expansion import KnowledgeExpansionRequest, KnowledgeExpansionResult
 from services.face_verification import FaceVerificationService
@@ -55,7 +56,7 @@ class KnowledgeExpansionEngine:
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        if retrieval.found and retrieval.record and retrieval.scene_summary:
+        if retrieval.found and retrieval.record and retrieval.scene_summary and retrieval.scene_summary.prepared:
             return KnowledgeExpansionResult(
                 source="retrieved",
                 cache_key=_cache_key(request.movie_id, retrieval.record.revision, request.scene_id, request.timestamp_seconds),
@@ -72,7 +73,7 @@ class KnowledgeExpansionEngine:
         faces = self._face_verifier.verify(image, base_knowledge) if request.verify_faces and base_knowledge.face_references else None
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
         semantic_matches = self._matcher.match(perception, base_knowledge)
-        knowledge = self.merge_observations(base_knowledge, request, perception)
+        knowledge = self.merge_observations(base_knowledge, request, perception, semantic_matches)
         record = self._store.save(knowledge)
         scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == (request.scene_id or "")), None)
         scene_summary = scene_summary or (knowledge.scene_summaries[-1] if knowledge.scene_summaries else None)
@@ -96,15 +97,16 @@ class KnowledgeExpansionEngine:
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        return not (retrieval.found and retrieval.scene_summary)
+        return not (retrieval.found and retrieval.scene_summary and retrieval.scene_summary.prepared)
 
     def merge_observations(
         self,
         base: SemanticMovieKnowledge,
         request: KnowledgeExpansionRequest,
         perception,
+        semantic_matches,
     ) -> SemanticMovieKnowledge:
-        """Merge factual observations into any existing graph without naming characters or events."""
+        """Persist scene-bound perception; only matcher-verified entities receive character IDs."""
         object_entities = [entity for entity in perception.entities if entity.category in {"object", "animal", "person"}]
         objects = [
             SemanticObject(
@@ -116,10 +118,20 @@ class KnowledgeExpansionEngine:
             )
             for entity in _unique_entities(object_entities)
         ]
+        verified_character_ids = {match.entity.label.lower(): match.id for match in semantic_matches.characters}
+        visible_entities = [
+            VisibleSceneEntity(
+                id=str(uuid4()), label=entity.label, category=entity.category,
+                bbox=entity.bounding_box, confidence=entity.confidence or 0.0,
+                sources=entity.sources, semantic_id=verified_character_ids.get(entity.label.lower()),
+            )
+            for entity in perception.entities
+            if entity.category in {"person", "animal", "object"} and (entity.confidence or 0.0) > 0
+        ]
         anchors = [
             VisualAnchor(
                 id=str(uuid4()),
-                semantic_id=_stable_id("object", entity.label),
+                semantic_id=verified_character_ids.get(entity.label.lower()) or _stable_id("object", entity.label),
                 scene_id=request.scene_id,
                 timestamp_seconds=request.timestamp_seconds,
                 bbox=entity.bounding_box,
@@ -151,12 +163,18 @@ class KnowledgeExpansionEngine:
                 end_seconds=request.timestamp_seconds,
                 summary=perception.scene_description or "Observed movie frame.",
                 confidence=scene_confidence,
+                visible_entities=visible_entities,
+                actions=perception.actions,
+                interactions=perception.interactions,
+                environment=perception.environment,
+                potential_confusions=_potential_confusions(visible_entities, perception.actions),
+                prepared=True,
             )
         return base.model_copy(update={
             "confidence": max(base.confidence, scene_confidence) if base.observation_history else scene_confidence,
             "objects": _merge_by_id(base.objects, objects),
             "locations": _merge_by_id(base.locations, locations),
-            "scene_summaries": _merge_by_id(base.scene_summaries, [new_scene], key="scene_id"),
+            "scene_summaries": [scene for scene in base.scene_summaries if scene.scene_id != new_scene.scene_id] + [new_scene],
             "known_aliases": _merge_by_id(base.known_aliases, aliases, key="alias"),
             "visual_anchors": [*base.visual_anchors, *anchors],
             "observation_history": [*base.observation_history, *observations],
@@ -186,6 +204,15 @@ def _unique_entities(entities):
 def _scene_confidence(entities) -> float:
     confidences = [entity.confidence for entity in entities if entity.confidence is not None]
     return sum(confidences) / len(confidences) if confidences else 0.0
+
+
+def _potential_confusions(entities, actions) -> list[str]:
+    notes: list[str] = []
+    if len([entity for entity in entities if entity.category in {"person", "animal"}]) > 1:
+        notes.append("Several visible characters may be hard to tell apart.")
+    if actions:
+        notes.append("The visible action may need a simple explanation.")
+    return notes
 
 
 def _merge_by_id(existing, additions, key: str = "id"):

@@ -149,6 +149,50 @@
   font-weight: 600;
 }
 
+.experience-preparation {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: auto;
+  background: radial-gradient(circle at 72% 18%, rgba(78, 146, 200, .2), transparent 28%), linear-gradient(145deg, #071936, #0a2349 58%, #071936);
+  color: #eff7ff;
+  opacity: 1;
+  transition: opacity 360ms ease;
+}
+
+.experience-preparation.is-transitioning { opacity: 0; pointer-events: none; }
+
+.experience-preparation-card {
+  width: min(100%, 620px);
+  padding: clamp(32px, 7vw, 62px);
+  border: 1px solid rgba(216, 235, 255, .16);
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(19, 51, 94, .86), rgba(7, 27, 59, .8));
+  box-shadow: 0 30px 80px rgba(1, 9, 25, .4);
+  backdrop-filter: blur(18px);
+}
+
+.experience-preparation h1 { margin: 10px 0 12px; font-size: clamp(2rem, 5vw, 3.25rem); letter-spacing: -.045em; line-height: 1.05; }
+.experience-preparation-subtitle { max-width: 470px; margin: 0; color: #c3d4e9; font-size: 1rem; line-height: 1.65; }
+.experience-milestones { display: grid; gap: 12px; margin: 34px 0 0; padding: 0; list-style: none; }
+.experience-milestone { display: flex; align-items: center; gap: 12px; color: #8299b6; font-size: .94rem; transition: color 240ms ease, transform 240ms ease; }
+.experience-milestone-icon { display: grid; width: 21px; height: 21px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(177, 204, 238, .28); border-radius: 999px; color: #0d315f; background: rgba(255, 255, 255, .05); transition: background-color 240ms ease, border-color 240ms ease, color 240ms ease; }
+.experience-milestone.active { color: #f5f9ff; transform: translateX(2px); }
+.experience-milestone.active .experience-milestone-icon { border-color: #f3d88e; background: rgba(243, 216, 142, .14); }
+.experience-milestone.active .experience-milestone-icon span { width: 6px; height: 6px; border-radius: 50%; background: #f3d88e; animation: mx-preparation-breathe 1.5s ease-in-out infinite; }
+.experience-milestone.complete { color: #bfd2e6; }
+.experience-milestone.complete .experience-milestone-icon { border-color: rgba(186, 218, 194, .72); background: #c5e5cb; }
+.experience-ready-message { max-width: 490px; animation: mx-preparation-enter 360ms ease both; }
+.experience-ready-message p { margin: 0; color: #c6d8ea; line-height: 1.65; }
+.experience-ready-message .experience-enjoy { margin-top: 22px; color: #f5dc98; font-weight: 650; }
+.experience-preparation.reduced-motion, .experience-preparation.reduced-motion * { transition: none !important; animation: none !important; }
+
+@keyframes mx-preparation-breathe { 50% { transform: scale(1.35); opacity: .55; } }
+@keyframes mx-preparation-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
 .movie-experience .loading {
   color: #27517e;
 }

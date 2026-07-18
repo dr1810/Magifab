@@ -4,6 +4,11 @@ export type MovieAssetId = MovieId | 'insideOut' | 'findingNemo'
 
 const CLOUDFLARE_R2_BASE = 'https://pub-26547a0f0f74415f9e77724b24edd8fe.r2.dev'
 
+/** Vite serves R2 media same-origin locally; deployed clients load R2 directly with its CORS policy. */
+function movieAssetUrl(path: string): string {
+  return import.meta.env.DEV ? `/r2-movies/${path}` : `${CLOUDFLARE_R2_BASE}/${path}`
+}
+
 export type MovieAssetConfig = {
   id: MovieAssetId
   name: string
@@ -18,7 +23,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   bigBuckBunny: {
     id: 'bigBuckBunny',
     name: 'Big Buck Bunny',
-    videoUrl: `${CLOUDFLARE_R2_BASE}/big-buck-bunny.mp4`,
+    videoUrl: movieAssetUrl('big-buck-bunny.mp4'),
     fileType: 'mp4',
     contentType: 'video/mp4',
     subtitleSrc: '/subtitles/big-buck-bunny.srt',
@@ -27,7 +32,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   spriteFright: {
     id: 'spriteFright',
     name: 'Sprite Fright',
-    videoUrl: `${CLOUDFLARE_R2_BASE}/sprite-fright.webm`,
+    videoUrl: movieAssetUrl('sprite-fright.webm'),
     fileType: 'webm',
     contentType: 'video/webm',
     subtitleSrc: '/subtitles/sprite-fright.vtt',
@@ -36,7 +41,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   insideOut: {
     id: 'insideOut',
     name: 'Inside Out (Demo)',
-    videoUrl: `${CLOUDFLARE_R2_BASE}/inside-out-demo.mp4`,
+    videoUrl: movieAssetUrl('inside-out-demo.mp4'),
     fileType: 'mp4',
     contentType: 'video/mp4',
     subtitleSrc: '',
@@ -46,7 +51,7 @@ export const movieAssets: Record<MovieAssetId, MovieAssetConfig> = {
   findingNemo: {
     id: 'findingNemo',
     name: 'Finding Nemo (Demo)',
-    videoUrl: `${CLOUDFLARE_R2_BASE}/finding-nemo-demo.mp4`,
+    videoUrl: movieAssetUrl('finding-nemo-demo.mp4'),
     fileType: 'mp4',
     contentType: 'video/mp4',
     subtitleSrc: '',
