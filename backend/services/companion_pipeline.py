@@ -84,7 +84,10 @@ class CompanionPipelineService:
         expansion = self._expansion.retrieve_or_expand(KnowledgeExpansionRequest(
             movie_id=request.movie_id, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds,
         ), None)
-        scene_id = request.scene_id or (expansion.scene_summary.scene_id if expansion.scene_summary else f"t{int(request.timestamp_seconds)}")
+        # Retrieval may resolve a persisted prepared scene by timestamp even
+        # when the caller supplies an alias/non-canonical scene ID. Context
+        # must use that resolved scene ID or its claim filter becomes empty.
+        scene_id = expansion.scene_summary.scene_id if expansion.scene_summary else (request.scene_id or f"t{int(request.timestamp_seconds)}")
         context = self._context_builder.build(
             knowledge=expansion.record.knowledge, scene_id=scene_id, timestamp_seconds=request.timestamp_seconds,
             accessibility_profile=request.accessibility_profile,

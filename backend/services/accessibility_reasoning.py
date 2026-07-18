@@ -5,6 +5,7 @@ from threading import Lock
 from dataclasses import dataclass
 
 from config import get_settings
+from services.semantic_claim_audit import log_claims
 from models.accessibility_reasoner import AccessibilityReasoner
 from schemas.accessibility_presentation import AccessibilityPresentation
 from schemas.accessibility_reasoning import (
@@ -33,6 +34,7 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
     def reason(self, request: AccessibilityReasoningRequest) -> AccessibilityPresentation:
         started = perf_counter()
         context = request.context
+        log_claims("AccessibilityReasoningEngine.input", context.semantic_scene, movie_id=context.movie_id, scene_id=context.scene_id)
         profile = context.accessibility_profile
         limit = _detail_limit(profile.detail_level)
         logger.info(

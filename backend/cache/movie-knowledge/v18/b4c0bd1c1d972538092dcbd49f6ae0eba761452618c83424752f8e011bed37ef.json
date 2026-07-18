@@ -1,13 +1,13 @@
 {
   "movie_id": "spriteFright",
   "revision": 1,
-  "created_at": "2026-07-18T17:46:39.987940Z",
-  "updated_at": "2026-07-18T17:46:39.987940Z",
+  "created_at": "2026-07-18T18:06:54.909743Z",
+  "updated_at": "2026-07-18T18:06:54.909743Z",
   "knowledge": {
     "movie_id": "spriteFright",
     "version": 1,
     "movie_knowledge_version": 1,
-    "cache_version": 16,
+    "cache_version": 18,
     "confidence": 0.375791072845459,
     "official_title": "Sprite Fright",
     "plot_summary": "A group of teenagers enters an isolated British forest and encounters peaceful mushroom sprites that become an unexpected force of nature.",
@@ -190,11 +190,11 @@
         "frame_hash": "8a0f79dd1c7379312d3af2712b6c7a0b6d1b8028232f6f9b2b6df5e9a7a394a0",
         "start_seconds": 5.0,
         "end_seconds": 5.0,
-        "summary": "Visible: Ellie, Rex, Jay, Victoria, Phil, victoria.",
+        "summary": "No semantic scene state could be established.",
         "confidence": 0.375791072845459,
         "visible_entities": [
           {
-            "id": "d13477fb-440a-454d-90be-8d0e55022567",
+            "id": "a91d4bc6-f82f-4968-9337-ed085cd01007",
             "label": "victoria",
             "category": "object",
             "bbox": [
@@ -207,7 +207,7 @@
             "sources": [
               "object_grounding"
             ],
-            "semantic_id": null
+            "semantic_id": "character-victoria"
           }
         ],
         "actions": [],
@@ -217,7 +217,7 @@
         "environment": "sky",
         "potential_confusions": [],
         "prepared": true,
-        "preparation_version": 16
+        "preparation_version": 18
       }
     ],
     "movie_scenes": [
@@ -267,8 +267,8 @@
     ],
     "visual_anchors": [
       {
-        "id": "06221ba9-b0c9-4a3d-ba80-32fb87ba1a03",
-        "semantic_id": "object-ab1cb712f2dca756",
+        "id": "5c65e825-180f-4962-a245-6b176c5ad506",
+        "semantic_id": "character-victoria",
         "scene_id": "sf-01",
         "timestamp_seconds": 5.0,
         "bbox": [
@@ -283,7 +283,7 @@
     "face_references": [],
     "observation_history": [
       {
-        "id": "8224cf29-b3a6-4d73-97d2-e243e0ab1282",
+        "id": "2121ccc4-1fa8-4eb5-b9ad-12af19d50ac9",
         "timestamp_seconds": 5.0,
         "entity_label": "victoria",
         "semantic_id": "object-ab1cb712f2dca756",
@@ -361,186 +361,6 @@
         "knowledge_ids": []
       },
       {
-        "id": "claim-e1d07467d5615f8d",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-ellie",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-ellie"
-        ]
-      },
-      {
-        "id": "claim-1560035889e1f8a0",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-ellie",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-ellie"
-        ]
-      },
-      {
-        "id": "claim-8043e0d1ae191a1b",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-rex",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-rex"
-        ]
-      },
-      {
-        "id": "claim-3f245252f830349c",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-rex",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-rex"
-        ]
-      },
-      {
-        "id": "claim-c329ee2d31d12bc3",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-jay",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-jay"
-        ]
-      },
-      {
-        "id": "claim-1c321742a6ed244d",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-jay",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-jay"
-        ]
-      },
-      {
-        "id": "claim-7a11af3e4ca1d1c9",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-victoria",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-victoria"
-        ]
-      },
-      {
-        "id": "claim-c82e02ace4d90fab",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-victoria",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-victoria"
-        ]
-      },
-      {
-        "id": "claim-07f5cd5011d05612",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-phil",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-phil"
-        ]
-      },
-      {
-        "id": "claim-de0466bc8856a6f5",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 5.0,
-        "subject_id": "character-phil",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-9c4a801082463fda20fb"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-phil"
-        ]
-      },
-      {
         "id": "claim-ec937c2c5aef8880",
         "kind": "relationship",
         "scene_id": "sf-01",
@@ -557,14 +377,14 @@
         "knowledge_ids": []
       },
       {
-        "id": "claim-bbd4437b0a15a239",
+        "id": "claim-f88b11fb484e8eb5",
         "kind": "scene_state",
         "scene_id": "sf-01",
         "timestamp_seconds": 5.0,
         "subject_id": "scene-7d15f19c69d45adc",
         "predicate": "has_state",
         "object_id": "sf-01",
-        "value": "Visible: Ellie, Rex, Jay, Victoria, Phil, victoria.",
+        "value": "No semantic scene state could be established.",
         "confidence": 0.375791072845459,
         "observation_ids": [
           "observation-9c4a801082463fda20fb"

@@ -28,6 +28,7 @@ from services.perception_fusion import PerceptionFusionService
 from services.semantic_matching import SemanticMatchingService
 from services.observation_factory import ObservationFactory
 from services.semantic_graph_builder import SemanticGraphBuilder
+from services.semantic_claim_audit import log_claims
 from services.vision_understanding import VisionUnderstandingService
 
 logger = logging.getLogger(__name__)
@@ -117,9 +118,13 @@ class KnowledgeExpansionEngine:
         fusion_started = perf_counter()
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
         logger.info("[TRACE][SEMANTIC_GRAPH_CONSTRUCTION] executed=yes fused_entities=%d duration_ms=%.1f", len(perception.entities), (perf_counter() - fusion_started) * 1000)
+        # Matching returns semantic references, not claims. Claims first exist
+        # only after SemanticGraphBuilder, so make that boundary explicit.
+        log_claims("SemanticMatcher.input", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.scene_id)
         semantic_matches = self._matcher.match(
             perception, base_knowledge, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds,
         )
+        log_claims("SemanticMatcher.output", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.scene_id)
         logger.info(
             "[TRACE][SEMANTIC_MATCHING] executed=yes catalog_queried=yes movie_scenes=%d scene_id=%s timestamp=%.3f "
             "input_entities=%d matched_characters=%d matched_locations=%d matched_objects=%d matched_events=%d matched_relationships=%d",
@@ -141,13 +146,16 @@ class KnowledgeExpansionEngine:
         claims = self._graph_builder.build(
             observation=observation, perception=perception, matches=semantic_matches, existing=base_knowledge,
         )
+        log_claims("SemanticGraphBuilder.output", claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         logger.info(
             "[TRACE][SEMANTIC_GRAPH_BUILDER] executed=yes observation_id=%s raw_caption_retained=yes claims=%d claim_kinds=%s",
             observation.id, len(claims), sorted({claim.kind for claim in claims}),
         )
         knowledge = self.merge_observations(base_knowledge, request, perception, semantic_matches, observation, claims)
+        log_claims("KnowledgePersistence.input", knowledge.semantic_claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         save_started = perf_counter()
         record = self._store.save(knowledge)
+        log_claims("KnowledgePersistence.output", record.knowledge.semantic_claims, movie_id=record.movie_id, scene_id=observation.scene_id)
         logger.info("[TRACE][KNOWLEDGE_PERSISTENCE] executed=yes revision=%d scene_visible_entities=%d duration_ms=%.1f", record.revision, len(next((scene.visible_entities for scene in knowledge.scene_summaries if scene.scene_id == request.scene_id), [])), (perf_counter() - save_started) * 1000)
         scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == (request.scene_id or "")), None)
         scene_summary = scene_summary or (knowledge.scene_summaries[-1] if knowledge.scene_summaries else None)

@@ -12,6 +12,7 @@ from pathlib import Path
 from threading import Lock
 
 from schemas.knowledge import SemanticMovieKnowledge
+from services.semantic_claim_audit import log_claims
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,10 @@ class MovieKnowledgeProvider:
             cached = self._cache[key]
         # Pydantic's deep copy ensures runtime merging cannot mutate a singleton
         # catalog object and leak it to another request.
-        return cached.model_copy(deep=True) if cached is not None else None
+        result = cached.model_copy(deep=True) if cached is not None else None
+        if result is not None:
+            log_claims("MovieKnowledgeProvider", result.semantic_claims, movie_id=result.movie_id)
+        return result
 
 
 def _normalize_movie_id(movie_id: str) -> str:

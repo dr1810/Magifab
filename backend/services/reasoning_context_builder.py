@@ -3,6 +3,7 @@ from schemas.knowledge import SemanticMovieKnowledge
 from schemas.profiles import AccessibilityProfile
 from schemas.reasoning_context import ContextRelationship, ReasoningContext, ReasoningEntity
 from config import get_settings
+from services.semantic_claim_audit import log_claims
 
 
 class ReasoningContextBuilder:
@@ -15,7 +16,9 @@ class ReasoningContextBuilder:
         )
 
     def build(self, *, knowledge: SemanticMovieKnowledge, scene_id: str, timestamp_seconds: float, accessibility_profile: AccessibilityProfile) -> ReasoningContext:
+        log_claims("ReasoningContextBuilder.input", knowledge.semantic_claims, movie_id=knowledge.movie_id, scene_id=scene_id)
         scene_claims = [claim for claim in knowledge.semantic_claims if claim.scene_id == scene_id]
+        log_claims("ReasoningContextBuilder.scene", scene_claims, movie_id=knowledge.movie_id, scene_id=scene_id)
         active_character_claims = [
             claim for claim in scene_claims
             if claim.kind == "character_present" and claim.confidence >= self._presence_threshold
@@ -31,7 +34,7 @@ class ReasoningContextBuilder:
         relationship_claims = [claim for claim in scene_claims if claim.kind == "relationship"]
         timeline_claims = [claim for claim in scene_claims if claim.kind == "timeline_change"]
         timeline = next((item for item in knowledge.timeline_positions if item.start_seconds <= timestamp_seconds <= item.end_seconds), None)
-        return ReasoningContext(
+        context = ReasoningContext(
             movie_id=knowledge.movie_id,
             scene_id=scene_id,
             timestamp_seconds=timestamp_seconds,
@@ -63,6 +66,8 @@ class ReasoningContextBuilder:
             vocabulary_claims=[claim for claim in scene_claims if claim.kind == "callback" and claim.predicate == "defines"],
             conversation_claims=[claim for claim in scene_claims if claim.kind == "callback" and claim.predicate == "dialogue"],
         )
+        log_claims("ReasoningContextBuilder.output", context.semantic_scene, movie_id=knowledge.movie_id, scene_id=scene_id)
+        return context
 
 
 def _entities(claims, entities_by_id) -> list[ReasoningEntity]:
