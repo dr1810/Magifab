@@ -1,0 +1,23 @@
+{
+  "movie_id": "insideOut",
+  "movie_knowledge_version": 1,
+  "cache_version": 15,
+  "official_title": "Inside Out",
+  "plot_summary": "Riley's emotions struggle to help her adapt after moving from Minnesota to San Francisco, and Joy learns that Sadness is essential to connection.",
+  "knowledge_source": "curated_local_catalog",
+  "source_urls": ["https://movies.disney.com/inside-out"],
+  "characters": [
+    {"id": "character-riley", "name": "Riley", "perception_labels": ["riley"], "aliases": ["Riley"], "confidence": 1.0},
+    {"id": "character-joy", "name": "Joy", "perception_labels": ["joy"], "aliases": ["Joy"], "confidence": 1.0},
+    {"id": "character-sadness", "name": "Sadness", "perception_labels": ["sadness"], "aliases": ["Sadness"], "confidence": 1.0},
+    {"id": "character-anger", "name": "Anger", "perception_labels": ["anger"], "aliases": ["Anger"], "confidence": 1.0},
+    {"id": "character-fear", "name": "Fear", "perception_labels": ["fear"], "aliases": ["Fear"], "confidence": 1.0},
+    {"id": "character-disgust", "name": "Disgust", "perception_labels": ["disgust"], "aliases": ["Disgust"], "confidence": 1.0},
+    {"id": "character-bing-bong", "name": "Bing Bong", "perception_labels": ["bing bong"], "aliases": ["Bing Bong"], "confidence": 1.0}
+  ],
+  "objects": [{"id": "object-core-memory", "name": "Core Memory", "perception_labels": ["core memory", "memory orb"], "aliases": ["core memory", "memory orb"], "confidence": 1.0}],
+  "relationships": [{"id": "relationship-joy-sadness", "from_character_id": "character-joy", "to_character_id": "character-sadness", "description": "Joy gradually learns to value Sadness's role in helping Riley connect with others."}],
+  "events": [{"id": "event-core-memory-changes", "description": "Sadness changes a core memory, destabilizing Riley's emotional system.", "evidence_terms": ["sadness", "core memory"]}],
+  "timeline_positions": [{"id": "timeline-move", "start_seconds": 0, "end_seconds": 95, "description": "Riley is adjusting to her move and new school."}, {"id": "timeline-memory-crisis", "start_seconds": 95, "end_seconds": 240, "description": "The core-memory crisis separates Joy and Sadness from Headquarters."}],
+  "movie_scenes": [{"scene_id": "inside-01", "start_seconds": 0, "end_seconds": 45, "description": "Riley tries to adjust at her new school.", "character_ids": ["character-riley", "character-joy", "character-sadness"]}, {"scene_id": "inside-02", "start_seconds": 45, "end_seconds": 90, "description": "Sadness changes a core memory.", "character_ids": ["character-joy", "character-sadness"], "object_ids": ["object-core-memory"], "relationship_ids": ["relationship-joy-sadness"], "event_ids": ["event-core-memory-changes"]}]
+}

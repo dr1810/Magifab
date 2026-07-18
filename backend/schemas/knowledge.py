@@ -118,6 +118,30 @@ class SceneSummary(BaseModel):
         return self
 
 
+class MovieSceneKnowledge(BaseModel):
+    """Curated scene facts supplied by a movie knowledge provider.
+
+    This is deliberately separate from ``SceneSummary``, which is a
+    frame-derived runtime record. Catalog facts can support interpretation but
+    can never replace the current frame's observation.
+    """
+    model_config = ConfigDict(extra="forbid")
+    scene_id: str = Field(min_length=1)
+    start_seconds: float = Field(ge=0)
+    end_seconds: float = Field(ge=0)
+    description: str = Field(min_length=1)
+    character_ids: list[str] = Field(default_factory=list)
+    object_ids: list[str] = Field(default_factory=list)
+    relationship_ids: list[str] = Field(default_factory=list)
+    event_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_range(self) -> "MovieSceneKnowledge":
+        if self.end_seconds < self.start_seconds:
+            raise ValueError("end_seconds must be greater than or equal to start_seconds")
+        return self
+
+
 class KnownAlias(BaseModel):
     model_config = ConfigDict(extra="forbid")
     semantic_id: str = Field(min_length=1)
@@ -181,8 +205,15 @@ class SemanticMovieKnowledge(BaseModel):
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
     version: int = Field(default=1, ge=1)
+    # This is the catalog revision, not the record revision maintained by the
+    # store. It makes a changed authoritative source invalidate derived scenes.
+    movie_knowledge_version: int = Field(default=1, ge=1)
     cache_version: int = Field(default=1, ge=1)
     confidence: float = Field(default=1.0, ge=0, le=1)
+    official_title: str = ""
+    plot_summary: str = ""
+    knowledge_source: str = "runtime_observation"
+    source_urls: list[str] = Field(default_factory=list)
     characters: list[SemanticCharacter] = Field(default_factory=list)
     locations: list[SemanticLocation] = Field(default_factory=list)
     objects: list[SemanticObject] = Field(default_factory=list)
@@ -191,6 +222,7 @@ class SemanticMovieKnowledge(BaseModel):
     timeline_positions: list[TimelinePosition] = Field(default_factory=list)
     dialogue: list[DialogueSegment] = Field(default_factory=list)
     scene_summaries: list[SceneSummary] = Field(default_factory=list)
+    movie_scenes: list[MovieSceneKnowledge] = Field(default_factory=list)
     known_aliases: list[KnownAlias] = Field(default_factory=list)
     visual_anchors: list[VisualAnchor] = Field(default_factory=list)
     face_references: list[FaceReference] = Field(default_factory=list)

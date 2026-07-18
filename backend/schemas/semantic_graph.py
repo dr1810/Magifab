@@ -9,6 +9,12 @@ SemanticClaimKind = Literal[
     "emotion", "callback", "scene_state",
 ]
 
+ClaimEvidenceOrigin = Literal[
+    "perception_verified",
+    "movie_knowledge_supported",
+    "reasoning_inferred",
+]
+
 
 class SemanticClaim(BaseModel):
     """A movie-world assertion. It never stores a raw model caption."""
@@ -23,4 +29,8 @@ class SemanticClaim(BaseModel):
     value: str = ""
     confidence: float = Field(ge=0, le=1)
     observation_ids: list[str] = Field(min_length=1)
-
+    # A claim may be visually verified and also cite a catalog entity.  The
+    # origin tells downstream consumers which boundary established the fact;
+    # the catalog reference never substitutes for frame evidence.
+    evidence_origin: ClaimEvidenceOrigin = "perception_verified"
+    knowledge_ids: list[str] = Field(default_factory=list)

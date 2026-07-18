@@ -36,7 +36,7 @@ class ReasoningContextBuilder:
                     id=relationship.id,
                     description=relationship.description,
                     confidence=min(character_by_id[relationship.from_character_id].confidence, character_by_id[relationship.to_character_id].confidence),
-                    claim_ids=[claim.id for claim in relationship_claims],
+                    claim_ids=[claim.id for claim in relationship_claims if claim.subject_id == relationship.id],
                 )
                 for relationship in relationships
                 if relationship.from_character_id in character_by_id and relationship.to_character_id in character_by_id

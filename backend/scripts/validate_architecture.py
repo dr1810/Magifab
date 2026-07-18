@@ -23,6 +23,9 @@ def main() -> None:
     serializer = read(BACKEND / "services" / "companion_response_serializer.py")
     reasoner = read(BACKEND / "services" / "accessibility_reasoning.py")
     context_builder = read(BACKEND / "services" / "reasoning_context_builder.py")
+    expansion = read(BACKEND / "services" / "knowledge_expansion.py")
+    graph_builder = read(BACKEND / "services" / "semantic_graph_builder.py")
+    provider = read(BACKEND / "services" / "movie_knowledge_provider.py")
     presentation_schema = read(BACKEND / "schemas" / "accessibility_presentation.py")
     response_schema = read(BACKEND / "schemas" / "companion_pipeline.py")
 
@@ -33,6 +36,12 @@ def main() -> None:
         fail("prepare/respond must use the same AccessibilityReasoningEngine path")
     if "AccessibilityPresentation(" not in reasoner:
         fail("AccessibilityReasoningEngine must produce AccessibilityPresentation")
+    if "MovieKnowledgeProvider" not in expansion or "self._movie_knowledge_provider.get" not in expansion:
+        fail("knowledge expansion must retrieve the movie catalog before perception")
+    if "evidence_origin" not in graph_builder or "knowledge_ids" not in graph_builder:
+        fail("semantic graph claims must retain perception/catalog provenance")
+    if "model_copy(deep=True)" not in provider:
+        fail("movie catalog provider must isolate cached catalog instances")
     for forbidden in ("FrameObservation", "UnifiedSceneRepresentation", "SceneSummary", "raw_florence", "visible_entities"):
         if forbidden in reasoner or forbidden in context_builder:
             fail(f"reasoning boundary exposes raw perception: {forbidden}")

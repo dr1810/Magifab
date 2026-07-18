@@ -1,0 +1,21 @@
+{
+  "movie_id": "bigBuckBunny",
+  "movie_knowledge_version": 1,
+  "cache_version": 15,
+  "official_title": "Big Buck Bunny",
+  "plot_summary": "Big Buck Bunny's peaceful forest routine is disrupted by three mischievous rodents, and he responds with inventive but nonviolent pranks.",
+  "knowledge_source": "curated_local_catalog",
+  "source_urls": ["https://studio.blender.org/films/big-buck-bunny/"],
+  "characters": [
+    {"id": "character-big-buck-bunny", "name": "Big Buck Bunny", "perception_labels": ["rabbit", "bunny", "buck"], "aliases": ["Big Buck Bunny", "Buck", "bunny", "rabbit"], "confidence": 1.0},
+    {"id": "character-frank", "name": "Frank", "perception_labels": ["frank"], "aliases": ["Frank"], "confidence": 1.0},
+    {"id": "character-rinky", "name": "Rinky", "perception_labels": ["rinky"], "aliases": ["Rinky"], "confidence": 1.0},
+    {"id": "character-gimera", "name": "Gimera", "perception_labels": ["gimera"], "aliases": ["Gimera"], "confidence": 1.0}
+  ],
+  "locations": [{"id": "location-forest", "name": "Forest", "aliases": ["forest", "woodland"]}],
+  "objects": [{"id": "object-carrot", "name": "Carrot", "perception_labels": ["carrot"], "aliases": ["carrot"], "confidence": 0.95}],
+  "relationships": [{"id": "relationship-rodents-buck", "from_character_id": "character-frank", "to_character_id": "character-big-buck-bunny", "description": "Frank and the other rodents antagonize Big Buck Bunny."}],
+  "events": [{"id": "event-rodent-prank", "description": "The rodents disrupt Big Buck Bunny's peaceful day.", "evidence_terms": ["rabbit", "squirrel"]}],
+  "timeline_positions": [{"id": "timeline-opening", "start_seconds": 0, "end_seconds": 160, "description": "Big Buck Bunny's quiet forest routine."}, {"id": "timeline-conflict", "start_seconds": 160, "end_seconds": 600, "description": "The rodents' pranks lead Big Buck Bunny to respond."}],
+  "movie_scenes": [{"scene_id": "bbb-01", "start_seconds": 0, "end_seconds": 160, "description": "Big Buck Bunny is in the forest before the conflict escalates.", "character_ids": ["character-big-buck-bunny"], "object_ids": ["object-carrot"], "event_ids": []}, {"scene_id": "bbb-02", "start_seconds": 160, "end_seconds": 340, "description": "The rodents disrupt Big Buck Bunny's routine.", "character_ids": ["character-big-buck-bunny", "character-frank", "character-rinky", "character-gimera"], "relationship_ids": ["relationship-rodents-buck"], "event_ids": ["event-rodent-prank"]}]
+}

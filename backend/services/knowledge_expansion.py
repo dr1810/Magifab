@@ -21,6 +21,7 @@ from schemas.knowledge import (
 from schemas.knowledge_expansion import KnowledgeExpansionRequest, KnowledgeExpansionResult
 from services.face_verification import FaceVerificationService
 from services.knowledge_retriever import KnowledgeRetriever
+from services.movie_knowledge_provider import MovieKnowledgeProvider
 from services.object_detection import ObjectDetectionService
 from services.object_grounding import ObjectGroundingService
 from services.perception_fusion import PerceptionFusionService
@@ -47,7 +48,8 @@ class KnowledgeExpansionEngine:
         face_verifier: FaceVerificationService,
         observation_factory: ObservationFactory | None = None,
         graph_builder: SemanticGraphBuilder | None = None,
-        cache_version: int = 14,
+        movie_knowledge_provider: MovieKnowledgeProvider | None = None,
+        cache_version: int = 16,
     ):
         self._store = store
         self._retriever = retriever
@@ -59,10 +61,18 @@ class KnowledgeExpansionEngine:
         self._face_verifier = face_verifier
         self._observation_factory = observation_factory or ObservationFactory()
         self._graph_builder = graph_builder or SemanticGraphBuilder()
+        self._movie_knowledge_provider = movie_knowledge_provider or MovieKnowledgeProvider()
         self._cache_version = cache_version
 
     def retrieve_or_expand(self, request: KnowledgeExpansionRequest, image: Image.Image | None) -> KnowledgeExpansionResult:
         """Retrieve a known scene immediately; otherwise run only requested perception and persist observations."""
+        catalog_started = perf_counter()
+        catalog = self._movie_knowledge_provider.get(request.movie_id)
+        logger.info(
+            "[TRACE][MOVIE_KNOWLEDGE] executed=yes movie=%s catalog_found=%s catalog_version=%s duration_ms=%.1f",
+            request.movie_id, catalog is not None,
+            catalog.movie_knowledge_version if catalog else None, (perf_counter() - catalog_started) * 1000,
+        )
         retrieval_started = perf_counter()
         retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
             movie_id=request.movie_id,
@@ -76,7 +86,7 @@ class KnowledgeExpansionEngine:
             request.frame_hash, cache_key, retrieval.found,
             bool(retrieval.scene_summary and retrieval.scene_summary.prepared), (perf_counter() - retrieval_started) * 1000,
         )
-        if _cache_matches(retrieval, request, self._cache_version):
+        if _cache_matches(retrieval, request, self._cache_version, catalog.movie_knowledge_version if catalog else None):
             logger.info("[TRACE][CACHE] semantic_map_replayed=yes movie=%s scene=%s frame_hash=%s key=%s", request.movie_id, request.scene_id, request.frame_hash, cache_key)
             return KnowledgeExpansionResult(
                 source="retrieved",
@@ -94,12 +104,12 @@ class KnowledgeExpansionEngine:
         florence_started = perf_counter()
         understanding = self._vision.understand(image)
         logger.info("[TRACE][FLORENCE] executed=yes caption=%r output_objects=%s actions=%s interactions=%d duration_ms=%.1f", understanding.scene_description, understanding.important_objects, understanding.detected_actions, len(understanding.interactions), (perf_counter() - florence_started) * 1000)
-        base_knowledge = retrieval.record.knowledge if retrieval.record else SemanticMovieKnowledge(movie_id=request.movie_id)
+        base_knowledge = _runtime_knowledge(catalog, retrieval.record.knowledge if retrieval.record else None, request.movie_id, self._cache_version)
         # Grounding is part of preparation, not an interaction-time fallback.
         # Use caller hints when available and otherwise ground labels observed by
         # YOLO in this exact frame. This keeps queries evidence-led and supports
         # arbitrary uploaded movies without hard-coded object names.
-        grounding_queries = _grounding_queries(request.grounding_queries, detection.detections)
+        grounding_queries = _grounding_queries(request.grounding_queries, detection.detections, base_knowledge)
         grounding_started = perf_counter()
         grounding = self._grounder.locate(image, grounding_queries) if grounding_queries else None
         logger.info("[TRACE][GROUNDING_DINO] executed=%s input_queries=%d output_matches=%d duration_ms=%.1f", bool(grounding_queries), len(grounding_queries), len(grounding.matches) if grounding else 0, (perf_counter() - grounding_started) * 1000)
@@ -107,8 +117,16 @@ class KnowledgeExpansionEngine:
         fusion_started = perf_counter()
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
         logger.info("[TRACE][SEMANTIC_GRAPH_CONSTRUCTION] executed=yes fused_entities=%d duration_ms=%.1f", len(perception.entities), (perf_counter() - fusion_started) * 1000)
-        semantic_matches = self._matcher.match(perception, base_knowledge)
-        logger.info("[TRACE][SEMANTIC_MATCHING] executed=yes input_entities=%d matched_characters=%d", len(perception.entities), len(semantic_matches.characters))
+        semantic_matches = self._matcher.match(
+            perception, base_knowledge, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds,
+        )
+        logger.info(
+            "[TRACE][SEMANTIC_MATCHING] executed=yes catalog_queried=yes movie_scenes=%d scene_id=%s timestamp=%.3f "
+            "input_entities=%d matched_characters=%d matched_locations=%d matched_objects=%d matched_events=%d matched_relationships=%d",
+            len(base_knowledge.movie_scenes), request.scene_id, request.timestamp_seconds, len(perception.entities),
+            len(semantic_matches.characters), len(semantic_matches.locations), len(semantic_matches.objects),
+            len(semantic_matches.events), len(semantic_matches.relationships),
+        )
         observation = self._observation_factory.create(
             movie_id=request.movie_id,
             scene_id=request.scene_id or _stable_id("scene", f"{request.movie_id}:{request.timestamp_seconds}"),
@@ -153,7 +171,8 @@ class KnowledgeExpansionEngine:
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        return not _cache_matches(retrieval, request, self._cache_version)
+        catalog = self._movie_knowledge_provider.get(request.movie_id)
+        return not _cache_matches(retrieval, request, self._cache_version, catalog.movie_knowledge_version if catalog else None)
 
     def merge_observations(
         self,
@@ -260,7 +279,7 @@ def _cache_key(movie_id: str, cache_version: int, scene_id: str | None, timestam
     return f"{movie_id}:v{cache_version}:{scene_key}:t{timestamp_seconds:.3f}:h{frame_key}"
 
 
-def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version: int) -> bool:
+def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version: int, catalog_version: int | None = None) -> bool:
     """A preparation replay is valid only for the identical movie, scene, time and frame."""
     summary = retrieval.scene_summary
     if not (retrieval.found and retrieval.record and summary and summary.prepared):
@@ -269,6 +288,8 @@ def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version:
         logger.error("[TRACE][ISOLATION] rejected movie mismatch requested=%s record=%s knowledge=%s", request.movie_id, retrieval.record.movie_id, retrieval.record.knowledge.movie_id)
         return False
     if summary.preparation_version < cache_version or retrieval.record.knowledge.cache_version != cache_version:
+        return False
+    if catalog_version is not None and retrieval.record.knowledge.movie_knowledge_version != catalog_version:
         return False
     # /respond has no image. It can read a current scene record, but it never
     # runs perception or writes a cache. /prepare always provides a fingerprint
@@ -297,9 +318,16 @@ def _unique_entities(entities):
     return unique
 
 
-def _grounding_queries(requested: list[str], detections) -> list[str]:
-    """Return unique, bounded phrases anchored in caller intent or YOLO output."""
-    candidates = [*requested, *(detection.label for detection in detections)]
+def _grounding_queries(requested: list[str], detections, knowledge: SemanticMovieKnowledge) -> list[str]:
+    """Ground current-frame labels plus trusted catalog aliases, never guessed identities."""
+    catalog_labels = [
+        label for character in knowledge.characters
+        for label in [*character.perception_labels, character.name]
+    ] + [
+        label for item in knowledge.objects
+        for label in [*item.perception_labels, item.name]
+    ]
+    candidates = [*requested, *(detection.label for detection in detections), *catalog_labels]
     queries: list[str] = []
     seen: set[str] = set()
     for value in candidates:
@@ -311,6 +339,40 @@ def _grounding_queries(requested: list[str], detections) -> list[str]:
         if len(queries) == 20:
             break
     return queries
+
+
+def _runtime_knowledge(
+    catalog: SemanticMovieKnowledge | None,
+    stored: SemanticMovieKnowledge | None,
+    movie_id: str,
+    cache_version: int,
+) -> SemanticMovieKnowledge:
+    """Overlay a catalog onto runtime-only state without losing observations.
+
+    Catalog facts own names, aliases, relationships and timeline. Stored state
+    owns frame observations, derived graph claims and scene summaries. This is
+    the movie-isolation boundary: neither collection is ever read from another
+    movie ID.
+    """
+    if catalog is None:
+        return (stored or SemanticMovieKnowledge(movie_id=movie_id)).model_copy(update={"cache_version": cache_version})
+    if catalog.movie_id != movie_id:
+        raise ValueError(f"movie knowledge isolation failure: {catalog.movie_id!r} != {movie_id!r}")
+    if stored is None:
+        return catalog.model_copy(update={"cache_version": cache_version})
+    if stored.movie_id != movie_id:
+        raise ValueError(f"stored knowledge isolation failure: {stored.movie_id!r} != {movie_id!r}")
+    return catalog.model_copy(update={
+        "cache_version": cache_version,
+        "objects": _merge_by_id(catalog.objects, stored.objects),
+        "locations": _merge_by_id(catalog.locations, stored.locations),
+        "known_aliases": _merge_by_id(catalog.known_aliases, stored.known_aliases, key="alias"),
+        "scene_summaries": stored.scene_summaries,
+        "visual_anchors": stored.visual_anchors,
+        "observation_history": stored.observation_history,
+        "observations": stored.observations,
+        "semantic_claims": stored.semantic_claims,
+    })
 
 
 def _scene_confidence(entities) -> float:

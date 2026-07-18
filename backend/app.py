@@ -27,6 +27,7 @@ from services.vision_understanding import VisionUnderstandingService
 from services.model_manager import ModelManager
 from services.observation_factory import ObservationFactory
 from services.semantic_graph_builder import SemanticGraphBuilder
+from services.movie_knowledge_provider import MovieKnowledgeProvider
 from services.reasoning_context_builder import ReasoningContextBuilder
 from services.companion_response_serializer import CompanionResponseSerializer
 
@@ -67,6 +68,12 @@ def get_observation_factory() -> ObservationFactory:
 def get_semantic_graph_builder() -> SemanticGraphBuilder:
     """Pure observation-to-claim transformer; it never exposes perception to the UI."""
     return SemanticGraphBuilder()
+
+
+@lru_cache
+def get_movie_knowledge_provider() -> MovieKnowledgeProvider:
+    """Read-only supported-movie catalog cached once per process."""
+    return MovieKnowledgeProvider()
 
 
 @lru_cache
@@ -114,6 +121,7 @@ def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
         face_verifier=get_face_verification_service(),
         observation_factory=get_observation_factory(),
         graph_builder=get_semantic_graph_builder(),
+        movie_knowledge_provider=get_movie_knowledge_provider(),
         cache_version=get_settings().semantic_cache_version,
     )
 

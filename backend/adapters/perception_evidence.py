@@ -8,7 +8,7 @@ from schemas.understanding import UnderstandingResponse
 
 _ANIMAL_LABELS = frozenset({
     "bird", "cat", "cow", "dog", "elephant", "giraffe", "horse", "sheep", "bear", "zebra",
-    "squirrel", "rabbit", "fox", "deer", "monkey", "lion", "tiger",
+    "squirrel", "rabbit", "hedgehog", "bat", "fox", "deer", "monkey", "lion", "tiger",
 })
 
 
@@ -104,6 +104,7 @@ class FaceVerificationEvidenceAdapter(PerceptionEvidenceAdapter[FaceVerification
                         "detector_model": [evidence.detector_model],
                         "embedding_model": [evidence.embedding_model],
                         "verification": ["verified" if item.verified else "unverified"],
+                        "verified_character_id": [item.verified_character_id] if item.verified_character_id else [],
                     },
                 )
                 for item in evidence.faces

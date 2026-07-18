@@ -164,8 +164,8 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         if relationships:
             item = relationships[0]
             prompts.append(PromptBubbleSuggestion(
-                id=f"relationship-{item.relationship_id}", kind="relationship", label="How are they connected?",
-                question="How are these characters connected?", priority=3, claim_ids=item.claim_ids,
+                id=f"relationship-{item.relationship_id}", kind="relationship", label="Why does this connection matter?",
+                question=item.summary, priority=3, claim_ids=item.claim_ids,
             ))
         if timeline:
             prompts.append(PromptBubbleSuggestion(
