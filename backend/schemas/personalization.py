@@ -5,17 +5,15 @@ from schemas.accessibility_reasoning import (
     AccessibilityProfile,
     AccessibilityReasoningResult,
     CompanionProfile,
-    CurrentScene,
 )
-from schemas.knowledge import SemanticMovieKnowledge
+from schemas.reasoning_context import ReasoningContext
 
 
 class GPTPersonalizationRequest(BaseModel):
     """No image, detection, or matching input is accepted by the GPT boundary."""
     model_config = ConfigDict(extra="forbid")
     user_message: str = Field(min_length=1, max_length=2_000)
-    semantic_knowledge: SemanticMovieKnowledge
-    current_scene: CurrentScene
+    reasoning_context: ReasoningContext
     accessibility_content: AccessibilityReasoningResult
     accessibility_profile: AccessibilityProfile
     companion_profile: CompanionProfile

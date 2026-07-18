@@ -27,6 +27,7 @@ from services.vision_understanding import VisionUnderstandingService
 from services.model_manager import ModelManager
 from services.observation_factory import ObservationFactory
 from services.semantic_graph_builder import SemanticGraphBuilder
+from services.reasoning_context_builder import ReasoningContextBuilder
 
 
 def configure_logging(settings: Settings) -> None:
@@ -65,6 +66,12 @@ def get_observation_factory() -> ObservationFactory:
 def get_semantic_graph_builder() -> SemanticGraphBuilder:
     """Pure observation-to-claim transformer; it never exposes perception to the UI."""
     return SemanticGraphBuilder()
+
+
+@lru_cache
+def get_reasoning_context_builder() -> ReasoningContextBuilder:
+    """Retrieves only semantic claims for the accessibility reasoning boundary."""
+    return ReasoningContextBuilder()
 
 
 @lru_cache
@@ -136,6 +143,7 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
         accessibility=get_accessibility_reasoning_engine(),
         response_cache=get_response_cache(),
         settings=get_settings(),
+        context_builder=get_reasoning_context_builder(),
     )
 
 

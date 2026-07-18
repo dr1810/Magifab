@@ -3,34 +3,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from schemas.knowledge import SemanticMovieKnowledge, VisualAnchor
-
-
-class AccessibilityProfile(BaseModel):
-    """Backend representation of onboarding selections; terms remain intentionally extensible."""
-    model_config = ConfigDict(extra="forbid")
-    accessibility_needs: list[str] = Field(default_factory=list)
-    detail_level: str = "brief"
-    preferred_prompt_types: list[str] = Field(default_factory=list)
-    conversation_simplification: bool = True
-    vocabulary_assistance: bool = True
-
-
-class CompanionProfile(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    name: str = "Companion"
-    personality: str = "warm"
-    conversation_style: str = "simple"
-
-
-class CurrentScene(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    scene_id: str = Field(min_length=1)
-    summary: str = Field(min_length=1)
-    character_ids: list[str] = Field(default_factory=list)
-    object_ids: list[str] = Field(default_factory=list)
-    event_ids: list[str] = Field(default_factory=list)
-
+from schemas.knowledge import VisualAnchor
+from schemas.profiles import AccessibilityProfile, CompanionProfile
+from schemas.reasoning_context import ReasoningContext
 
 class ConfusionPrediction(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -46,6 +21,7 @@ class PromptBubbleSuggestion(BaseModel):
     label: str
     question: str
     priority: int = Field(ge=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class CharacterCard(BaseModel):
@@ -55,6 +31,7 @@ class CharacterCard(BaseModel):
     reminder: str
     confidence: float = Field(ge=0, le=1)
     visual_anchor: VisualAnchor | None = None
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class RelationshipSummary(BaseModel):
@@ -62,12 +39,14 @@ class RelationshipSummary(BaseModel):
     relationship_id: str
     summary: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class TimelineSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
     summary: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class EmotionSummary(BaseModel):
@@ -75,12 +54,14 @@ class EmotionSummary(BaseModel):
     emotion_id: str
     summary: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class MemoryReminder(BaseModel):
     model_config = ConfigDict(extra="forbid")
     summary: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class VocabularyAssistance(BaseModel):
@@ -88,6 +69,7 @@ class VocabularyAssistance(BaseModel):
     term: str
     simple_definition: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class ConversationSimplification(BaseModel):
@@ -95,6 +77,7 @@ class ConversationSimplification(BaseModel):
     dialogue_id: str
     simple_text: str
     confidence: float = Field(ge=0, le=1)
+    claim_ids: list[str] = Field(default_factory=list)
 
 
 class AccessibilityDrawerContent(BaseModel):
@@ -110,10 +93,7 @@ class AccessibilityDrawerContent(BaseModel):
 
 class AccessibilityReasoningRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    knowledge: SemanticMovieKnowledge
-    current_scene: CurrentScene
-    timestamp_seconds: float = Field(ge=0)
-    accessibility_profile: AccessibilityProfile
+    context: ReasoningContext
     companion_profile: CompanionProfile
 
 

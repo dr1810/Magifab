@@ -117,6 +117,7 @@ class PreparedPromptBubble(BaseModel):
     target_entity: str | None = None
     bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
     priority: int = Field(ge=1)
+    claim_ids: list[str] = Field(default_factory=list)
     cached: bool = True
 
 
