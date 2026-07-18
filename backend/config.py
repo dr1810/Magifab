@@ -1,5 +1,6 @@
 """Environment-backed configuration; model choices never leak into business services."""
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,6 +18,7 @@ class Settings(BaseSettings):
     florence_device: str = "auto"
     florence_max_new_tokens: int = 256
     semantic_match_confidence_threshold: float = 0.8
+    knowledge_store_dir: Path = Path("cache/movie-knowledge")
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 

@@ -2,10 +2,10 @@
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 5 conservatively compares fused perception evidence with caller-supplied movie knowledge; it never invents a match, uses GPT, or integrates with the frontend.
+This is the modular backend for MagiFab. Phase 6 adds versioned Semantic Movie Knowledge with retrieval-first access; it does not invoke GPT or integrate with the frontend.
 
 ```text
-Movie frame → YOLOv11n + Florence-2 Base → Perception Fusion → Semantic Matching → [later knowledge layers]
+Movie frame → Perception → Fusion → Semantic Matching → Semantic Movie Knowledge → [later personalization]
 ```
 
 ## Status
@@ -15,7 +15,8 @@ Movie frame → YOLOv11n + Florence-2 Base → Perception Fusion → Semantic Ma
 - Completed: Phase 3 — modular Florence-2 Base scene understanding with lazy loading.
 - Completed: Phase 4 — model-independent perception fusion and unified scene representation.
 - Completed: Phase 5 — conservative semantic matching against structured movie knowledge.
-- Pending: persistent semantic movie knowledge; GPT personalization; face verification; Grounding DINO.
+- Completed: Phase 6 — versioned Semantic Movie Knowledge storage, graph lookup, and retrieval-first access.
+- Pending: GPT personalization; face verification; Grounding DINO.
 
 ## Structure
 
@@ -30,19 +31,25 @@ backend/
   models/vision_language_model.py # Replaceable VisionLanguageModel contract
   models/perception_evidence_adapter.py # Future perception-provider contract
   models/semantic_matcher.py      # Replaceable SemanticMatcher contract
+  models/knowledge_store.py       # Replaceable knowledge persistence contract
   routers/detect.py              # POST /api/v1/detect
   routers/understand.py          # POST /api/v1/understand
   routers/fusion.py              # POST /api/v1/fuse
   routers/match.py               # POST /api/v1/match
+  routers/knowledge.py           # Versioned knowledge storage/retrieval endpoints
   services/object_detection.py   # Model-independent service
   services/vision_understanding.py # Model-independent service
   services/perception_fusion.py  # Evidence fusion service
   services/semantic_matching.py  # Conservative semantic matcher
+  services/knowledge_store.py    # Atomic JSON knowledge persistence
+  services/knowledge_retriever.py # Retrieval-first service
+  services/movie_knowledge_graph.py # Scene/timeline graph traversal
   schemas/detection.py           # Detection HTTP schemas
   schemas/understanding.py       # Scene-understanding HTTP schemas
   schemas/fusion.py              # Unified-scene and fusion HTTP schemas
   schemas/knowledge.py           # Structured semantic movie knowledge schema
   schemas/matching.py            # Semantic-match request and result schemas
+  schemas/knowledge.py           # Versioned movie-knowledge record schemas
   utils/image.py                 # Safe base64 image decoder
   cache/                 # Runtime cache mount point
   Dockerfile
@@ -60,7 +67,7 @@ pip install -r requirements.txt
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Open [Swagger](http://127.0.0.1:8000/docs). The available endpoints are `GET /`, `GET /health`, `POST /api/v1/detect`, `POST /api/v1/understand`, `POST /api/v1/fuse`, and `POST /api/v1/match`.
+Open [Swagger](http://127.0.0.1:8000/docs). The available endpoints include `GET /`, `GET /health`, the Phase 2–5 perception/matching endpoints, and `PUT`, `GET`, and retrieval routes under `/api/v1/knowledge`.
 
 ## Configuration
 
@@ -92,3 +99,15 @@ The fusion service consumes generic `PerceptionContribution` values. `Perception
 `POST /api/v1/match` accepts a `UnifiedSceneRepresentation` plus a structured `SemanticMovieKnowledge` slice. It returns only knowledge facts that have exact, unambiguous visual evidence above `MAGIFAB_SEMANTIC_MATCH_CONFIDENCE_THRESHOLD` (default `0.8`): characters, locations, objects, relationships, events, and linked timeline positions.
 
 Character matching uses only a knowledge character's explicit `perception_labels`, never a language-model guess. If labels are ambiguous, unseen, or below threshold, `character_found` is `false` and no character is returned. Relationships require both referenced characters to have already been verified. Events require every configured evidence term to be observed. This endpoint persists nothing and does not call GPT.
+
+## Phase 6: Semantic Movie Knowledge
+
+`SemanticMovieKnowledge` is a versioned structured representation for movie facts: characters, objects, relationships, locations, timeline positions, events, dialogue, scene summaries, known aliases, visual anchors, observation history, and confidence values.
+
+`KnowledgeStore` is the persistence contract. The default `FileKnowledgeStore` writes atomic JSON revisions below `cache/movie-knowledge/`, using a SHA-256 movie-ID filename so external IDs cannot alter file paths. It can be replaced with Supabase, Postgres, or another store without changing `KnowledgeRetriever`.
+
+`MovieKnowledgeGraph` resolves a scene by ID or timestamp and finds a timeline position. `KnowledgeRetriever` is retrieval-first: it returns `{ "found": false }` for a miss and does not perform model inference, semantic enrichment, or GPT fallback.
+
+- `PUT /api/v1/knowledge/{movie_id}` creates or updates a record and increments its revision.
+- `GET /api/v1/knowledge/{movie_id}` reads the latest record.
+- `POST /api/v1/knowledge/retrieve` returns the record plus an optional scene and timeline slice.
