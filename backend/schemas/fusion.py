@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.detection import DetectionResponse
+from schemas.face_verification import FaceVerificationResponse
 from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
 
@@ -54,3 +55,4 @@ class FusionRequest(BaseModel):
     object_detection: DetectionResponse
     scene_understanding: UnderstandingResponse
     grounding: GroundingResponse | None = None
+    face_verification: FaceVerificationResponse | None = None

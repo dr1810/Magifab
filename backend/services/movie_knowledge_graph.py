@@ -10,7 +10,9 @@ class MovieKnowledgeGraph:
 
     def scene(self, scene_id: str | None, timestamp_seconds: float | None) -> SceneSummary | None:
         if scene_id:
-            return next((scene for scene in self._knowledge.scene_summaries if scene.scene_id == scene_id), None)
+            explicit_scene = next((scene for scene in self._knowledge.scene_summaries if scene.scene_id == scene_id), None)
+            if explicit_scene is not None:
+                return explicit_scene
         if timestamp_seconds is None:
             return None
         return next((scene for scene in self._knowledge.scene_summaries if scene.start_seconds <= timestamp_seconds <= scene.end_seconds), None)

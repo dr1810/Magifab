@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from schemas.fusion import UnifiedSceneRepresentation
 from schemas.knowledge import KnowledgeRecord, SceneSummary
+from schemas.matching import SemanticMatchResult
 
 
 class KnowledgeExpansionRequest(BaseModel):
@@ -14,6 +15,8 @@ class KnowledgeExpansionRequest(BaseModel):
     scene_id: str | None = None
     timestamp_seconds: float = Field(ge=0)
     image: str | None = Field(default=None, min_length=8)
+    grounding_queries: list[str] = Field(default_factory=list, max_length=20)
+    verify_faces: bool = False
 
     @field_validator("image")
     @classmethod
@@ -28,3 +31,4 @@ class KnowledgeExpansionResult(BaseModel):
     record: KnowledgeRecord
     scene_summary: SceneSummary | None = None
     perception: UnifiedSceneRepresentation | None = None
+    semantic_matches: SemanticMatchResult | None = None

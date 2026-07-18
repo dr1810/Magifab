@@ -1,6 +1,7 @@
 """Adapters that normalize existing YOLO and Florence response schemas for fusion."""
 from models.perception_evidence_adapter import PerceptionEvidenceAdapter
 from schemas.detection import DetectionResponse
+from schemas.face_verification import FaceVerificationResponse
 from schemas.fusion import PerceptionContribution, UnifiedEntity
 from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
@@ -83,4 +84,29 @@ class GroundingEvidenceAdapter(PerceptionEvidenceAdapter[GroundingResponse]):
                 for match in evidence.matches
             ],
             visual_attributes={"models": [evidence.model]},
+        )
+
+
+class FaceVerificationEvidenceAdapter(PerceptionEvidenceAdapter[FaceVerificationResponse]):
+    """Adds detected-face geometry to fusion without exposing or assigning an identity."""
+
+    def to_contribution(self, evidence: FaceVerificationResponse) -> PerceptionContribution:
+        return PerceptionContribution(
+            provider="face_verification",
+            entities=[
+                UnifiedEntity(
+                    label="face",
+                    category="person",
+                    bounding_box=item.face.bbox,
+                    confidence=item.face.detection_confidence,
+                    sources=["face_verification"],
+                    visual_attributes={
+                        "detector_model": [evidence.detector_model],
+                        "embedding_model": [evidence.embedding_model],
+                        "verification": ["verified" if item.verified else "unverified"],
+                    },
+                )
+                for item in evidence.faces
+            ],
+            visual_attributes={"detector_models": [evidence.detector_model], "embedding_models": [evidence.embedding_model]},
         )

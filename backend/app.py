@@ -12,7 +12,9 @@ from services.knowledge_retriever import KnowledgeRetriever
 from services.knowledge_expansion import KnowledgeExpansionEngine
 from services.accessibility_reasoning import AccessibilityReasoningEngine
 from services.face_verification import FaceVerificationService
+from services.companion_pipeline import CompanionPipelineService
 from services.object_grounding import ObjectGroundingService
+from services.response_cache import ResponseCache
 from services.gpt_personalization import GPTPersonalizationService
 from services.knowledge_store import FileKnowledgeStore
 from services.object_detection import ObjectDetectionService
@@ -72,6 +74,9 @@ def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
         detector=get_object_detection_service(),
         vision=get_vision_understanding_service(),
         fusion=get_perception_fusion_service(),
+        matcher=get_semantic_matching_service(),
+        grounder=get_object_grounding_service(),
+        face_verifier=get_face_verification_service(),
     )
 
 
@@ -96,6 +101,24 @@ def get_object_grounding_service() -> ObjectGroundingService:
 
 
 @lru_cache
+def get_response_cache() -> ResponseCache:
+    """Process-local response cache; knowledge revision keys make stale entries unreachable."""
+    return ResponseCache(get_settings())
+
+
+@lru_cache
+def get_companion_pipeline_service() -> CompanionPipelineService:
+    """Full retrieval-first runtime composition; heavy providers stay lazy behind dependencies."""
+    return CompanionPipelineService(
+        expansion=get_knowledge_expansion_engine(),
+        accessibility=get_accessibility_reasoning_engine(),
+        personalizer=get_gpt_personalization_service(),
+        response_cache=get_response_cache(),
+        settings=get_settings(),
+    )
+
+
+@lru_cache
 def get_gpt_personalization_service() -> GPTPersonalizationService:
     """Lazy server-only OpenAI integration; importing the app never initializes a client or exposes a key."""
     from adapters.openai_personalizer import OpenAIGPTPersonalizer
@@ -109,7 +132,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab backend. Phase 11 adds on-demand, text-guided object localization.",
+        description="Modular MagiFab backend with retrieval-first perception, semantic knowledge, accessibility reasoning, and GPT personalization.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -136,6 +159,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.accessibility_reasoning import router as accessibility_reasoning_router
     from routers.face_verification import router as face_verification_router
     from routers.grounding import router as grounding_router
+    from routers.companion_pipeline import router as companion_pipeline_router
     from routers.personalization import router as personalization_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
@@ -147,6 +171,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(accessibility_reasoning_router)
     application.include_router(face_verification_router)
     application.include_router(grounding_router)
+    application.include_router(companion_pipeline_router)
     application.include_router(personalization_router)
     application.include_router(understand_router)
     return application

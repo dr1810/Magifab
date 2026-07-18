@@ -16,9 +16,9 @@ def expand_knowledge(
     settings: Settings = Depends(get_settings),
     engine: KnowledgeExpansionEngine = Depends(get_knowledge_expansion_engine),
 ) -> KnowledgeExpansionResult:
-    """Return stored knowledge first; decode an image and run perception only on a miss."""
+    """Return a stored scene first; decode an image and run perception only on a scene-level miss."""
     # Retrieval is intentionally before image decoding, model loading, or any perception work.
-    image = None if engine.knowledge_exists(request.movie_id) else (decode_base64_image(request.image, settings) if request.image else None)
+    image = decode_base64_image(request.image, settings) if engine.needs_expansion(request) and request.image else None
     try:
         return engine.retrieve_or_expand(request, image)
     except ValueError as error:

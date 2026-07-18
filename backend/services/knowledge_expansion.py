@@ -16,9 +16,12 @@ from schemas.knowledge import (
     VisualAnchor,
 )
 from schemas.knowledge_expansion import KnowledgeExpansionRequest, KnowledgeExpansionResult
+from services.face_verification import FaceVerificationService
 from services.knowledge_retriever import KnowledgeRetriever
 from services.object_detection import ObjectDetectionService
+from services.object_grounding import ObjectGroundingService
 from services.perception_fusion import PerceptionFusionService
+from services.semantic_matching import SemanticMatchingService
 from services.vision_understanding import VisionUnderstandingService
 
 
@@ -32,21 +35,27 @@ class KnowledgeExpansionEngine:
         detector: ObjectDetectionService,
         vision: VisionUnderstandingService,
         fusion: PerceptionFusionService,
+        matcher: SemanticMatchingService,
+        grounder: ObjectGroundingService,
+        face_verifier: FaceVerificationService,
     ):
         self._store = store
         self._retriever = retriever
         self._detector = detector
         self._vision = vision
         self._fusion = fusion
+        self._matcher = matcher
+        self._grounder = grounder
+        self._face_verifier = face_verifier
 
     def retrieve_or_expand(self, request: KnowledgeExpansionRequest, image: Image.Image | None) -> KnowledgeExpansionResult:
-        """Retrieve immediately if present; otherwise run perception once and persist observed facts."""
+        """Retrieve a known scene immediately; otherwise run only requested perception and persist observations."""
         retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
             movie_id=request.movie_id,
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        if retrieval.found and retrieval.record:
+        if retrieval.found and retrieval.record and retrieval.scene_summary:
             return KnowledgeExpansionResult(
                 source="retrieved",
                 cache_key=_cache_key(request.movie_id, retrieval.record.revision, request.scene_id, request.timestamp_seconds),
@@ -54,29 +63,40 @@ class KnowledgeExpansionEngine:
                 scene_summary=retrieval.scene_summary,
             )
         if image is None:
-            raise ValueError("image is required when movie knowledge is missing")
+            raise ValueError("image is required when movie knowledge or the requested scene is missing")
 
         detection = self._detector.detect(image)
         understanding = self._vision.understand(image)
-        perception = self._fusion.fuse_current_outputs(detection, understanding)
-        knowledge = self._knowledge_from_perception(request, perception)
+        base_knowledge = retrieval.record.knowledge if retrieval.record else SemanticMovieKnowledge(movie_id=request.movie_id)
+        grounding = self._grounder.locate(image, request.grounding_queries) if request.grounding_queries else None
+        faces = self._face_verifier.verify(image, base_knowledge) if request.verify_faces and base_knowledge.face_references else None
+        perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
+        semantic_matches = self._matcher.match(perception, base_knowledge)
+        knowledge = self.merge_observations(base_knowledge, request, perception)
         record = self._store.save(knowledge)
-        scene_summary = knowledge.scene_summaries[0] if knowledge.scene_summaries else None
+        scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == (request.scene_id or "")), None)
+        scene_summary = scene_summary or (knowledge.scene_summaries[-1] if knowledge.scene_summaries else None)
         return KnowledgeExpansionResult(
             source="expanded",
             cache_key=_cache_key(request.movie_id, record.revision, request.scene_id, request.timestamp_seconds),
             record=record,
             scene_summary=scene_summary,
             perception=perception,
+            semantic_matches=semantic_matches,
         )
 
     def knowledge_exists(self, movie_id: str) -> bool:
         """Cheap cache check used to avoid decoding an image on an existing knowledge record."""
         return self._store.exists(movie_id)
 
-    def _knowledge_from_perception(self, request: KnowledgeExpansionRequest, perception) -> SemanticMovieKnowledge:
-        """Create an empty graph then merge only the current observed facts into it."""
-        return self.merge_observations(SemanticMovieKnowledge(movie_id=request.movie_id), request, perception)
+    def needs_expansion(self, request: KnowledgeExpansionRequest) -> bool:
+        """Avoid image decoding and model work when the requested scene is already represented."""
+        retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
+            movie_id=request.movie_id,
+            scene_id=request.scene_id,
+            timestamp_seconds=request.timestamp_seconds,
+        ))
+        return not (retrieval.found and retrieval.scene_summary)
 
     def merge_observations(
         self,

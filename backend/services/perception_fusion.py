@@ -1,8 +1,9 @@
 """Fusion service for perception evidence only; no semantic or character-level reasoning."""
 from collections.abc import Iterable
 
-from adapters.perception_evidence import GroundingEvidenceAdapter, ObjectDetectionEvidenceAdapter, VisionUnderstandingEvidenceAdapter
+from adapters.perception_evidence import FaceVerificationEvidenceAdapter, GroundingEvidenceAdapter, ObjectDetectionEvidenceAdapter, VisionUnderstandingEvidenceAdapter
 from schemas.detection import DetectionResponse
+from schemas.face_verification import FaceVerificationResponse
 from schemas.fusion import PerceptionContribution, UnifiedEntity, UnifiedSceneRepresentation
 from schemas.grounding import GroundingResponse
 from schemas.understanding import UnderstandingResponse
@@ -16,16 +17,19 @@ class PerceptionFusionService:
         detection_adapter: ObjectDetectionEvidenceAdapter | None = None,
         vision_adapter: VisionUnderstandingEvidenceAdapter | None = None,
         grounding_adapter: GroundingEvidenceAdapter | None = None,
+        face_adapter: FaceVerificationEvidenceAdapter | None = None,
     ):
         self._detection_adapter = detection_adapter or ObjectDetectionEvidenceAdapter()
         self._vision_adapter = vision_adapter or VisionUnderstandingEvidenceAdapter()
         self._grounding_adapter = grounding_adapter or GroundingEvidenceAdapter()
+        self._face_adapter = face_adapter or FaceVerificationEvidenceAdapter()
 
     def fuse_current_outputs(
         self,
         object_detection: DetectionResponse,
         scene_understanding: UnderstandingResponse,
         grounding: GroundingResponse | None = None,
+        face_verification: FaceVerificationResponse | None = None,
     ) -> UnifiedSceneRepresentation:
         """Fuse detector, scene-understanding, and optional grounding evidence at a stable boundary."""
         contributions = [
@@ -34,6 +38,8 @@ class PerceptionFusionService:
         ]
         if grounding is not None:
             contributions.append(self._grounding_adapter.to_contribution(grounding))
+        if face_verification is not None:
+            contributions.append(self._face_adapter.to_contribution(face_verification))
         return self.fuse(contributions)
 
     def fuse(self, contributions: Iterable[PerceptionContribution]) -> UnifiedSceneRepresentation:

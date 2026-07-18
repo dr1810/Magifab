@@ -1,88 +1,116 @@
-# MagiFab semantic scene backend
+# MagiFab Semantic Movie Backend
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 11 adds on-demand Grounding DINO object localization for requested visual objects. It returns boxes and confidence without semantic matching, GPT, or frontend integration.
+This FastAPI backend is the modular runtime for MagiFab’s movie accessibility companion. It separates visual perception, verified movie knowledge, deterministic accessibility reasoning, and GPT-5.6 language personalization. The React application is intentionally not coupled to this service.
 
 ```text
-Movie frame → YOLO / Florence / RetinaFace + ArcFace / Grounding DINO → Perception Fusion → Semantic Knowledge → Accessibility Reasoning → GPT-5.6 language personalization
+Movie frame + request
+        │
+        ▼
+Scene-level Semantic Movie Knowledge retrieval
+        │
+        ├─ known scene ────────────────► Accessibility Reasoning ─► Versioned response cache ─► GPT-5.6 wording
+        │
+        └─ scene miss
+             │
+             ▼
+  YOLO + Florence + optional Grounding DINO + optional face verification
+             │
+             ▼
+      Perception Fusion Layer
+             │
+             ▼
+      Semantic Matching Engine
+             │
+             ▼
+      Semantic Movie Knowledge expansion and versioned persistence
+             │
+             └────────────────────────► Accessibility Reasoning ─► GPT-5.6 wording
 ```
 
-## Status
+## Retrieval and caching
 
-- Completed: Phase 1 — FastAPI foundation, configuration, structured errors, CORS, Swagger, Docker and Render configuration.
-- Completed: Phase 2 — modular YOLOv11n object detection with lazy loading.
-- Completed: Phase 3 — modular Florence-2 Base scene understanding with lazy loading.
-- Completed: Phase 4 — model-independent perception fusion and unified scene representation.
-- Completed: Phase 5 — conservative semantic matching against structured movie knowledge.
-- Completed: Phase 6 — versioned Semantic Movie Knowledge storage, graph lookup, and retrieval-first access.
-- Completed: Phase 7 — retrieval-first knowledge expansion, observation merge, and cache-versioned results.
-- Completed: Phase 8 — deterministic, profile-adapted accessibility reasoning.
-- Completed: Phase 9 — GPT-5.6 language-only personalization over structured facts.
-- Completed: Phase 10 — lazy face detection, embedding generation, and conservative identity verification.
-- Completed: Phase 11 — lazy, text-guided Grounding DINO object localization fused as perception evidence.
-- Pending: no additional phases currently scheduled.
+`POST /api/v1/companion/respond` is the integrated runtime endpoint.
 
-## Structure
+1. It retrieves the requested movie scene before decoding an image or loading a model.
+2. A known scene bypasses all perception models.
+3. A movie or scene miss requires an image. The expansion engine runs YOLO and Florence, and runs Grounding DINO or face verification only when requested.
+4. All available perception evidence is normalized by the Perception Fusion Layer, then matched conservatively against Semantic Movie Knowledge.
+5. Observed facts are saved as a new atomic knowledge revision.
+6. Accessibility content is deterministic and profile-aware.
+7. GPT receives only the verified structured facts and accessibility content. Its text response is cached by movie, knowledge revision, scene, timestamp bucket, intent, question, grounding request, and onboarding profiles.
 
-```text
-backend/
-  app.py                 # Application factory and middleware
-  config.py              # Environment configuration
-  adapters/yolo_adapter.py       # YOLO-specific implementation
-  adapters/florence_adapter.py   # Florence-2-specific implementation
-  adapters/perception_evidence.py # Output normalization adapters
-  adapters/retinaface_arcface_adapter.py # InsightFace-specific face perception
-  adapters/grounding_dino_adapter.py # Grounding-DINO-specific localization
-  models/object_detector.py      # Replaceable ObjectDetector contract
-  models/vision_language_model.py # Replaceable VisionLanguageModel contract
-  models/perception_evidence_adapter.py # Future perception-provider contract
-  models/semantic_matcher.py      # Replaceable SemanticMatcher contract
-  models/knowledge_store.py       # Replaceable knowledge persistence contract
-  models/accessibility_reasoner.py # Replaceable accessibility-reasoning contract
-  models/language_personalizer.py # Replaceable language-personalization contract
-  models/face_embedding_extractor.py # Replaceable face detection/embedding contract
-  models/text_guided_object_localizer.py # Replaceable object-grounding contract
-  routers/detect.py              # POST /api/v1/detect
-  routers/understand.py          # POST /api/v1/understand
-  routers/fusion.py              # POST /api/v1/fuse
-  routers/match.py               # POST /api/v1/match
-  routers/knowledge.py           # Versioned knowledge storage/retrieval endpoints
-  routers/knowledge_expansion.py # POST /api/v1/knowledge/expand
-  routers/accessibility_reasoning.py # POST /api/v1/accessibility/reason
-  routers/personalization.py     # POST /api/v1/personalize
-  routers/face_verification.py   # POST /api/v1/face-verification
-  routers/grounding.py           # POST /api/v1/ground
-  services/object_detection.py   # Model-independent service
-  services/vision_understanding.py # Model-independent service
-  services/perception_fusion.py  # Evidence fusion service
-  services/semantic_matching.py  # Conservative semantic matcher
-  services/knowledge_store.py    # Atomic JSON knowledge persistence
-  services/knowledge_retriever.py # Retrieval-first service
-  services/movie_knowledge_graph.py # Scene/timeline graph traversal
-  services/knowledge_expansion.py # Retrieval-first perception-to-knowledge engine
-  services/accessibility_reasoning.py # Deterministic accessibility content engine
-  services/gpt_personalization.py # Language-only personalization service
-  services/face_verification.py  # Knowledge-reference face verification service
-  services/object_grounding.py   # Text-guided object localization service
-  schemas/detection.py           # Detection HTTP schemas
-  schemas/understanding.py       # Scene-understanding HTTP schemas
-  schemas/fusion.py              # Unified-scene and fusion HTTP schemas
-  schemas/knowledge.py           # Structured semantic movie knowledge schema
-  schemas/matching.py            # Semantic-match request and result schemas
-  schemas/knowledge.py           # Versioned movie-knowledge record schemas
-  schemas/knowledge_expansion.py # Expansion request/result schemas
-  schemas/accessibility_reasoning.py # Accessibility request/result schemas
-  schemas/personalization.py     # GPT personalization request/result schemas
-  schemas/face_verification.py   # Face-verification request/result schemas
-  schemas/grounding.py           # Grounding request/result schemas
-  utils/image.py                 # Safe base64 image decoder
-  cache/                 # Runtime cache mount point
-  Dockerfile
-  render.yaml
+The in-memory response cache is LRU-bounded and uses a single-flight mechanism, so simultaneous identical requests share one GPT request. A new knowledge revision changes the cache key, making prior wording unreachable without unsafe manual invalidation.
+
+## Models
+
+| Component | Default implementation | Responsibility |
+| --- | --- | --- |
+| Object detection | YOLOv11n | Generic object labels, confidence, and boxes; never names characters. |
+| Scene understanding | Florence-2 Base | Captions, actions, environment, objects, and interactions; never names characters. |
+| Object grounding | Grounding DINO Tiny | On-demand text-guided boxes for phrases such as `squirrel` or `flower`. |
+| Face perception | RetinaFace + ArcFace via InsightFace | Face boxes and embeddings; verifies only enrolled Semantic Movie Knowledge references. |
+| Semantic matching | Deterministic service | Exact, unambiguous matches against stored knowledge only. |
+| Language | GPT-5.6 | Accessible wording and personalization only; no visual perception or fact invention. |
+
+Every model-specific dependency is isolated behind an adapter contract. Replace an adapter without changing API schemas or business services.
+
+## API reference
+
+Swagger is available at `http://127.0.0.1:8000/docs` when running locally.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/` | Service metadata |
+| GET | `/health` | Health check |
+| POST | `/api/v1/detect` | YOLO object detection |
+| POST | `/api/v1/understand` | Florence scene understanding |
+| POST | `/api/v1/ground` | Grounding DINO requested-object localization |
+| POST | `/api/v1/face-verification` | Face embedding generation and enrolled-reference verification |
+| POST | `/api/v1/fuse` | Fuse supplied perception results without inference |
+| POST | `/api/v1/match` | Match fused evidence against semantic knowledge |
+| PUT/GET | `/api/v1/knowledge/{movie_id}` | Store or retrieve versioned Semantic Movie Knowledge |
+| POST | `/api/v1/knowledge/retrieve` | Retrieve a movie, scene, and timeline slice |
+| POST | `/api/v1/knowledge/expand` | Retrieval-first scene expansion from a frame |
+| POST | `/api/v1/accessibility/reason` | Deterministic accessibility content |
+| POST | `/api/v1/personalize` | GPT wording over verified facts |
+| POST | `/api/v1/companion/respond` | Full retrieval-first runtime pipeline |
+
+### Integrated request
+
+`POST /api/v1/companion/respond` accepts a `movie_id`, timestamp, optional `scene_id`, user-facing scene summary, question, intent, onboarding-derived accessibility and companion profiles, and an image only for a missing scene. `grounding_queries` and `verify_faces` opt into their respective on-demand perception stages.
+
+```json
+{
+  "movie_id": "uploaded-movie-123",
+  "timestamp_seconds": 42,
+  "scene_id": "scene-004",
+  "scene_summary": "A squirrel is near a flower.",
+  "question": "Where is the flower?",
+  "intent": "object_location",
+  "image": "base64 image required only for a scene miss",
+  "grounding_queries": ["flower"],
+  "verify_faces": false,
+  "accessibility_profile": {
+    "accessibility_needs": ["remember_characters"],
+    "detail_level": "brief"
+  },
+  "companion_profile": {
+    "name": "Magi",
+    "personality": "patient",
+    "conversation_style": "simple"
+  }
+}
 ```
 
-## Local setup
+The response includes cache metadata, the personalized response, deterministic accessibility content, and—only on a scene miss—the fused perception and conservative semantic matches.
+
+## Future uploaded movies
+
+Movie IDs are opaque and are not restricted to bundled content. A newly uploaded movie can send its first representative frame to `/api/v1/knowledge/expand` or `/api/v1/companion/respond`; the backend creates an isolated, hashed knowledge record under `cache/movie-knowledge`. A production deployment should replace `FileKnowledgeStore` with Postgres/Supabase or object-backed storage and connect an authenticated upload/transcoding pipeline that provides stable movie IDs and timestamps.
+
+## Local development
 
 ```bash
 cd backend
@@ -90,95 +118,52 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
+export OPENAI_API_KEY="server-side-only-key"
+export OPENAI_MODEL="gpt-5.6" # optional
 uvicorn app:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Open [Swagger](http://127.0.0.1:8000/docs). The available endpoints include `GET /`, `GET /health`, perception/matching endpoints, `POST /api/v1/face-verification`, `POST /api/v1/ground`, and knowledge retrieval routes under `/api/v1/knowledge`.
+The OpenAI key is read only by the server. It is never returned by an endpoint or included in browser-facing configuration. Model weights are downloaded lazily on the first request to each model-backed endpoint.
 
 ## Configuration
 
-Settings use the `MAGIFAB_` prefix. Phase 2 adds `MAGIFAB_YOLO_MODEL_ID`, `MAGIFAB_YOLO_DEVICE` (`auto`, `mps`, or `cpu`), and `MAGIFAB_DETECTION_CONFIDENCE_THRESHOLD`. Phase 3 adds `MAGIFAB_FLORENCE_MODEL_ID`, `MAGIFAB_FLORENCE_DEVICE`, and `MAGIFAB_FLORENCE_MAX_NEW_TOKENS`. Phase 10 adds `MAGIFAB_FACE_MODEL_PACK` (default `buffalo_l`), `MAGIFAB_FACE_ONNX_PROVIDERS` (default CPU), `MAGIFAB_FACE_DETECTION_SIZE`, and `MAGIFAB_FACE_VERIFICATION_THRESHOLD`. Phase 11 adds `MAGIFAB_GROUNDING_DINO_MODEL_ID` (default `IDEA-Research/grounding-dino-tiny`), `MAGIFAB_GROUNDING_DINO_DEVICE`, `MAGIFAB_GROUNDING_DINO_BOX_THRESHOLD`, and `MAGIFAB_GROUNDING_DINO_TEXT_THRESHOLD`. Model identifiers are configured centrally; business services never name a model.
+All general settings use the `MAGIFAB_` prefix. OpenAI also accepts unprefixed `OPENAI_API_KEY` and `OPENAI_MODEL` for common deployment secret conventions.
+
+- `MAGIFAB_YOLO_MODEL_ID`, `MAGIFAB_YOLO_DEVICE`, `MAGIFAB_DETECTION_CONFIDENCE_THRESHOLD`
+- `MAGIFAB_FLORENCE_MODEL_ID`, `MAGIFAB_FLORENCE_DEVICE`, `MAGIFAB_FLORENCE_MAX_NEW_TOKENS`
+- `MAGIFAB_GROUNDING_DINO_MODEL_ID`, `MAGIFAB_GROUNDING_DINO_DEVICE`, `MAGIFAB_GROUNDING_DINO_BOX_THRESHOLD`, `MAGIFAB_GROUNDING_DINO_TEXT_THRESHOLD`
+- `MAGIFAB_FACE_MODEL_PACK`, `MAGIFAB_FACE_ONNX_PROVIDERS`, `MAGIFAB_FACE_DETECTION_SIZE`, `MAGIFAB_FACE_VERIFICATION_THRESHOLD`
+- `MAGIFAB_RESPONSE_CACHE_MAX_ENTRIES`, `MAGIFAB_RESPONSE_CACHE_TIMESTAMP_BUCKET_SECONDS`
 
 ## Deployment
 
-`render.yaml` is a Render Blueprint configured with `/health` as its health check. Docker deployments can build from `backend/Dockerfile`.
+`render.yaml` deploys the backend with `/health` as its health check. The Docker image is built from `Dockerfile`.
 
-## Current limitations
+```bash
+cd backend
+docker build -t magifab-backend .
+docker run --rm -p 8000:8000 \
+  -e OPENAI_API_KEY \
+  -e OPENAI_MODEL=gpt-5.6 \
+  -v "$(pwd)/cache:/app/cache" \
+  magifab-backend
+```
 
-`POST /api/v1/detect` accepts `{ "image": "<base64 or data URL>" }` and returns ordinary object labels, confidence scores, and pixel-space `[x, y, width, height]` boxes.
+For Render, configure `OPENAI_API_KEY` as a secret, set `OPENAI_MODEL` if overriding the default, and attach persistent storage for `cache/movie-knowledge` if using the development file store. Production deployments should prewarm or provision model weights, bound concurrent inference, and use a persistent database/cache shared across instances.
 
-`POST /api/v1/understand` accepts the same image input and returns `scene_description`, `detected_actions`, `environment`, `important_objects`, and `interactions`. Florence weights download only on the first valid request. The adapter exposes only caption-backed perception fields and never assigns a movie-character identity or semantic relationship. There is no semantic matching, GPT integration, or frontend wiring.
+## Limitations
 
-## Phase 4: Perception Fusion
+- File-backed knowledge and in-memory response caching are process-local; they are appropriate for development, not multi-instance durability.
+- The backend accepts already-extracted frames; it does not upload, transcode, preprocess, or continuously analyze video.
+- Character identity requires pre-enrolled face references in Semantic Movie Knowledge. Face verification never creates an identity.
+- Grounding DINO locates explicit visual phrases; resolving a character name in a phrase remains a verified semantic-knowledge concern.
+- Model quality varies with animation style, occlusion, tiny objects, lighting, and motion blur. Empty results are valid and must not be replaced with guesses.
+- Review all third-party model-weight licenses before commercial deployment.
 
-`POST /api/v1/fuse` accepts existing YOLO and Florence response objects and performs **no image inference**. It returns a `UnifiedSceneRepresentation` containing:
+## Future roadmap
 
-- `entities`, plus filtered `people`, `animals`, and `objects`
-- pixel bounding boxes and confidence values when provided by a detector
-- `environment`, `actions`, `interactions`, and provider-backed `visual_attributes`
-- a `providers` list for provenance
-
-The fusion service consumes generic `PerceptionContribution` values. `PerceptionEvidenceAdapter` is the extension point for Grounding DINO, face verification, or other future perception providers. These providers can contribute evidence without changing the unified response schema or downstream services. The layer categorizes generic labels only; it never identifies a movie character, maps relationships, or performs semantic reasoning.
-
-## Phase 5: Semantic Matching
-
-`POST /api/v1/match` accepts a `UnifiedSceneRepresentation` plus a structured `SemanticMovieKnowledge` slice. It returns only knowledge facts that have exact, unambiguous visual evidence above `MAGIFAB_SEMANTIC_MATCH_CONFIDENCE_THRESHOLD` (default `0.8`): characters, locations, objects, relationships, events, and linked timeline positions.
-
-Character matching uses only a knowledge character's explicit `perception_labels`, never a language-model guess. If labels are ambiguous, unseen, or below threshold, `character_found` is `false` and no character is returned. Relationships require both referenced characters to have already been verified. Events require every configured evidence term to be observed. This endpoint persists nothing and does not call GPT.
-
-## Phase 6: Semantic Movie Knowledge
-
-`SemanticMovieKnowledge` is a versioned structured representation for movie facts: characters, objects, relationships, locations, timeline positions, events, dialogue, scene summaries, known aliases, visual anchors, observation history, and confidence values.
-
-`KnowledgeStore` is the persistence contract. The default `FileKnowledgeStore` writes atomic JSON revisions below `cache/movie-knowledge/`, using a SHA-256 movie-ID filename so external IDs cannot alter file paths. It can be replaced with Supabase, Postgres, or another store without changing `KnowledgeRetriever`.
-
-`MovieKnowledgeGraph` resolves a scene by ID or timestamp and finds a timeline position. `KnowledgeRetriever` is retrieval-first: it returns `{ "found": false }` for a miss and does not perform model inference, semantic enrichment, or GPT fallback.
-
-- `PUT /api/v1/knowledge/{movie_id}` creates or updates a record and increments its revision.
-- `GET /api/v1/knowledge/{movie_id}` reads the latest record.
-- `POST /api/v1/knowledge/retrieve` returns the record plus an optional scene and timeline slice.
-
-## Phase 7: Knowledge Expansion
-
-`POST /api/v1/knowledge/expand` is the retrieval-first orchestration endpoint. Its input contains `movie_id`, `timestamp_seconds`, optional `scene_id`, and an image only for a potential miss.
-
-1. If the movie record exists, it is retrieved immediately. The image is not decoded, and YOLO, Florence, fusion, and GPT are not invoked.
-2. If no record exists, the engine decodes the image and runs the existing object-detection, scene-understanding, and perception-fusion services.
-3. It merges only observed entity labels, anchors, scene summary, environment, aliases, confidence, and observation-history items into a new `SemanticMovieKnowledge` record.
-4. The `FileKnowledgeStore` persists the next revision and the result returns a versioned cache key such as `movie-id:v1:scene-id`.
-
-The expansion engine never creates character identities, relationships, events, or dialogue from perception. `merge_observations` is exposed as a pure structured merge operation for future verified-update workflows; the endpoint's normal policy deliberately avoids reprocessing an existing record.
-
-## Phase 8: Accessibility Reasoning
-
-`POST /api/v1/accessibility/reason` accepts Semantic Movie Knowledge, the current scene and timestamp, an Accessibility Profile, and a Companion Profile. It returns structured JSON only:
-
-- Likely confusion predictions and contextual prompt bubbles
-- Accessibility drawer content: character cards, relationship and timeline summaries, verified emotion summaries, memory reminders, vocabulary help, and current-dialogue simplifications
-- Suggested follow-up questions and a companion tone descriptor
-
-The engine adapts output through onboarding selections: `accessibility_needs` decide which cards, summaries, prompts, reminders, and simplifications appear; `detail_level` controls the number of items; preferred prompt types filter suggestions; vocabulary and conversation toggles control their corresponding sections. It uses only explicit stored facts. Missing emotion, dialogue, relationship, or vocabulary facts produce empty structured sections rather than invented content. No GPT, image inference, semantic matching, cache mutation, or frontend change occurs in this phase.
-
-## Phase 9: GPT-5.6 Personalization
-
-`POST /api/v1/personalize` accepts a user message plus structured Semantic Movie Knowledge, the current scene, deterministic accessibility content, and onboarding-derived accessibility/companion profiles. It sends this JSON to GPT-5.6 through the server-side Responses API and returns a structured `{ "response", "model" }` object.
-
-The adapter instruction explicitly limits GPT to wording: accessible explanations, simplified language, personalized phrasing, and natural conversation. It forbids character identification, object detection, visual inspection, semantic matching, relationship/emotion inference, and redoing backend reasoning. Facts absent from the request must be treated as unknown.
-
-Set `OPENAI_API_KEY` only in the backend environment; it is never a browser variable or API response. `OPENAI_MODEL` is optional and defaults to `gpt-5.6`. The service is lazy: it does not create an OpenAI client until `/api/v1/personalize` is called. A missing key returns HTTP 503; an upstream provider failure returns HTTP 502.
-
-## Phase 10: Face Verification
-
-`POST /api/v1/face-verification` accepts a base64 image and Semantic Movie Knowledge. On its first request, the replaceable `FaceEmbeddingExtractor` implementation lazily loads an InsightFace model pack containing RetinaFace detection and ArcFace recognition models. It detects faces and generates normalized embeddings locally. Raw embeddings are intentionally not returned by the HTTP API.
-
-Verification compares each generated embedding only with `face_references` enrolled in the supplied Semantic Movie Knowledge. A reference is usable only if its `character_id` exists in the knowledge's `characters` list. The endpoint returns `verified: true` and `verified_character_id` only when exactly one enrolled character passes the configured similarity threshold. Multiple candidates, no candidate, dimension mismatches, and unknown references all return `verified: false`; the service never creates, guesses, or directly assigns a character identity.
-
-Face analysis is an independent perception component. It does not alter movie knowledge, invoke GPT, perform semantic matching, or communicate with the frontend. A different detector/embedding implementation can replace `RetinaFaceArcFaceAdapter` without changing the service or endpoint contract. Review the selected pretrained model's license before production deployment; InsightFace documents that model-pack weights can have separate usage terms.
-
-## Phase 11: Grounding DINO Object Localization
-
-`POST /api/v1/ground` accepts a base64 image and one or more explicit visual-object phrases, such as `"squirrel"`, `"flower"`, or `"object being held"`. It lazily loads the configured Hugging Face Grounding DINO model on the first request and returns `{ "matched_object", "confidence", "bbox" }` matches in pixel-space `[x, y, width, height]` format.
-
-Grounding DINO does not know movie-character identities. For a question such as “What is Buck holding?”, a caller must supply a visual grounding phrase for the sought object; resolving `Buck` remains a separate Semantic Movie Knowledge verification concern. The grounding response can be supplied as the optional `grounding` field to `POST /api/v1/fuse`, where `GroundingEvidenceAdapter` adds it to the model-independent `UnifiedSceneRepresentation` with provider provenance.
-
-No result is sent to GPT, semantic matching, or the frontend in this phase. Empty matches are valid and mean the requested phrase was not localized with sufficient confidence. Grounding DINO's text-guided post-processing follows the Hugging Face Grounding DINO interface; replace `GroundingDINOAdapter` to change models without changing the API or fusion service.
+1. Persistent Postgres/Supabase knowledge, response cache, and multi-worker job coordination.
+2. Authenticated uploaded-movie ingestion, scene detection, transcript extraction, and representative-frame preprocessing.
+3. Background knowledge enrichment using verified human review and scene-level confidence controls.
+4. Object tracking across frames and optional temporal grounding.
+5. Production observability, rate limiting, request authorization, model queues, and privacy retention controls.

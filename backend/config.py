@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     grounding_dino_device: str = "auto"
     grounding_dino_box_threshold: float = 0.35
     grounding_dino_text_threshold: float = 0.25
+    response_cache_max_entries: int = Field(default=500, ge=1)
+    response_cache_timestamp_bucket_seconds: int = Field(default=5, ge=1)
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 
