@@ -28,6 +28,7 @@ from services.model_manager import ModelManager
 from services.observation_factory import ObservationFactory
 from services.semantic_graph_builder import SemanticGraphBuilder
 from services.reasoning_context_builder import ReasoningContextBuilder
+from services.companion_response_serializer import CompanionResponseSerializer
 
 
 def configure_logging(settings: Settings) -> None:
@@ -72,6 +73,12 @@ def get_semantic_graph_builder() -> SemanticGraphBuilder:
 def get_reasoning_context_builder() -> ReasoningContextBuilder:
     """Retrieves only semantic claims for the accessibility reasoning boundary."""
     return ReasoningContextBuilder()
+
+
+@lru_cache
+def get_companion_response_serializer() -> CompanionResponseSerializer:
+    """Presentation-only serializer with no perception or graph dependencies."""
+    return CompanionResponseSerializer()
 
 
 @lru_cache
@@ -144,6 +151,7 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
         response_cache=get_response_cache(),
         settings=get_settings(),
         context_builder=get_reasoning_context_builder(),
+        serializer=get_companion_response_serializer(),
     )
 
 

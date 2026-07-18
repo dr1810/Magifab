@@ -3,12 +3,10 @@ import logging
 from time import perf_counter
 
 from models.accessibility_reasoner import AccessibilityReasoner
+from schemas.accessibility_presentation import AccessibilityPresentation
 from schemas.accessibility_reasoning import (
-    AccessibilityDrawerContent,
     AccessibilityReasoningRequest,
-    AccessibilityReasoningResult,
     CharacterCard,
-    ConfusionPrediction,
     ConversationSimplification,
     EmotionSummary,
     MemoryReminder,
@@ -24,12 +22,11 @@ logger = logging.getLogger(__name__)
 class AccessibilityReasoningEngine(AccessibilityReasoner):
     """The sole producer of user-facing content, from semantic claims only."""
 
-    def reason(self, request: AccessibilityReasoningRequest) -> AccessibilityReasoningResult:
+    def reason(self, request: AccessibilityReasoningRequest) -> AccessibilityPresentation:
         started = perf_counter()
         context = request.context
         profile = context.accessibility_profile
         limit = _detail_limit(profile.detail_level)
-        needs = {_normalize(item) for item in profile.accessibility_needs}
         logger.info(
             "[TRACE][REASONING] start movie=%s scene=%s semantic_claims=%d active_characters=%d raw_perception=unavailable",
             context.movie_id, context.scene_id, len(context.semantic_scene), len(context.active_characters),
@@ -41,9 +38,10 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         reminders = self._memory_reminders(context, limit)
         vocabulary = self._vocabulary(context, limit)
         conversations = self._conversations(context, limit)
-        confusions = self._confusions(needs, cards, relationships, timeline, emotions, vocabulary, conversations)
         prompts = self._prompts(context, cards, relationships, timeline, emotions, vocabulary, limit, profile.preferred_prompt_types)
-        drawer = AccessibilityDrawerContent(
+        result = AccessibilityPresentation(
+            scene_explanation=_scene_summary(context),
+            prompt_bubbles=prompts,
             character_cards=cards,
             relationship_summaries=relationships,
             timeline_summary=timeline,
@@ -51,13 +49,6 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             memory_reminders=reminders,
             vocabulary_assistance=vocabulary if profile.vocabulary_assistance else [],
             conversation_simplifications=conversations if profile.conversation_simplification else [],
-        )
-        result = AccessibilityReasoningResult(
-            companion_tone=f"{request.companion_profile.personality}; {request.companion_profile.conversation_style}",
-            scene_summary=_scene_summary(context),
-            likely_confusions=confusions,
-            prompt_bubbles=prompts,
-            drawer=drawer,
         )
         logger.info(
             "[TRACE][REASONING] complete cards=%d relationships=%d timeline=%s emotions=%d reminders=%d prompts=%d duration_ms=%.1f",
@@ -198,24 +189,6 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             prompts = [item for item in prompts if _normalize(item.kind) in allowed]
         return prompts[:limit]
 
-    @staticmethod
-    def _confusions(needs, cards, relationships, timeline, emotions, vocabulary, conversations) -> list[ConfusionPrediction]:
-        predictions: list[ConfusionPrediction] = []
-        if cards and _needs(needs, "remember characters", "characters"):
-            predictions.append(ConfusionPrediction(kind="character_memory", confidence=max(item.confidence for item in cards), reason="A verified semantic character is active."))
-        if relationships and _needs(needs, "relationships"):
-            predictions.append(ConfusionPrediction(kind="relationship", confidence=max(item.confidence for item in relationships), reason="A semantic relationship is active."))
-        if timeline and _needs(needs, "plot", "timeline"):
-            predictions.append(ConfusionPrediction(kind="timeline", confidence=timeline.confidence, reason="A timeline transition is active."))
-        if emotions and _needs(needs, "emotions", "understand emotions"):
-            predictions.append(ConfusionPrediction(kind="emotion", confidence=max(item.confidence for item in emotions), reason="An emotion claim is active."))
-        if vocabulary:
-            predictions.append(ConfusionPrediction(kind="vocabulary", confidence=max(item.confidence for item in vocabulary), reason="A semantic definition is available."))
-        if conversations and _needs(needs, "conversations", "conversation"):
-            predictions.append(ConfusionPrediction(kind="conversation", confidence=max(item.confidence for item in conversations), reason="A semantic dialogue claim is active."))
-        return predictions
-
-
 def _scene_summary(context) -> str:
     state = next((claim for claim in context.semantic_scene if claim.kind == "scene_state" and claim.value), None)
     return state.value if state else "No semantic scene state is available."
@@ -236,10 +209,6 @@ def _detail_limit(detail_level: str) -> int:
 
 def _normalize(value: str) -> str:
     return " ".join(value.lower().replace("_", " ").split())
-
-
-def _needs(needs: set[str], *terms: str) -> bool:
-    return any(_normalize(term) in needs for term in terms)
 
 
 def _preferred_prompt_kinds(preferred: list[str]) -> set[str]:

@@ -4,8 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from schemas.accessibility_reasoning import AccessibilityDrawerContent, AccessibilityProfile, AccessibilityReasoningResult, CompanionProfile
-from schemas.fusion import UnifiedEntity, UnifiedSceneRepresentation
-from schemas.matching import SemanticMatchResult
+from schemas.accessibility_presentation import AccessibilityPresentation
 from schemas.personalization import GPTPersonalizationResponse
 
 
@@ -39,8 +38,6 @@ class CompanionPipelineResponse(BaseModel):
     knowledge_revision: int = Field(ge=1)
     response: GPTPersonalizationResponse
     accessibility_content: AccessibilityReasoningResult
-    perception: UnifiedSceneRepresentation | None = None
-    semantic_matches: SemanticMatchResult | None = None
 
 
 class ScenePreparationRequest(BaseModel):
@@ -135,19 +132,12 @@ class ScenePreparationResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
     knowledge_source: Literal["retrieved", "expanded"]
     knowledge_revision: int = Field(ge=1)
+    presentation: AccessibilityPresentation
     accessibility_content: AccessibilityReasoningResult
     # First-class preparation data lets clients render the prompt panel and
     # visual drawer immediately, rather than reconstructing them from a prose
     # scene summary.
     scene_summary: str
-    semantic_graph: PreparedSemanticGraph
-    characters: list[PreparedCharacter] = Field(default_factory=list)
-    objects: list[PreparedObject] = Field(default_factory=list)
-    relationships: list[SemanticGraphEdge] = Field(default_factory=list)
-    detected_objects: list[UnifiedEntity] = Field(default_factory=list)
-    grounded_entities: list[UnifiedEntity] = Field(default_factory=list)
     prompt_bubbles: list[PreparedPromptBubble] = Field(default_factory=list)
     visual_drawer: AccessibilityDrawerContent
     cache: PreparationCacheMetadata
-    perception: UnifiedSceneRepresentation | None = None
-    semantic_matches: SemanticMatchResult | None = None
