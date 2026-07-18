@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     yolo_model_id: str = "yolo11n.pt"
     yolo_device: str = "auto"
     detection_confidence_threshold: float = 0.35
+    florence_model_id: str = "microsoft/Florence-2-base"
+    florence_device: str = "auto"
+    florence_max_new_tokens: int = 256
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 
