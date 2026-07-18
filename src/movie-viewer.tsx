@@ -9,14 +9,8 @@ import { CompanionWidget } from './components/CompanionWidget'
 import { useAccessibility } from './accessibility-context'
 import { useMoviePlayback } from './hooks/useMoviePlayback'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
-import { askCompanion } from './services/assistantService'
-import { companionAIService, type SceneExplanation } from './services/ai/CompanionAIService'
 import type { CapturedVideoFrame } from './services/ai/VideoFrameCaptureService'
-import { objectDetectionService } from './services/detection/ObjectDetectionService'
-import { visionUnderstandingService } from './services/vision/VisionUnderstandingService'
-import { semanticMovieKnowledge } from './services/semantic/SemanticMovieKnowledge'
-import { semanticMatchingService } from './services/semantic/SemanticMatchingService'
-import { knowledgeRetriever } from './services/knowledge/KnowledgeRetriever'
+import { companionBackendService, type BackendAccessibilityContent } from './services/backend/CompanionBackendService'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion, SceneData } from './types/movie'
@@ -25,15 +19,6 @@ type MovieViewerProps = {
   movie: MovieId
   onBack: () => void
   onOpenAccessibilitySettings?: () => void
-}
-
-type PromptKnowledge = {
-  question: string
-  answer: string
-  visualAid?: { kind: string; label: string; anchor: { x: number; y: number } }
-  relatedCharacters: string[]
-  objects: string[]
-  timelineContext: string
 }
 
 export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () => undefined }: MovieViewerProps) {
@@ -52,11 +37,19 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
   const currentSceneIdRef = useRef<string>('')
   const explanationRequestIdRef = useRef(0)
+  const promptAbortControllerRef = useRef<AbortController | null>(null)
   const frameCaptureRef = useRef<(() => CapturedVideoFrame) | null>(null)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
+  const [accessibilityContent, setAccessibilityContent] = useState<BackendAccessibilityContent | null>(null)
 
-  const prompts = scene?.prompts ?? []
+  const backendPrompts = useMemo<PromptQuestion[]>(() => accessibilityContent?.prompt_bubbles.map((prompt) => ({
+    id: `backend:${prompt.id}`,
+    label: prompt.label,
+    question: prompt.question,
+    explanation: '',
+  })) ?? [], [accessibilityContent])
+  const prompts = backendPrompts.length > 0 ? backendPrompts : scene?.prompts ?? []
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
   useEffect(() => {
@@ -69,6 +62,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const sceneId = scene?.sceneId ?? ''
     currentSceneIdRef.current = sceneId
     setActiveBubble((bubble) => bubble?.id.startsWith(`${sceneId}:`) ? bubble : null)
+    setAccessibilityContent(null)
   }, [scene?.sceneId])
 
   useEffect(() => {
@@ -91,44 +85,24 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     [prompts, selectedPromptId],
   )
 
-  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, target?: { kind: string; label: string; anchor: { x: number; y: number } }): PromptBubbleContent => {
-    const normalizedQuestion = prompt.question.trim().toLowerCase()
-    const promptLabel = prompt.label.trim().toLowerCase()
-    const questionType = normalizedQuestion.includes('who') || promptLabel.includes('who')
-      ? 'Who is that?'
-      : normalizedQuestion.includes('what') && normalizedQuestion.includes('happened')
-        ? 'What just happened?'
-        : normalizedQuestion.includes('why') && normalizedQuestion.includes('sad')
-          ? 'Why are they sad?'
-          : normalizedQuestion.includes('object') || promptLabel.includes('object')
-            ? 'What is this object?'
-            : normalizedQuestion.includes('why') && normalizedQuestion.includes('matter')
-              ? 'Why does it matter?'
-              : 'Why did they do that?'
-
-    const knownCharacter = sceneData.characterList.find((character) => {
-      const name = character.name.toLowerCase()
-      return normalizedQuestion.includes(name) || prompt.explanation.toLowerCase().includes(name)
-    }) ?? sceneData.characterList[0]
-
-    const relationship = knownCharacter
-      ? sceneData.relationshipGraph.find((edge) => edge.from.includes(knownCharacter.name) || edge.to.includes(knownCharacter.name))
+  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, result: Awaited<ReturnType<typeof companionBackendService.respond>>, frame: CapturedVideoFrame): PromptBubbleContent => {
+    const match = result.semantic_matches?.characters[0]
+    const card = result.accessibility_content.drawer.character_cards[0]
+    const bbox = match?.entity?.bounding_box
+    const visualAnchor = bbox && frame.width > 0 && frame.height > 0
+      ? { x: Math.max(0, Math.min(100, (bbox[0] / frame.width) * 100)), y: Math.max(0, Math.min(100, (bbox[1] / frame.height) * 100)), width: Math.max(4, Math.min(100, (bbox[2] / frame.width) * 100)), height: Math.max(4, Math.min(100, (bbox[3] / frame.height) * 100)) }
       : undefined
-
-    const title = target?.label || (questionType === 'Who is that?' && knownCharacter
-      ? knownCharacter.name
-      : prompt.label)
-
+    const emotion = result.accessibility_content.drawer.emotion_summaries[0]?.summary
     return {
-      id: `${sceneData.sceneId}:${prompt.id}`,
-      question: questionType,
-      title,
-      relationship: target?.kind === 'object' ? sceneData.highlightObject.reason : questionType === 'Who is that?'
-        ? relationship?.label ?? knownCharacter?.role ?? 'Character context'
-        : sceneData.emotion,
-      explanation: prompt.explanation,
-      anchor: target?.anchor ?? { x: sceneData.companionPosition.x, y: Math.max(14, Math.min(76, sceneData.companionPosition.y)) },
-      highlightTarget: target?.kind === 'character' || target?.kind === 'object' || questionType === 'Who is that?',
+      id: `${sceneData.sceneId}:${prompt.id}:${result.knowledge_revision}`,
+      question: prompt.question,
+      title: match?.label ?? card?.name ?? prompt.label,
+      relationship: emotion ?? result.accessibility_content.scene_summary,
+      explanation: result.response.response,
+      anchor: visualAnchor ? { x: visualAnchor.x, y: visualAnchor.y } : sceneData.companionPosition,
+      visualAnchor,
+      visualAidType: visualAnchor ? 'magnifier' : undefined,
+      highlightTarget: Boolean(visualAnchor),
     }
   }, [])
 
@@ -140,108 +114,31 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setWidgetOpen(false)
     setActiveBubble(null)
 
-    const isCharacterQuestion = /\bwho\b/i.test(prompt.question) || /\bwho\b/i.test(prompt.label)
+    promptAbortControllerRef.current?.abort()
+    const abortController = new AbortController()
+    promptAbortControllerRef.current = abortController
     const requestId = ++explanationRequestIdRef.current
-    const knowledgeRequest = { movieId: movieData.id, sceneId: scene.sceneId, timestamp: scene.timestamp, question: prompt.question }
-
-    if (isCharacterQuestion) {
-      const loadingBubble = buildPromptBubble(scene, prompt)
-      setActiveBubble({
-        ...loadingBubble,
-        title: 'Looking closely',
-        relationship: '',
-        explanation: '',
-        highlightTarget: false,
-        loading: true,
-      })
-
-      void knowledgeRetriever.getOrCreate<SceneExplanation>(knowledgeRequest, async () => {
-        const frame = frameCaptureRef.current?.()
-        if (!frame) throw new Error('Frame capture is unavailable.')
-        const memory = semanticMovieKnowledge.load(movieData)
-        const semanticScene = semanticMovieKnowledge.scene(movieData, frame.timestamp)
-        const detections = await objectDetectionService.detect(frame)
-        const understanding = await visionUnderstandingService.understand(frame, detections.detections)
-        const match = semanticMatchingService.match({ detections: detections.detections, understanding, memory, scene: semanticScene })
-
-        if (!match.characterFound || !match.character || !match.anchor || !match.detectionId) {
-          return {
-            character: null, characterFound: false, confidence: match.confidence,
-            emotion: understanding.emotions[0] ?? scene.emotion,
-            explanation: 'I can’t confidently identify a visible character in this frame.',
-            anchor: { x: scene.companionPosition.x, y: scene.companionPosition.y, width: 12, height: 18 },
-            visualAidType: 'highlight',
-          }
-        }
-
-        semanticMovieKnowledge.recordVerifiedObservation(movieData, semanticScene.sceneId, {
-          detectionId: match.detectionId, className: detections.detections.find((item) => item.id === match.detectionId)?.className ?? 'unknown',
-          timestamp: frame.timestamp, confidence: match.confidence, characterId: match.character.id, bbox: match.anchor,
-        })
-        try {
-          const response = await companionAIService.personalizeExplanation(prompt.question, {
-            character: match.character, scene: { summary: semanticScene.summary, location: semanticScene.location, emotions: semanticScene.emotions, importantEvents: semanticScene.importantEvents },
-            visualUnderstanding: { scene: understanding.scene, actions: understanding.actions, emotions: understanding.emotions, interactions: understanding.interactions },
-          })
-          return { character: match.character.name, characterFound: true, confidence: match.confidence, anchor: match.anchor, visualAidType: 'magnifier', ...response }
-        } catch {
-          return {
-            character: match.character.name, characterFound: true, confidence: match.confidence, anchor: match.anchor, visualAidType: 'magnifier',
-            emotion: understanding.emotions[0] ?? scene.emotion,
-            explanation: `${match.character.name} is visible here. ${semanticScene.summary}`,
-          }
-        }
-      }).then(({ record }) => {
-          if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-          const result = record.value
-          const bubble = buildPromptBubble(scene, prompt)
-          setActiveBubble({
-            ...bubble,
-            title: result.characterFound ? result.character ?? 'Character' : 'No person detected',
-            relationship: result.characterFound ? result.emotion : 'No visible character',
-            explanation: result.explanation,
-            anchor: result.characterFound ? { x: result.anchor.x, y: result.anchor.y } : bubble.anchor,
-            visualAnchor: result.characterFound ? result.anchor : undefined,
-            visualAidType: result.visualAidType,
-            highlightTarget: result.characterFound,
-          })
-          setAssistantText(result.explanation)
-          if (settings.voiceAssistance || settings.readPrompts) {
-            void speakText({ text: result.explanation, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
-          }
-        }).catch(() => {
-          if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-          setActiveBubble(null)
-          setAssistantText('I’m still preparing this explanation. You can try the prompt again in a moment.')
-        })
+    const loadingAnchor = { x: scene.companionPosition.x, y: scene.companionPosition.y }
+    setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:loading`, question: prompt.question, title: 'Preparing help', relationship: '', explanation: '', anchor: loadingAnchor, highlightTarget: false, loading: true })
+    let frame: CapturedVideoFrame
+    try {
+      frame = frameCaptureRef.current?.() ?? (() => { throw new Error('Frame capture is unavailable.') })()
+    } catch (error) {
+      setActiveBubble(null)
+      setAssistantText(error instanceof Error ? error.message : 'The current movie frame is not ready yet.')
       return
     }
-
-    void knowledgeRetriever.getOrCreate<PromptKnowledge>(knowledgeRequest, async () => {
-      const result = await askCompanion(movieData, scene.timestamp, prompt.question)
-      return {
-        question: prompt.question,
-        answer: result.answer,
-        visualAid: result.target,
-        relatedCharacters: scene.characterList.map((character) => character.name),
-        objects: [scene.highlightObject.name],
-        timelineContext: scene.timelineData.map((item) => item.label).join(' → '),
-      }
-    }).then(({ record }) => {
-        if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-        const result = record.value
-        setActiveBubble(buildPromptBubble(scene, prompt, result.visualAid))
-        setAssistantText(result.answer)
-        if (settings.voiceAssistance || settings.readPrompts) {
-          void speakText({
-            text: result.answer,
-            rate: settings.voiceSpeed,
-            volume: Math.min(1, settings.voiceVolume / 100),
-          })
-        }
-    }).catch(() => {
-        if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-        setAssistantText('I’m still preparing this explanation. You can try the prompt again in a moment.')
+    void companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, frame, settings, companion: profile, signal: abortController.signal }).then((result) => {
+      if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
+      setAccessibilityContent(result.accessibility_content)
+      setActiveBubble(buildPromptBubble(scene, prompt, result, frame))
+      setAssistantText(result.response.response)
+      if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: result.response.response, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
+    }).catch((error: unknown) => {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
+      setActiveBubble(null)
+      setAssistantText(error instanceof Error ? error.message : 'The companion is unavailable. Please try again.')
     })
   }
   const openPromptPanel = () => {
@@ -258,6 +155,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }
   const closeBubbles = () => {
     explanationRequestIdRef.current += 1
+    promptAbortControllerRef.current?.abort()
     setActiveBubble(null)
     setWidgetOpen(false)
     setPromptOpen(false)
@@ -267,6 +165,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const handleSeeking = useCallback(() => {
     isSeekingRef.current = true
     explanationRequestIdRef.current += 1
+    promptAbortControllerRef.current?.abort()
     setActiveBubble(null)
     setWidgetOpen(false)
     void stopSpeech()
@@ -282,6 +181,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
 
   const closePromptBubble = useCallback(() => {
     explanationRequestIdRef.current += 1
+    promptAbortControllerRef.current?.abort()
     setActiveBubble(null)
   }, [])
 
@@ -374,6 +274,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
             <VisualDrawer
               open={drawerOpen}
               scene={scene}
+              accessibilityContent={accessibilityContent}
               onClose={() => setDrawerOpen(false)}
               onMouseEnter={() => setDrawerOpen(true)}
               onMouseLeave={() => setDrawerOpen(false)}
