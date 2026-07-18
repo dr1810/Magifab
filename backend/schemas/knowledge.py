@@ -100,6 +100,10 @@ class SceneSummary(BaseModel):
     environment: str = ""
     potential_confusions: list[str] = Field(default_factory=list)
     prepared: bool = False
+    # Version 2 marks a scene whose complete preparation map (perception,
+    # grounding, semantic projection, and UI data) has been persisted. Earlier
+    # summary-only records are deliberately rebuilt once on their next prepare.
+    preparation_version: int = Field(default=1, ge=1)
 
     @model_validator(mode="after")
     def validate_range(self) -> "SceneSummary":
@@ -171,6 +175,7 @@ class SemanticMovieKnowledge(BaseModel):
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
     version: int = Field(default=1, ge=1)
+    cache_version: int = Field(default=1, ge=1)
     confidence: float = Field(default=1.0, ge=0, le=1)
     characters: list[SemanticCharacter] = Field(default_factory=list)
     locations: list[SemanticLocation] = Field(default_factory=list)

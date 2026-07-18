@@ -1,0 +1,93 @@
+{
+  "movie_id": "bigBuckBunny",
+  "revision": 1,
+  "created_at": "2026-07-18T14:23:06.816471Z",
+  "updated_at": "2026-07-18T14:23:06.816471Z",
+  "knowledge": {
+    "movie_id": "bigBuckBunny",
+    "version": 1,
+    "cache_version": 12,
+    "confidence": 0.0,
+    "characters": [],
+    "locations": [
+      {
+        "id": "location-05f514fae7ca5710",
+        "name": "sky",
+        "aliases": [
+          "sky"
+        ]
+      }
+    ],
+    "objects": [
+      {
+        "id": "object-38a81e87e79631e6",
+        "name": "person",
+        "perception_labels": [
+          "person"
+        ],
+        "aliases": [
+          "person"
+        ],
+        "confidence": 0.0
+      }
+    ],
+    "relationships": [],
+    "events": [],
+    "timeline_positions": [],
+    "dialogue": [],
+    "scene_summaries": [
+      {
+        "scene_id": "bbb-01",
+        "start_seconds": 1.0,
+        "end_seconds": 1.0,
+        "summary": "The image shows a large plume of smoke rising up into the sky. The smoke is a reddish-brown color and appears to be thick and billowing upwards. The sky is dark and cloudy, and there are trees visible in the foreground. The image is taken from a low angle, looking up at the smoke. The overall mood of the image is somber and ominous.",
+        "confidence": 0.0,
+        "visible_entities": [
+          {
+            "id": "e63cb47f-1fbe-4e02-91a7-b60890435907",
+            "label": "person",
+            "category": "person",
+            "bbox": null,
+            "confidence": 0.5,
+            "sources": [
+              "scene_understanding"
+            ],
+            "semantic_id": null
+          }
+        ],
+        "actions": [
+          "looking"
+        ],
+        "interactions": [],
+        "environment": "sky",
+        "potential_confusions": [
+          "The visible action may need a simple explanation."
+        ],
+        "prepared": true,
+        "preparation_version": 12
+      }
+    ],
+    "known_aliases": [
+      {
+        "semantic_id": "object-38a81e87e79631e6",
+        "alias": "person",
+        "kind": "observed_entity",
+        "confidence": 0.0
+      }
+    ],
+    "visual_anchors": [],
+    "face_references": [],
+    "observation_history": [
+      {
+        "id": "01f3b375-1c96-407d-90fa-31f113b138e2",
+        "timestamp_seconds": 1.0,
+        "entity_label": "person",
+        "semantic_id": "object-38a81e87e79631e6",
+        "confidence": 0.0,
+        "source": "scene_understanding"
+      }
+    ],
+    "emotions": [],
+    "vocabulary": []
+  }
+}

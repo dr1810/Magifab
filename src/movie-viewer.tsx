@@ -26,7 +26,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const { movie: movieData, scene, loading, totalDuration, updateScene } = useMoviePlayback(movie)
   const { profile, loading: companionProfileLoading } = useCompanionProfile()
   const { settings } = useAccessibility()
-  const preparation = useExperiencePreparation(movieData, companionProfileLoading)
+  const [companionReady, setCompanionReady] = useState(false)
+  const preparation = useExperiencePreparation(movieData, companionProfileLoading, companionReady)
 
   const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -44,10 +45,18 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const preparedFrameRef = useRef<CapturedVideoFrame | null>(null)
   const preparedSceneIdsRef = useRef<Set<string>>(new Set())
   const preparationAbortControllerRef = useRef<AbortController | null>(null)
+  const preparationEffectCountRef = useRef(0)
+  const latestPreparationInputsRef = useRef({ settings, profile })
   const [frameCaptureAvailable, setFrameCaptureAvailable] = useState(false)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
   const [accessibilityContent, setAccessibilityContent] = useState<BackendAccessibilityContent | null>(null)
+  latestPreparationInputsRef.current = { settings, profile }
+
+  useEffect(() => {
+    if (import.meta.env.DEV) console.debug('[MagiFab companion] MovieViewer mounted', { movieId: movie })
+    return () => { if (import.meta.env.DEV) console.debug('[MagiFab companion] MovieViewer unmounted', { movieId: movie }) }
+  }, [movie])
 
   const backendPrompts = useMemo<PromptQuestion[]>(() => accessibilityContent?.prompt_bubbles.map((prompt) => ({
     id: `backend:${prompt.id}`,
@@ -69,29 +78,48 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     currentSceneIdRef.current = sceneId
     setActiveBubble((bubble) => bubble?.id.startsWith(`${sceneId}:`) ? bubble : null)
     setAccessibilityContent(null)
+    setCompanionReady(false)
   }, [scene?.sceneId])
 
   useEffect(() => {
-    if (!movieData || !scene || !frameCaptureAvailable || currentTime < 2 || preparedSceneIdsRef.current.has(scene.sceneId) || isSeekingRef.current) return
+    const effectCount = ++preparationEffectCountRef.current
+    if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare effect', { effectCount, movieId: movieData?.id, sceneId: scene?.sceneId, frameCaptureAvailable })
+    if (!movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(movieData.id)) return
     const capture = frameCaptureRef.current
     if (!capture) return
     const abortController = new AbortController()
-    preparationAbortControllerRef.current?.abort()
     preparationAbortControllerRef.current = abortController
-    preparedSceneIdsRef.current.add(scene.sceneId)
-    void capture().then((frame) => {
-      if (abortController.signal.aborted || isSeekingRef.current) return
+    preparedSceneIdsRef.current.add(movieData.id)
+    let requestStarted = false
+    const startTimer = window.setTimeout(() => {
+      if (abortController.signal.aborted) return
+      requestStarted = true
+      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() called', { movieId: movieData.id, sceneId: scene.sceneId })
+      void capture().then((frame) => {
+      if (abortController.signal.aborted) return
       preparedFrameRef.current = frame
-      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings, companion: profile, signal: abortController.signal })
+      const inputs = latestPreparationInputsRef.current
+      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings: inputs.settings, companion: inputs.profile, signal: abortController.signal })
     }).then((result) => {
-      if (!result || abortController.signal.aborted || isSeekingRef.current || currentSceneIdRef.current !== scene.sceneId) return
+      if (!result || abortController.signal.aborted) return
       setAccessibilityContent(result.accessibility_content)
+      setCompanionReady(true)
+      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() completed', { movieId: movieData.id, sceneId: scene.sceneId })
     }).catch((error: unknown) => {
-      if (import.meta.env.DEV) console.debug('[MagiFab companion] scene preparation skipped', error)
-      preparedSceneIdsRef.current.delete(scene.sceneId)
+      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() failed', { movieId: movieData.id, sceneId: scene.sceneId, error })
+      preparedSceneIdsRef.current.delete(movieData.id)
     })
-    return () => abortController.abort()
-  }, [movieData, scene, frameCaptureAvailable, currentTime, settings, profile])
+    }, 0)
+    return () => {
+      window.clearTimeout(startTimer)
+      // React Strict Mode deliberately runs an effect cleanup before its second
+      // development mount. That cleanup happens before the deferred request
+      // begins, so it must not consume this movie's one preparation slot.
+      if (!requestStarted) preparedSceneIdsRef.current.delete(movieData.id)
+      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() aborted by effect cleanup', { movieId: movieData.id, sceneId: scene.sceneId })
+      abortController.abort()
+    }
+  }, [movieData?.id, scene?.sceneId, frameCaptureAvailable])
 
   useEffect(() => {
     const savedTimestamp = getPlaybackTimestamp(movie)
@@ -197,7 +225,6 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     isSeekingRef.current = true
     explanationRequestIdRef.current += 1
     promptAbortControllerRef.current?.abort()
-    preparationAbortControllerRef.current?.abort()
     setActiveBubble(null)
     setWidgetOpen(false)
     void stopSpeech()

@@ -1,14 +1,18 @@
 """Retrieval-first runtime endpoint for the full MagiFab backend pipeline."""
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 
 from adapters.openai_personalizer import PersonalizationConfigurationError, PersonalizationProviderError
 from app import get_companion_pipeline_service
 from config import Settings, get_settings
 from schemas.companion_pipeline import CompanionPipelineRequest, CompanionPipelineResponse, ScenePreparationRequest, ScenePreparationResponse
 from services.companion_pipeline import CompanionPipelineService
-from utils.image import decode_base64_image
+from services.frame_validation import InvalidFrameError, validate_frame
+from utils.image import decode_base64_image_with_size
 
 router = APIRouter(prefix="/api/v1/companion", tags=["companion pipeline"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/respond", response_model=CompanionPipelineResponse)
@@ -35,8 +39,19 @@ def prepare_scene(
     service: CompanionPipelineService = Depends(get_companion_pipeline_service),
 ) -> ScenePreparationResponse:
     """Run perception once for an unknown scene before prompt bubbles become available."""
-    image = decode_base64_image(request.image, settings)
     try:
+        logger.info("[PREPARE] movie_id: %s", request.movie_id)
+        logger.info("[FRAME] timestamp: %s", request.timestamp_seconds)
+        image, file_size = decode_base64_image_with_size(request.image, settings)
+        validate_frame(
+            image,
+            file_size=file_size,
+            timestamp=request.timestamp_seconds,
+            debug_dir=settings.debug_frames_dir,
+            scene_id=request.scene_id,
+        )
         return service.prepare(request, image)
+    except InvalidFrameError as error:
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"error": "invalid_frame", "reason": error.reason})
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)) from error

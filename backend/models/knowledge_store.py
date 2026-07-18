@@ -18,3 +18,7 @@ class KnowledgeStore(ABC):
     @abstractmethod
     def save(self, knowledge: SemanticMovieKnowledge) -> KnowledgeRecord:
         """Create or version an atomic record for a movie."""
+
+    @abstractmethod
+    def clear(self) -> None:
+        """Remove persisted semantic maps for the active cache namespace."""

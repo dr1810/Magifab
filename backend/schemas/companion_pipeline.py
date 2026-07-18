@@ -3,8 +3,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from schemas.accessibility_reasoning import AccessibilityProfile, AccessibilityReasoningResult, CompanionProfile
-from schemas.fusion import UnifiedSceneRepresentation
+from schemas.accessibility_reasoning import AccessibilityDrawerContent, AccessibilityProfile, AccessibilityReasoningResult, CompanionProfile
+from schemas.fusion import UnifiedEntity, UnifiedSceneRepresentation
 from schemas.matching import SemanticMatchResult
 from schemas.personalization import GPTPersonalizationResponse
 
@@ -51,8 +51,82 @@ class ScenePreparationRequest(BaseModel):
     timestamp_seconds: float = Field(ge=0)
     scene_summary: str = Field(min_length=1)
     image: str = Field(min_length=8)
+    # Optional caller hints supplement (never replace) the labels discovered by
+    # YOLO. Keeping this on the preparation contract makes grounding extensible
+    # for uploaded movies without coupling the UI to a particular model.
+    grounding_queries: list[str] = Field(default_factory=list, max_length=20)
+    verify_faces: bool = False
     accessibility_profile: AccessibilityProfile
     companion_profile: CompanionProfile
+
+
+class PreparedCharacter(BaseModel):
+    """A named identity only when the semantic matcher verified it."""
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    name: str
+    confidence: float = Field(ge=0, le=1)
+    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
+    verified: bool = True
+
+
+class PreparedObject(BaseModel):
+    """A visible object backed by cached perception evidence."""
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    name: str
+    confidence: float = Field(ge=0, le=1)
+    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
+    sources: list[str] = Field(default_factory=list)
+
+
+class SemanticGraphNode(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    label: str
+    kind: str
+    confidence: float | None = Field(default=None, ge=0, le=1)
+
+
+class SemanticGraphEdge(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    from_id: str
+    to_id: str
+    kind: str
+    label: str = ""
+
+
+class PreparedSemanticGraph(BaseModel):
+    """Read-only graph projection of the persisted Semantic Movie Knowledge."""
+    model_config = ConfigDict(extra="forbid")
+    movie_id: str
+    scene_id: str
+    revision: int = Field(ge=1)
+    nodes: list[SemanticGraphNode] = Field(default_factory=list)
+    edges: list[SemanticGraphEdge] = Field(default_factory=list)
+
+
+class PreparedPromptBubble(BaseModel):
+    """A ready-to-render prompt; selecting it performs retrieval-only reasoning."""
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    type: str
+    title: str
+    question: str
+    text: str
+    target_entity: str | None = None
+    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
+    priority: int = Field(ge=1)
+    cached: bool = True
+
+
+class PreparationCacheMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    cache_key: str
+    knowledge_revision: int = Field(ge=1)
+    knowledge_source: Literal["retrieved", "expanded"]
+    semantic_map_cached: bool
+    reasoning_cached: bool = True
 
 
 class ScenePreparationResponse(BaseModel):
@@ -60,5 +134,18 @@ class ScenePreparationResponse(BaseModel):
     knowledge_source: Literal["retrieved", "expanded"]
     knowledge_revision: int = Field(ge=1)
     accessibility_content: AccessibilityReasoningResult
+    # First-class preparation data lets clients render the prompt panel and
+    # visual drawer immediately, rather than reconstructing them from a prose
+    # scene summary.
+    scene_summary: str
+    semantic_graph: PreparedSemanticGraph
+    characters: list[PreparedCharacter] = Field(default_factory=list)
+    objects: list[PreparedObject] = Field(default_factory=list)
+    relationships: list[SemanticGraphEdge] = Field(default_factory=list)
+    detected_objects: list[UnifiedEntity] = Field(default_factory=list)
+    grounded_entities: list[UnifiedEntity] = Field(default_factory=list)
+    prompt_bubbles: list[PreparedPromptBubble] = Field(default_factory=list)
+    visual_drawer: AccessibilityDrawerContent
+    cache: PreparationCacheMetadata
     perception: UnifiedSceneRepresentation | None = None
     semantic_matches: SemanticMatchResult | None = None

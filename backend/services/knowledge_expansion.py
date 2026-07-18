@@ -39,6 +39,7 @@ class KnowledgeExpansionEngine:
         matcher: SemanticMatchingService,
         grounder: ObjectGroundingService,
         face_verifier: FaceVerificationService,
+        cache_version: int = 12,
     ):
         self._store = store
         self._retriever = retriever
@@ -48,6 +49,7 @@ class KnowledgeExpansionEngine:
         self._matcher = matcher
         self._grounder = grounder
         self._face_verifier = face_verifier
+        self._cache_version = cache_version
 
     def retrieve_or_expand(self, request: KnowledgeExpansionRequest, image: Image.Image | None) -> KnowledgeExpansionResult:
         """Retrieve a known scene immediately; otherwise run only requested perception and persist observations."""
@@ -56,10 +58,17 @@ class KnowledgeExpansionEngine:
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        if retrieval.found and retrieval.record and retrieval.scene_summary and retrieval.scene_summary.prepared:
+        if (
+            retrieval.found
+            and retrieval.record
+            and retrieval.scene_summary
+            and retrieval.scene_summary.prepared
+            and retrieval.scene_summary.preparation_version >= self._cache_version
+            and retrieval.record.knowledge.cache_version == self._cache_version
+        ):
             return KnowledgeExpansionResult(
                 source="retrieved",
-                cache_key=_cache_key(request.movie_id, retrieval.record.revision, request.scene_id, request.timestamp_seconds),
+                cache_key=_cache_key(request.movie_id, self._cache_version, request.scene_id, request.timestamp_seconds),
                 record=retrieval.record,
                 scene_summary=retrieval.scene_summary,
             )
@@ -69,7 +78,12 @@ class KnowledgeExpansionEngine:
         detection = self._detector.detect(image)
         understanding = self._vision.understand(image)
         base_knowledge = retrieval.record.knowledge if retrieval.record else SemanticMovieKnowledge(movie_id=request.movie_id)
-        grounding = self._grounder.locate(image, request.grounding_queries) if request.grounding_queries else None
+        # Grounding is part of preparation, not an interaction-time fallback.
+        # Use caller hints when available and otherwise ground labels observed by
+        # YOLO in this exact frame. This keeps queries evidence-led and supports
+        # arbitrary uploaded movies without hard-coded object names.
+        grounding_queries = _grounding_queries(request.grounding_queries, detection.detections)
+        grounding = self._grounder.locate(image, grounding_queries) if grounding_queries else None
         faces = self._face_verifier.verify(image, base_knowledge) if request.verify_faces and base_knowledge.face_references else None
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
         semantic_matches = self._matcher.match(perception, base_knowledge)
@@ -79,7 +93,7 @@ class KnowledgeExpansionEngine:
         scene_summary = scene_summary or (knowledge.scene_summaries[-1] if knowledge.scene_summaries else None)
         return KnowledgeExpansionResult(
             source="expanded",
-            cache_key=_cache_key(request.movie_id, record.revision, request.scene_id, request.timestamp_seconds),
+            cache_key=_cache_key(request.movie_id, self._cache_version, request.scene_id, request.timestamp_seconds),
             record=record,
             scene_summary=scene_summary,
             perception=perception,
@@ -97,7 +111,13 @@ class KnowledgeExpansionEngine:
             scene_id=request.scene_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        return not (retrieval.found and retrieval.scene_summary and retrieval.scene_summary.prepared)
+        return not (
+            retrieval.found
+            and retrieval.scene_summary
+            and retrieval.scene_summary.prepared
+            and retrieval.scene_summary.preparation_version >= self._cache_version
+            and retrieval.record.knowledge.cache_version == self._cache_version
+        )
 
     def merge_observations(
         self,
@@ -119,14 +139,19 @@ class KnowledgeExpansionEngine:
             for entity in _unique_entities(object_entities)
         ]
         verified_character_ids = {match.entity.label.lower(): match.id for match in semantic_matches.characters}
+        # Florence object detections are text-only and intentionally have no
+        # box confidence. Keep that evidence in the scene map with a neutral
+        # confidence instead of silently dropping it before prompt generation.
         visible_entities = [
             VisibleSceneEntity(
                 id=str(uuid4()), label=entity.label, category=entity.category,
-                bbox=entity.bounding_box, confidence=entity.confidence or 0.0,
+                bbox=entity.bounding_box,
+                confidence=entity.confidence if entity.confidence is not None else 0.5,
                 sources=entity.sources, semantic_id=verified_character_ids.get(entity.label.lower()),
             )
             for entity in perception.entities
-            if entity.category in {"person", "animal", "object"} and (entity.confidence or 0.0) > 0
+            if entity.category in {"person", "animal", "object"}
+            and (entity.confidence is not None and entity.confidence > 0 or "scene_understanding" in entity.sources)
         ]
         anchors = [
             VisualAnchor(
@@ -169,8 +194,10 @@ class KnowledgeExpansionEngine:
                 environment=perception.environment,
                 potential_confusions=_potential_confusions(visible_entities, perception.actions),
                 prepared=True,
+                preparation_version=self._cache_version,
             )
         return base.model_copy(update={
+            "cache_version": self._cache_version,
             "confidence": max(base.confidence, scene_confidence) if base.observation_history else scene_confidence,
             "objects": _merge_by_id(base.objects, objects),
             "locations": _merge_by_id(base.locations, locations),
@@ -181,9 +208,9 @@ class KnowledgeExpansionEngine:
         })
 
 
-def _cache_key(movie_id: str, revision: int, scene_id: str | None, timestamp_seconds: float) -> str:
+def _cache_key(movie_id: str, cache_version: int, scene_id: str | None, timestamp_seconds: float) -> str:
     scene_key = scene_id or f"t{int(timestamp_seconds)}"
-    return f"{movie_id}:v{revision}:{scene_key}"
+    return f"{movie_id}:v{cache_version}:{scene_key}"
 
 
 def _stable_id(kind: str, label: str) -> str:
@@ -199,6 +226,22 @@ def _unique_entities(entities):
             seen.add(key)
             unique.append(entity)
     return unique
+
+
+def _grounding_queries(requested: list[str], detections) -> list[str]:
+    """Return unique, bounded phrases anchored in caller intent or YOLO output."""
+    candidates = [*requested, *(detection.label for detection in detections)]
+    queries: list[str] = []
+    seen: set[str] = set()
+    for value in candidates:
+        cleaned = value.strip()
+        key = cleaned.lower()
+        if cleaned and key not in seen:
+            seen.add(key)
+            queries.append(cleaned)
+        if len(queries) == 20:
+            break
+    return queries
 
 
 def _scene_confidence(entities) -> float:

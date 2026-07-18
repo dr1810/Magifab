@@ -47,3 +47,8 @@ class ResponseCache:
         finally:
             with self._lock:
                 self._pending.pop(key, None)
+
+    def clear(self) -> None:
+        """Clear cached reasoning and prompt-response output."""
+        with self._lock:
+            self._entries.clear()

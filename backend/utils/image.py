@@ -10,6 +10,12 @@ from config import Settings
 
 
 def decode_base64_image(encoded: str, settings: Settings) -> Image.Image:
+    """Decode an image for existing perception endpoints."""
+    return decode_base64_image_with_size(encoded, settings)[0]
+
+
+def decode_base64_image_with_size(encoded: str, settings: Settings) -> tuple[Image.Image, int]:
+    """Decode an image and retain encoded size for preparation quality checks."""
     """Decode a base64 image into RGB Pillow data with bounded resource use."""
     payload = encoded.split(",", 1)[1] if encoded.startswith("data:") and "," in encoded else encoded
     try:
@@ -26,4 +32,4 @@ def decode_base64_image(encoded: str, settings: Settings) -> Image.Image:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="image data is not a supported image") from error
     if image.width > settings.max_image_dimension or image.height > settings.max_image_dimension:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image dimensions exceed the configured limit")
-    return image
+    return image, len(raw)

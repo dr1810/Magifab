@@ -35,12 +35,16 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         conversations = self._conversations(request, limit)
         confusions = self._confusions(needs, cards, relationships, timeline, emotions, vocabulary, conversations)
         prompts = self._prompts(scene_summary, needs, cards, relationships, timeline, emotions, vocabulary, limit, request.accessibility_profile.preferred_prompt_types)
+        # This is prepared, factual UI data rather than an opt-in explanation.
+        # Profile settings still tailor depth and confusion predictions, but an
+        # empty profile must not leave the ready prompt panel and visual drawer
+        # blank after preparation has completed.
         drawer = AccessibilityDrawerContent(
-            character_cards=cards if _needs(needs, "remember characters", "characters") else [],
-            relationship_summaries=relationships if _needs(needs, "relationships") else [],
-            timeline_summary=timeline if _needs(needs, "plot", "timeline") else None,
-            emotion_summaries=emotions if _needs(needs, "emotions", "understand emotions") else [],
-            memory_reminders=reminders if _needs(needs, "remember characters", "memory") else [],
+            character_cards=cards,
+            relationship_summaries=relationships,
+            timeline_summary=timeline,
+            emotion_summaries=emotions,
+            memory_reminders=reminders,
             vocabulary_assistance=vocabulary if request.accessibility_profile.vocabulary_assistance else [],
             conversation_simplifications=conversations if request.accessibility_profile.conversation_simplification else [],
         )
@@ -129,16 +133,16 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         visible = scene_summary.visible_entities if scene_summary and scene_summary.prepared else []
         visible_people = [entity for entity in visible if entity.category in {"person", "animal"}]
         visible_objects = [entity for entity in visible if entity.category == "object"]
-        if cards and visible_people and _needs(needs, "remember characters", "characters"):
+        if cards and visible_people:
             prompts.append(PromptBubbleSuggestion(id="visible-character", kind="character", label="Who is that?", question=f"Who is {cards[0].name}?", priority=1))
-        elif visible_people and _needs(needs, "remember characters", "characters"):
+        elif visible_people:
             label = visible_people[0].label
             prompts.append(PromptBubbleSuggestion(id="visible-person", kind="visible_entity", label="Who is that?", question=f"What is the {label} doing?", priority=1))
-        if relationships and len(cards) > 1 and _needs(needs, "relationships"):
+        if relationships and len(cards) > 1:
             prompts.append(PromptBubbleSuggestion(id="relationship", kind="relationship", label="How are they connected?", question="How are these characters connected?", priority=2))
-        if emotions and visible_people and _needs(needs, "emotions", "understand emotions"):
+        if emotions and visible_people:
             prompts.append(PromptBubbleSuggestion(id="emotion", kind="emotion", label="How do they feel?", question="How does this person feel?", priority=3))
-        if scene_summary and scene_summary.actions and _needs(needs, "plot", "timeline"):
+        if scene_summary and scene_summary.actions:
             prompts.append(PromptBubbleSuggestion(id="visible-action", kind="scene", label="What is happening?", question="What is happening in this scene?", priority=4))
         if visible_objects:
             prompts.append(PromptBubbleSuggestion(id="visible-object", kind="object", label="What is that?", question=f"What is the {visible_objects[0].label}?", priority=5))

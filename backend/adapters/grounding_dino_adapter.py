@@ -70,6 +70,9 @@ class GroundingDINOAdapter(TextGuidedObjectLocalizer):
                 ).eval().to(device)
         return self._model, self._processor
 
+    def preload(self) -> None:
+        self._load()
+
 
 def _xyxy_to_xywh(box: list[float]) -> list[float]:
     x_min, y_min, x_max, y_max = (float(value) for value in box)

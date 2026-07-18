@@ -2,7 +2,10 @@
 import logging
 from functools import lru_cache
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -21,6 +24,7 @@ from services.object_detection import ObjectDetectionService
 from services.perception_fusion import PerceptionFusionService
 from services.semantic_matching import SemanticMatchingService
 from services.vision_understanding import VisionUnderstandingService
+from services.model_manager import ModelManager
 
 
 def configure_logging(settings: Settings) -> None:
@@ -28,17 +32,19 @@ def configure_logging(settings: Settings) -> None:
 
 
 @lru_cache
+def get_model_manager() -> ModelManager:
+    """The sole owner of heavyweight perception adapters in this process."""
+    return ModelManager(get_settings())
+
+
+@lru_cache
 def get_object_detection_service() -> ObjectDetectionService:
-    """Singleton service; YOLO itself remains unloaded until the first detection request."""
-    from adapters.yolo_adapter import YOLOAdapter
-    return ObjectDetectionService(YOLOAdapter(get_settings()))
+    return ObjectDetectionService(get_model_manager().yolo)
 
 
 @lru_cache
 def get_vision_understanding_service() -> VisionUnderstandingService:
-    """Singleton service; Florence weights remain unloaded until first understanding request."""
-    from adapters.florence_adapter import FlorenceAdapter
-    return VisionUnderstandingService(FlorenceAdapter(get_settings()))
+    return VisionUnderstandingService(get_model_manager().florence)
 
 
 @lru_cache
@@ -56,7 +62,8 @@ def get_semantic_matching_service() -> SemanticMatchingService:
 @lru_cache
 def get_knowledge_store() -> KnowledgeStore:
     """Versioned file store for Phase 6; replace this dependency for a managed database."""
-    return FileKnowledgeStore(get_settings().knowledge_store_dir)
+    settings = get_settings()
+    return FileKnowledgeStore(settings.knowledge_store_dir, settings.semantic_cache_version)
 
 
 @lru_cache
@@ -77,6 +84,7 @@ def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
         matcher=get_semantic_matching_service(),
         grounder=get_object_grounding_service(),
         face_verifier=get_face_verification_service(),
+        cache_version=get_settings().semantic_cache_version,
     )
 
 
@@ -95,9 +103,7 @@ def get_face_verification_service() -> FaceVerificationService:
 
 @lru_cache
 def get_object_grounding_service() -> ObjectGroundingService:
-    """Lazy text-guided localization dependency; it cannot match movie identities or call GPT."""
-    from adapters.grounding_dino_adapter import GroundingDINOAdapter
-    return ObjectGroundingService(GroundingDINOAdapter(get_settings()))
+    return ObjectGroundingService(get_model_manager().grounding_dino)
 
 
 @lru_cache
@@ -128,17 +134,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the HTTP application without loading YOLO or Florence weights."""
     active_settings = settings or get_settings()
     configure_logging(active_settings)
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        # Run once per worker before accepting requests. Model adapters themselves
+        # remain import-safe and are never constructed by request handlers.
+        await run_in_threadpool(get_model_manager().preload)
+        yield
+
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
         description="Modular MagiFab backend with retrieval-first perception, semantic knowledge, accessibility reasoning, and GPT personalization.",
+        lifespan=lifespan,
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
         CORSMiddleware,
         allow_origins=origins or [],
         allow_credentials=False,
-        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"],
     )
 
@@ -151,6 +165,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     from routers.health import router as health_router
     from routers.detect import router as detect_router
+    from routers.debug import router as debug_router
     from routers.fusion import router as fusion_router
     from routers.match import router as match_router
     from routers.knowledge import router as knowledge_router
@@ -163,6 +178,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.understand import router as understand_router
     application.include_router(health_router)
     application.include_router(detect_router)
+    application.include_router(debug_router)
     application.include_router(fusion_router)
     application.include_router(match_router)
     application.include_router(knowledge_router)

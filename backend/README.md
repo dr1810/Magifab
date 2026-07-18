@@ -124,16 +124,42 @@ Movie IDs are opaque and are not restricted to bundled content. A newly uploaded
 
 ```bash
 cd backend
-python3.12 -m venv .venv
+brew install python@3.11
+/opt/homebrew/bin/python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 export OPENAI_API_KEY="server-side-only-key"
 export OPENAI_MODEL="gpt-5.6" # optional
-uvicorn app:app --host 127.0.0.1 --port 8000 --reload
+MPLCONFIGDIR=/tmp/magifab-mpl uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
-The OpenAI key is read only by the server. It is never returned by an endpoint or included in browser-facing configuration. Model weights are downloaded lazily on the first request to each model-backed endpoint.
+This runtime is pinned for Apple Silicon, macOS, MPS, and Python 3.11. Startup preloads YOLO, Florence-2, and Grounding DINO sequentially; use a single Uvicorn worker so one `ModelManager` owns exactly one instance of every model. The OpenAI key is read only by the server and is never browser-facing.
+
+### Runtime verification
+
+Run the model checks independently before diagnosing the full server:
+
+```bash
+MPLCONFIGDIR=/tmp/magifab-mpl python scripts/verify_yolo.py
+MPLCONFIGDIR=/tmp/magifab-mpl python scripts/verify_florence.py
+MPLCONFIGDIR=/tmp/magifab-mpl python scripts/verify_grounding_dino.py
+curl http://127.0.0.1:8000/health
+open http://127.0.0.1:8000/docs
+```
+
+Startup logs report Python, Torch, MPS availability, elapsed time, RSS, and MPS allocation before and after every model. On Apple Silicon, `torch.backends.mps.is_available()` must be `True` and each model should report `device=mps`.
+
+### Model caches and troubleshooting
+
+Hugging Face stores model artifacts under `~/.cache/huggingface/hub`; Ultralytics stores settings and downloaded weights under `~/Library/Application Support/Ultralytics` and its configured weights directory. A partially downloaded or incompatible cache must be removed explicitly before retrying:
+
+```bash
+rm -rf ~/.cache/huggingface/hub/models--microsoft--Florence-2-base
+rm -rf ~/.cache/huggingface/hub/models--IDEA-Research--grounding-dino-tiny
+```
+
+If Ultralytics reports a checkpoint/module compatibility error such as a missing `Conv.bn`, reinstall the pinned requirements and replace the local `yolo11n.pt` with the checkpoint downloaded by that pinned Ultralytics release. Do not mix an existing Python 3.13 virtual environment or Transformers 5.x cache with this Python 3.11 runtime.
 
 ## Configuration
 

@@ -35,6 +35,9 @@ class YOLOAdapter(ObjectDetector):
                 self._model = YOLO(self._settings.yolo_model_id)
         return self._model
 
+    def preload(self) -> None:
+        self._get_model()
+
     def detect(self, image: Image.Image) -> tuple[list[Detection], str]:
         results = self._get_model().predict(
             source=image,

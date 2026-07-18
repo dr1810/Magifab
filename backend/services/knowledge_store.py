@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import shutil
 from threading import Lock
 
 from models.knowledge_store import KnowledgeStore
@@ -12,8 +13,9 @@ from schemas.knowledge import KnowledgeRecord, SemanticMovieKnowledge
 class FileKnowledgeStore(KnowledgeStore):
     """Local persistence suitable for development and replaceable by a database-backed store."""
 
-    def __init__(self, root: Path):
-        self._root = root
+    def __init__(self, root: Path, cache_version: int = 12):
+        self._base_root = root
+        self._root = root / f"v{cache_version}"
         self._lock = Lock()
 
     def exists(self, movie_id: str) -> bool:
@@ -45,6 +47,19 @@ class FileKnowledgeStore(KnowledgeStore):
             temporary.write_text(record.model_dump_json(indent=2), encoding="utf-8")
             temporary.replace(path)
             return record
+
+    def clear(self) -> None:
+        """Clear every semantic-map version, including anchors and embeddings."""
+        with self._lock:
+            if self._base_root.exists():
+                for path in self._base_root.iterdir():
+                    # Keep the repository's empty-directory marker intact.
+                    if path.name == ".gitkeep":
+                        continue
+                    if path.is_dir():
+                        shutil.rmtree(path)
+                    else:
+                        path.unlink()
 
     def _path(self, movie_id: str) -> Path:
         """Hash externally supplied IDs so they can never become path segments."""

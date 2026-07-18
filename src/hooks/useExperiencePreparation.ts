@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { MovieData } from '../types/movie'
 import {
   initialMoviePreparationService,
@@ -18,9 +18,11 @@ const initialMilestones = () => Object.fromEntries(milestoneIds.map((id) => [id,
 const presentationPause = () => new Promise<void>((resolve) => window.setTimeout(resolve, 140))
 
 /** Connect this hook to backend SSE/WebSocket events by passing them to reportProgress. */
-export function useExperiencePreparation(movie: MovieData | null, companionProfileLoading: boolean) {
+export function useExperiencePreparation(movie: MovieData | null, companionProfileLoading: boolean, companionReady: boolean) {
   const [milestones, setMilestones] = useState(initialMilestones)
   const [phase, setPhase] = useState<PreparationPhase>('preparing')
+  const companionReadyRef = useRef(companionReady)
+  companionReadyRef.current = companionReady
 
   const reportProgress = (event: PreparationProgressEvent) => {
     setMilestones((current) => {
@@ -54,6 +56,9 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
         await initialMoviePreparationService.prepare(movie, (event) => {
           if (!cancelled) reportProgress(event)
         })
+        // Semantic baseline and backend scene preparation are distinct gates. The
+        // viewer keeps the movie paused until both are ready.
+        while (!cancelled && !companionReadyRef.current) await presentationPause()
         if (cancelled) return
         setPhase('complete-message')
         completionTimer = window.setTimeout(() => {

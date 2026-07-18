@@ -44,6 +44,9 @@ class FlorenceAdapter(VisionLanguageModel):
                 ).eval().to(device)
         return self._model, self._processor
 
+    def preload(self) -> None:
+        self._load()
+
     def _run_task(self, task: str, image: Image.Image):
         model, processor = self._load()
         inputs = processor(text=task, images=image, return_tensors="pt")

@@ -49,6 +49,21 @@ export type CompanionBackendResponse = {
   } | null
 }
 
+type PreparedPromptBubble = {
+  id: string
+  type: string
+  title: string
+  question: string
+  target_entity?: string | null
+  bounding_box?: number[] | null
+  priority: number
+  cached: boolean
+}
+
+type ScenePreparationBackendResponse = Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'> & {
+  prompt_bubbles?: PreparedPromptBubble[]
+}
+
 type BackendRequest = {
   movie_id: string
   timestamp_seconds: number
@@ -189,7 +204,29 @@ export class CompanionBackendService {
     if (!body || typeof body !== 'object' || !('accessibility_content' in body) || !('knowledge_revision' in body)) {
       throw new Error('The scene preparation service returned an invalid response.')
     }
-    return { ...(body as Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'>), response_cache_hit: false, cache_key: '', response: { response: '', model: 'scene-preparation' } }
+    const prepared = body as ScenePreparationBackendResponse
+    const preparedBubbles = Array.isArray(prepared.prompt_bubbles) ? prepared.prompt_bubbles : null
+    // The prompt panel consumes the first-class preparation map. Retain the
+    // nested content shape only as the compatibility contract for the drawer.
+    const accessibilityContent: BackendAccessibilityContent = preparedBubbles
+      ? {
+          ...prepared.accessibility_content,
+          prompt_bubbles: preparedBubbles.map((bubble) => ({
+            id: bubble.id,
+            kind: bubble.type,
+            label: bubble.title,
+            question: bubble.question,
+            priority: bubble.priority,
+          })),
+        }
+      : prepared.accessibility_content
+    return {
+      ...prepared,
+      accessibility_content: accessibilityContent,
+      response_cache_hit: false,
+      cache_key: '',
+      response: { response: '', model: 'scene-preparation' },
+    }
   }
 }
 
