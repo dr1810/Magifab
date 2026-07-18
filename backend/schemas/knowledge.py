@@ -2,6 +2,8 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from schemas.observation import FrameObservation
+from schemas.semantic_graph import SemanticClaim
 
 
 class SemanticCharacter(BaseModel):
@@ -90,6 +92,10 @@ class VisibleSceneEntity(BaseModel):
 class SceneSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
     scene_id: str = Field(min_length=1)
+    # Required for cache reuse beginning with semantic cache version 14.
+    # Optional keeps older on-disk records readable only long enough for the
+    # version gate to reject and rebuild them.
+    frame_hash: str | None = Field(default=None, min_length=16, max_length=128)
     start_seconds: float = Field(ge=0)
     end_seconds: float = Field(ge=0)
     summary: str = Field(min_length=1)
@@ -191,6 +197,10 @@ class SemanticMovieKnowledge(BaseModel):
     observation_history: list[ObservationHistoryItem] = Field(default_factory=list)
     emotions: list[EmotionFact] = Field(default_factory=list)
     vocabulary: list[VocabularyEntry] = Field(default_factory=list)
+    # Raw model evidence and graph claims are deliberately separate.  Only
+    # claims participate in semantic retrieval and accessibility reasoning.
+    observations: list[FrameObservation] = Field(default_factory=list)
+    semantic_claims: list[SemanticClaim] = Field(default_factory=list)
 
 
 class KnowledgeRecord(BaseModel):

@@ -2,6 +2,7 @@
 import hashlib
 import json
 import logging
+from time import perf_counter
 
 from PIL import Image
 
@@ -39,26 +40,33 @@ class CompanionPipelineService:
         self._semantic_cache_version = settings.semantic_cache_version
         self._logger = logging.getLogger(__name__)
 
-    def prepare(self, request: ScenePreparationRequest, image: Image.Image) -> ScenePreparationResponse:
+    def prepare(self, request: ScenePreparationRequest, image: Image.Image, frame_hash: str) -> ScenePreparationResponse:
         """Explore one representative unknown scene and persist all reusable observations."""
+        started = perf_counter()
         expansion = self._expansion.retrieve_or_expand(KnowledgeExpansionRequest(
-            movie_id=request.movie_id, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds, preparation=True,
+            movie_id=request.movie_id, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds, frame_hash=frame_hash, preparation=True,
             grounding_queries=request.grounding_queries, verify_faces=request.verify_faces,
         ), image)
         current_scene = self._current_scene(expansion, request.scene_id, request.scene_summary)
+        reasoning_started = perf_counter()
         content = self._accessibility.reason(AccessibilityReasoningRequest(
             knowledge=expansion.record.knowledge, current_scene=current_scene, timestamp_seconds=request.timestamp_seconds,
             accessibility_profile=request.accessibility_profile, companion_profile=request.companion_profile,
         ))
+        self._logger.info("[TRACE][REASONING_ENGINE] executed=yes movie=%s scene=%s frame_hash=%s reasoning_rebuilt=yes output_prompts=%d drawer_cards=%d duration_ms=%.1f", request.movie_id, request.scene_id, frame_hash, len(content.prompt_bubbles), len(content.drawer.character_cards), (perf_counter() - reasoning_started) * 1000)
         grounded_entities = self._grounded_entities(expansion)
         characters = self._characters(expansion)
         objects = self._objects(expansion)
         prompt_bubbles = self._prompt_bubbles(content, expansion)
         semantic_graph = self._semantic_graph(expansion, request.scene_id)
-        self._logger.info("[PERCEPTION] objects detected: %d", len(objects))
-        self._logger.info("[SEMANTIC] characters: %d", len(characters))
-        self._logger.info("[PROMPTS] bubble count: %d", len(prompt_bubbles))
-        return ScenePreparationResponse(
+        self._logger.info("[TRACE][SEMANTIC_GRAPH_RESPONSE] executed=yes nodes=%d edges=%d", len(semantic_graph.nodes), len(semantic_graph.edges))
+        self._logger.info(
+            "[TRACE][PROMPT_BUBBLE_PROJECTION] executed=yes input_prompts=%d input_list_id=%s input_first=%s output_prompts=%d output_list_id=%s output_first=%s",
+            len(content.prompt_bubbles), id(content.prompt_bubbles), content.prompt_bubbles[0].label if content.prompt_bubbles else None,
+            len(prompt_bubbles), id(prompt_bubbles), prompt_bubbles[0].title if prompt_bubbles else None,
+        )
+        self._logger.info("[TRACE][VISUAL_DRAWER] executed=yes cards=%d relationships=%d reminders=%d", len(content.drawer.character_cards), len(content.drawer.relationship_summaries), len(content.drawer.memory_reminders))
+        response = ScenePreparationResponse(
             knowledge_source=expansion.source, knowledge_revision=expansion.record.revision,
             accessibility_content=content, perception=expansion.perception, semantic_matches=expansion.semantic_matches,
             scene_summary=content.scene_summary,
@@ -74,9 +82,20 @@ class CompanionPipelineService:
                 cache_key=expansion.cache_key,
                 knowledge_revision=expansion.record.revision,
                 knowledge_source=expansion.source,
-                semantic_map_cached=True,
+                semantic_map_cached=expansion.source == "retrieved",
+                frame_hash=frame_hash,
+                # Preparation always re-runs deterministic reasoning over the
+                # current semantic map; it never reads a reasoning response.
+                reasoning_cached=False,
             ),
         )
+        self._logger.info(
+            "[TRACE][RESPONSE_ASSEMBLY] executed=yes response_prompt_count=%d response_prompt_list_id=%s first_prompt=%s nested_prompt_count=%d nested_prompt_list_id=%s nested_first=%s",
+            len(response.prompt_bubbles), id(response.prompt_bubbles), response.prompt_bubbles[0].title if response.prompt_bubbles else None,
+            len(response.accessibility_content.prompt_bubbles), id(response.accessibility_content.prompt_bubbles), response.accessibility_content.prompt_bubbles[0].label if response.accessibility_content.prompt_bubbles else None,
+        )
+        self._logger.info("[TRACE][PREPARE_SERVICE] complete source=%s duration_ms=%.1f", expansion.source, (perf_counter() - started) * 1000)
+        return response
 
     def respond(self, request: CompanionPipelineRequest) -> CompanionPipelineResponse:
         """Serve an instant answer from prepared facts; a miss is explicit and never triggers models."""

@@ -123,6 +123,7 @@ class PreparedPromptBubble(BaseModel):
 class PreparationCacheMetadata(BaseModel):
     model_config = ConfigDict(extra="forbid")
     cache_key: str
+    frame_hash: str | None = None
     knowledge_revision: int = Field(ge=1)
     knowledge_source: Literal["retrieved", "expanded"]
     semantic_map_cached: bool

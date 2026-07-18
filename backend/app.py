@@ -25,6 +25,8 @@ from services.perception_fusion import PerceptionFusionService
 from services.semantic_matching import SemanticMatchingService
 from services.vision_understanding import VisionUnderstandingService
 from services.model_manager import ModelManager
+from services.observation_factory import ObservationFactory
+from services.semantic_graph_builder import SemanticGraphBuilder
 
 
 def configure_logging(settings: Settings) -> None:
@@ -51,6 +53,18 @@ def get_vision_understanding_service() -> VisionUnderstandingService:
 def get_perception_fusion_service() -> PerceptionFusionService:
     """Model-independent singleton; fusing supplied evidence never loads an AI model."""
     return PerceptionFusionService()
+
+
+@lru_cache
+def get_observation_factory() -> ObservationFactory:
+    """Request-scoped observations are constructed here; the factory has no mutable scene state."""
+    return ObservationFactory()
+
+
+@lru_cache
+def get_semantic_graph_builder() -> SemanticGraphBuilder:
+    """Pure observation-to-claim transformer; it never exposes perception to the UI."""
+    return SemanticGraphBuilder()
 
 
 @lru_cache
@@ -84,6 +98,8 @@ def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
         matcher=get_semantic_matching_service(),
         grounder=get_object_grounding_service(),
         face_verifier=get_face_verification_service(),
+        observation_factory=get_observation_factory(),
+        graph_builder=get_semantic_graph_builder(),
         cache_version=get_settings().semantic_cache_version,
     )
 

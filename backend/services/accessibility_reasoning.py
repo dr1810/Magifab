@@ -1,4 +1,6 @@
 """Deterministic accessibility content generation from verified Semantic Movie Knowledge."""
+import logging
+from time import perf_counter
 from models.accessibility_reasoner import AccessibilityReasoner
 from schemas.accessibility_reasoning import (
     AccessibilityDrawerContent,
@@ -16,11 +18,21 @@ from schemas.accessibility_reasoning import (
 )
 from services.movie_knowledge_graph import MovieKnowledgeGraph
 
+logger = logging.getLogger(__name__)
+
 
 class AccessibilityReasoningEngine(AccessibilityReasoner):
     """Uses profiles and exact stored facts; it never predicts facts that knowledge does not contain."""
 
     def reason(self, request: AccessibilityReasoningRequest) -> AccessibilityReasoningResult:
+        started = perf_counter()
+        logger.info(
+            "[TRACE][REASONING] start input scene_id=%s knowledge_characters=%d visible_entities=%d preferred_prompt_types=%s",
+            request.current_scene.scene_id,
+            len(request.knowledge.characters),
+            len(next((scene.visible_entities for scene in request.knowledge.scene_summaries if scene.scene_id == request.current_scene.scene_id), [])),
+            request.accessibility_profile.preferred_prompt_types,
+        )
         limit = _detail_limit(request.accessibility_profile.detail_level)
         needs = {_normalize(need) for need in request.accessibility_profile.accessibility_needs}
         graph = MovieKnowledgeGraph(request.knowledge)
@@ -48,18 +60,24 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             vocabulary_assistance=vocabulary if request.accessibility_profile.vocabulary_assistance else [],
             conversation_simplifications=conversations if request.accessibility_profile.conversation_simplification else [],
         )
-        return AccessibilityReasoningResult(
+        result = AccessibilityReasoningResult(
             companion_tone=f"{request.companion_profile.personality}; {request.companion_profile.conversation_style}",
             scene_summary=current_summary,
             likely_confusions=confusions,
             prompt_bubbles=prompts,
             drawer=drawer,
         )
+        logger.info(
+            "[TRACE][REASONING] complete output character_cards=%d relationships=%d timeline=%s emotions=%d reminders=%d prompts=%d prompt_list_id=%s first_prompt=%s duration_ms=%.1f",
+            len(cards), len(relationships), timeline is not None, len(emotions), len(reminders), len(prompts), id(prompts),
+            prompts[0].label if prompts else None, (perf_counter() - started) * 1000,
+        )
+        return result
 
     def _character_cards(self, request: AccessibilityReasoningRequest, limit: int) -> list[CharacterCard]:
         character_ids = set(request.current_scene.character_ids)
         characters = [character for character in request.knowledge.characters if not character_ids or character.id in character_ids]
-        return [
+        cards = [
             CharacterCard(
                 character_id=character.id,
                 name=character.name,
@@ -69,12 +87,39 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             )
             for character in characters[:limit]
         ]
+        if cards:
+            return cards
+
+        # Unenrolled people and animals are still real semantic graph entities.
+        # Expose them as observed scene subjects without assigning a movie
+        # identity; this lets the visual drawer faithfully reflect perception.
+        scene = _scene_for(request)
+        if not scene:
+            return []
+        return [
+            CharacterCard(
+                character_id=entity.semantic_id or entity.id,
+                name=entity.label.replace("_", " ").title(),
+                reminder=f"The {entity.label} is visible in this scene.",
+                confidence=entity.confidence,
+                visual_anchor={
+                    "id": f"observed-{entity.id}",
+                    "semantic_id": entity.semantic_id or entity.id,
+                    "scene_id": scene.scene_id,
+                    "timestamp_seconds": scene.start_seconds,
+                    "bbox": entity.bbox,
+                    "confidence": entity.confidence,
+                } if entity.bbox else None,
+            )
+            for entity in scene.visible_entities
+            if entity.category in {"person", "animal"}
+        ][:limit]
 
     def _relationships(self, request: AccessibilityReasoningRequest, cards: list[CharacterCard], limit: int) -> list[RelationshipSummary]:
         known_ids = {card.character_id for card in cards}
         relationships = [relationship for relationship in request.knowledge.relationships if not known_ids or {relationship.from_character_id, relationship.to_character_id}.issubset(known_ids)]
         confidence_by_id = {character.id: character.confidence for character in request.knowledge.characters}
-        return [
+        summaries = [
             RelationshipSummary(
                 relationship_id=relationship.id,
                 summary=relationship.description,
@@ -82,6 +127,23 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             )
             for relationship in relationships[:limit]
         ]
+        if summaries:
+            return summaries
+
+        # Florence interactions persisted on the exact scene are relationship
+        # evidence, not an inferred character relationship. Keep that
+        # distinction in the ID while making the factual drawer content usable.
+        scene = _scene_for(request)
+        if not scene:
+            return []
+        return [
+            RelationshipSummary(
+                relationship_id=f"{scene.scene_id}:interaction:{index}",
+                summary=interaction,
+                confidence=scene.confidence,
+            )
+            for index, interaction in enumerate(scene.interactions)
+        ][:limit]
 
     def _timeline(self, request: AccessibilityReasoningRequest, graph: MovieKnowledgeGraph) -> TimelineSummary | None:
         position = graph.timeline_position(request.timestamp_seconds)
@@ -149,8 +211,18 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         if vocabulary and scene_summary and scene_summary.prepared:
             prompts.append(PromptBubbleSuggestion(id="vocabulary", kind="vocabulary", label="What does that mean?", question=f"What does {vocabulary[0].term} mean?", priority=5))
         if preferred:
-            preferred_set = {_normalize(item) for item in preferred}
-            prompts = [prompt for prompt in prompts if _normalize(prompt.kind) in preferred_set]
+            allowed_kinds = _preferred_prompt_kinds(preferred)
+            # Onboarding stores user-facing intents (for example "character
+            # introduction"), not the engine's internal prompt kind.  Only
+            # apply a filter when an intent maps to a real generated kind;
+            # otherwise preserve the evidence-backed prompts.
+            if allowed_kinds:
+                prompts = [prompt for prompt in prompts if _normalize(prompt.kind) in allowed_kinds]
+        logger.info(
+            "[TRACE][PROMPTS] executed visible_people=%d visible_objects=%d cards=%d actions=%d generated=%d prompt_list_id=%s first_prompt=%s preferred=%s",
+            len(visible_people), len(visible_objects), len(cards), len(scene_summary.actions) if scene_summary else 0,
+            len(prompts), id(prompts), prompts[0].label if prompts else None, preferred,
+        )
         return prompts[:limit]
 
 
@@ -165,3 +237,33 @@ def _normalize(value: str) -> str:
 
 def _needs(needs: set[str], *terms: str) -> bool:
     return any(_normalize(term) in needs for term in terms)
+
+
+def _preferred_prompt_kinds(preferred: list[str]) -> set[str]:
+    """Translate persisted onboarding intents to the reasoner's real prompt kinds."""
+    mapped = {
+        "character introduction": {"character", "visible entity"},
+        "relationship update": {"relationship"},
+        "emotion insight": {"emotion"},
+        "scene summary": {"scene"},
+        "important event": {"scene"},
+        "visual scene explanation": {"scene"},
+        "important object": {"object"},
+        "word explanation": {"vocabulary"},
+        "conversation summary": {"conversation"},
+    }
+    engine_kinds = {"character", "visible entity", "relationship", "emotion", "scene", "object", "vocabulary", "conversation"}
+    allowed: set[str] = set()
+    for item in preferred:
+        normalized = _normalize(item)
+        allowed.update(mapped.get(normalized, set()))
+        if normalized in engine_kinds:
+            allowed.add(normalized)
+    return allowed
+
+
+def _scene_for(request: AccessibilityReasoningRequest):
+    return next(
+        (scene for scene in request.knowledge.scene_summaries if scene.scene_id == request.current_scene.scene_id),
+        None,
+    )

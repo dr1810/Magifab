@@ -5,7 +5,7 @@ from app import get_knowledge_expansion_engine
 from config import Settings, get_settings
 from schemas.knowledge_expansion import KnowledgeExpansionRequest, KnowledgeExpansionResult
 from services.knowledge_expansion import KnowledgeExpansionEngine
-from utils.image import decode_base64_image
+from utils.image import decode_base64_image_with_size
 
 router = APIRouter(prefix="/api/v1/knowledge", tags=["knowledge expansion"])
 
@@ -17,8 +17,15 @@ def expand_knowledge(
     engine: KnowledgeExpansionEngine = Depends(get_knowledge_expansion_engine),
 ) -> KnowledgeExpansionResult:
     """Return a stored scene first; decode an image and run perception only on a scene-level miss."""
-    # Retrieval is intentionally before image decoding, model loading, or any perception work.
-    image = decode_base64_image(request.image, settings) if engine.needs_expansion(request) and request.image else None
+    # A frame fingerprint is part of semantic-cache identity. Decode once here
+    # so a legacy /expand caller receives the same isolation guarantees as
+    # /prepare; model inference remains deferred until after the cache check.
+    image = None
+    if request.image:
+        image, _, frame_hash = decode_base64_image_with_size(request.image, settings)
+        request = request.model_copy(update={"frame_hash": frame_hash})
+        if not engine.needs_expansion(request):
+            image = None
     try:
         return engine.retrieve_or_expand(request, image)
     except ValueError as error:

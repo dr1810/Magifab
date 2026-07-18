@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 
 from models.knowledge_store import KnowledgeStore
 from services.response_cache import ResponseCache
-from services.frame_validation import latest_frame_diagnostics
+from services.frame_validation import clear_frame_diagnostics, latest_frame_diagnostics
 
 router = APIRouter(prefix="/api/debug", tags=["debug"])
 
@@ -32,4 +32,5 @@ def clear_cache(
     """Clear semantic maps (including anchors/embeddings) and in-memory reasoning output."""
     semantic_store.clear()
     response_cache.clear()
+    clear_frame_diagnostics()
     return {"status": "cleared"}

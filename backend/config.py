@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     florence_max_new_tokens: int = 256
     semantic_match_confidence_threshold: float = 0.8
     # Bump whenever prepared-scene output changes. Used in every cache key.
-    semantic_cache_version: int = Field(default=12, ge=1)
+    # Version 14 adds persisted raw observations and provenance-backed graph
+    # claims. Earlier scene records cannot satisfy this semantic contract.
+    semantic_cache_version: int = Field(default=14, ge=1)
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
     debug_frames_dir: Path = Path("debug_frames")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))

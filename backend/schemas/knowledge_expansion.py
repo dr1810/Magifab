@@ -14,6 +14,7 @@ class KnowledgeExpansionRequest(BaseModel):
     movie_id: str = Field(min_length=1)
     scene_id: str | None = None
     timestamp_seconds: float = Field(ge=0)
+    frame_hash: str | None = Field(default=None, min_length=16, max_length=128)
     image: str | None = Field(default=None, min_length=8)
     grounding_queries: list[str] = Field(default_factory=list, max_length=20)
     verify_faces: bool = False

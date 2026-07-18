@@ -13,10 +13,19 @@ from schemas.knowledge import KnowledgeRecord, SemanticMovieKnowledge
 class FileKnowledgeStore(KnowledgeStore):
     """Local persistence suitable for development and replaceable by a database-backed store."""
 
-    def __init__(self, root: Path, cache_version: int = 12):
+    def __init__(self, root: Path, cache_version: int = 14):
         self._base_root = root
         self._root = root / f"v{cache_version}"
         self._lock = Lock()
+        self._remove_stale_versions()
+
+    def _remove_stale_versions(self) -> None:
+        """Old cache schemas cannot participate in a current preparation run."""
+        if not self._base_root.exists():
+            return
+        for path in self._base_root.iterdir():
+            if path.is_dir() and path.name.startswith("v") and path != self._root:
+                shutil.rmtree(path)
 
     def exists(self, movie_id: str) -> bool:
         return self._path(movie_id).is_file()

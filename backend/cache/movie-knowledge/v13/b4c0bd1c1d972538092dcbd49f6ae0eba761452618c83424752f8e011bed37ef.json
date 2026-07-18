@@ -1,0 +1,126 @@
+{
+  "movie_id": "spriteFright",
+  "revision": 1,
+  "created_at": "2026-07-18T16:42:24.899489Z",
+  "updated_at": "2026-07-18T16:42:24.899489Z",
+  "knowledge": {
+    "movie_id": "spriteFright",
+    "version": 1,
+    "cache_version": 13,
+    "confidence": 0.0,
+    "characters": [],
+    "locations": [],
+    "objects": [
+      {
+        "id": "object-ef1f5e87b3e1b480",
+        "name": "human face",
+        "perception_labels": [
+          "human face"
+        ],
+        "aliases": [
+          "human face"
+        ],
+        "confidence": 0.0
+      },
+      {
+        "id": "object-38a81e87e79631e6",
+        "name": "person",
+        "perception_labels": [
+          "person"
+        ],
+        "aliases": [
+          "person"
+        ],
+        "confidence": 0.0
+      }
+    ],
+    "relationships": [],
+    "events": [],
+    "timeline_positions": [],
+    "dialogue": [],
+    "scene_summaries": [
+      {
+        "scene_id": "sf-01",
+        "frame_hash": "f04a8bd5ee7ee1aec22c62134e0a017c3d01e720c8cb4eb09d834cfcc4194ffe",
+        "start_seconds": 42.92792,
+        "end_seconds": 42.92792,
+        "summary": "The image is a still from the animated movie \"The Secret Life of Pets.\" It shows a young boy with red hair and a big smile on his face, wearing a British flag t-shirt and carrying a large backpack on his back. He is standing in a wooded area with trees and bushes in the background. On the right side of the image, there is a blue train car with a large bell on top. The boy appears to be excited and ready to embark on a journey.",
+        "confidence": 0.0,
+        "visible_entities": [
+          {
+            "id": "b1affff2-c930-45e8-8d45-746d73c9321e",
+            "label": "human face",
+            "category": "object",
+            "bbox": null,
+            "confidence": 0.5,
+            "sources": [
+              "scene_understanding"
+            ],
+            "semantic_id": null
+          },
+          {
+            "id": "d03c1914-87d7-43e4-b3f1-67a25531f535",
+            "label": "person",
+            "category": "person",
+            "bbox": null,
+            "confidence": 0.5,
+            "sources": [
+              "scene_understanding"
+            ],
+            "semantic_id": null
+          }
+        ],
+        "actions": [
+          "standing"
+        ],
+        "interactions": [
+          "\" It shows a young boy with red hair and a big smile on his face",
+          "He is standing in a wooded area with trees and bushes in the background",
+          "there is a blue train car with a large bell on top"
+        ],
+        "environment": "",
+        "potential_confusions": [
+          "The visible action may need a simple explanation."
+        ],
+        "prepared": true,
+        "preparation_version": 13
+      }
+    ],
+    "known_aliases": [
+      {
+        "semantic_id": "object-ef1f5e87b3e1b480",
+        "alias": "human face",
+        "kind": "observed_entity",
+        "confidence": 0.0
+      },
+      {
+        "semantic_id": "object-38a81e87e79631e6",
+        "alias": "person",
+        "kind": "observed_entity",
+        "confidence": 0.0
+      }
+    ],
+    "visual_anchors": [],
+    "face_references": [],
+    "observation_history": [
+      {
+        "id": "4411450e-782d-40ea-8d09-80f1e1293e92",
+        "timestamp_seconds": 42.92792,
+        "entity_label": "human face",
+        "semantic_id": "object-ef1f5e87b3e1b480",
+        "confidence": 0.0,
+        "source": "scene_understanding"
+      },
+      {
+        "id": "f82e379e-4a13-4453-b671-140e9c7d36f3",
+        "timestamp_seconds": 42.92792,
+        "entity_label": "person",
+        "semantic_id": "object-38a81e87e79631e6",
+        "confidence": 0.0,
+        "source": "scene_understanding"
+      }
+    ],
+    "emotions": [],
+    "vocabulary": []
+  }
+}
