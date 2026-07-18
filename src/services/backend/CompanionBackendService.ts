@@ -19,20 +19,16 @@ export type BackendMemoryReminder = { summary: string; confidence: number }
 export type BackendVocabularyAssistance = { term: string; simple_definition: string; confidence: number }
 export type BackendConversationSimplification = { dialogue_id: string; simple_text: string; confidence: number }
 
-export type BackendAccessibilityContent = {
-  companion_tone: string
-  scene_summary: string
-  likely_confusions: Array<{ kind: string; confidence: number; reason: string }>
+export type AccessibilityPresentation = {
+  scene_explanation: string
   prompt_bubbles: Array<{ id: string; kind: string; label: string; question: string; priority: number }>
-  drawer: {
-    character_cards: BackendCharacterCard[]
-    relationship_summaries: BackendRelationshipSummary[]
-    timeline_summary: BackendTimelineSummary | null
-    emotion_summaries: BackendEmotionSummary[]
-    memory_reminders: BackendMemoryReminder[]
-    vocabulary_assistance: BackendVocabularyAssistance[]
-    conversation_simplifications: BackendConversationSimplification[]
-  }
+  character_cards: BackendCharacterCard[]
+  relationship_summaries: BackendRelationshipSummary[]
+  timeline_summary: BackendTimelineSummary | null
+  emotion_summaries: BackendEmotionSummary[]
+  memory_reminders: BackendMemoryReminder[]
+  vocabulary_assistance: BackendVocabularyAssistance[]
+  conversation_simplifications: BackendConversationSimplification[]
 }
 
 export type CompanionBackendResponse = {
@@ -41,32 +37,11 @@ export type CompanionBackendResponse = {
   cache_key: string
   knowledge_revision: number
   response: { response: string; model: string }
-  accessibility_content: BackendAccessibilityContent
-  perception?: unknown
-  semantic_matches?: {
-    character_found: boolean
-    characters: Array<{ id: string; label: string; confidence: number; entity?: { bounding_box?: number[] | null } }>
-  } | null
-}
-
-export type PreparedPromptBubble = {
-  id: string
-  type: string
-  title: string
-  question: string
-  target_entity?: string | null
-  bounding_box?: number[] | null
-  priority: number
-  cached: boolean
+  presentation: AccessibilityPresentation
 }
 
 export type ScenePreparationResponse = Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'> & {
-  semantic_graph?: unknown
-  characters?: unknown[]
-  objects?: unknown[]
-  relationships?: unknown[]
-  prompt_bubbles?: PreparedPromptBubble[]
-  visual_drawer?: BackendAccessibilityContent['drawer']
+  cache: { cache_key: string; knowledge_revision: number; knowledge_source: 'retrieved' | 'expanded'; semantic_map_cached: boolean; reasoning_cached: boolean; frame_hash?: string }
 }
 
 type BackendRequest = {
@@ -150,12 +125,11 @@ function isBackendResponse(value: unknown): value is CompanionBackendResponse {
   if (!value || typeof value !== 'object') return false
   const response = value as Record<string, unknown>
   const personalized = response.response as Record<string, unknown> | undefined
-  const content = response.accessibility_content as Record<string, unknown> | undefined
+  const presentation = response.presentation as Record<string, unknown> | undefined
   return typeof response.knowledge_source === 'string'
     && typeof response.response_cache_hit === 'boolean'
     && typeof personalized?.response === 'string'
-    && typeof content?.scene_summary === 'string'
-    && typeof content?.drawer === 'object'
+    && typeof presentation?.scene_explanation === 'string'
 }
 
 export class CompanionBackendService {
@@ -225,29 +199,10 @@ export class CompanionBackendService {
       const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The scene preparation service is unavailable.'
       throw new Error(detail)
     }
-    if (!body || typeof body !== 'object' || !('accessibility_content' in body) || !('knowledge_revision' in body)) {
+    if (!body || typeof body !== 'object' || !('presentation' in body) || !('knowledge_revision' in body)) {
       throw new Error('The scene preparation service returned an invalid response.')
     }
-    const prepared = body as ScenePreparationResponse
-    const preparedBubbles = Array.isArray(prepared.prompt_bubbles) ? prepared.prompt_bubbles : null
-    // The prompt panel consumes the first-class preparation map. Retain the
-    // nested content shape only as the compatibility contract for the drawer.
-    const accessibilityContent: BackendAccessibilityContent = preparedBubbles
-      ? {
-          ...prepared.accessibility_content,
-          prompt_bubbles: preparedBubbles.map((bubble) => ({
-            id: bubble.id,
-            kind: bubble.type,
-            label: bubble.title,
-            question: bubble.question,
-            priority: bubble.priority,
-          })),
-        }
-      : prepared.accessibility_content
-    return {
-      ...prepared,
-      accessibility_content: accessibilityContent,
-    }
+    return body as ScenePreparationResponse
   }
 }
 

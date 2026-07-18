@@ -60,13 +60,13 @@ def prepare_scene(
         response = service.prepare(request, image, frame_hash)
         serialized = response.model_dump(mode="json")
         logger.info(
-            "[TRACE][FASTAPI_SERIALIZATION] executed=yes top_level_prompts=%d nested_prompts=%d first_prompt=%s response_list_id=%s dumped_prompt_count=%d dumped_first=%s",
-            len(response.prompt_bubbles), len(response.accessibility_content.prompt_bubbles), response.prompt_bubbles[0].title if response.prompt_bubbles else None,
-            id(response.prompt_bubbles), len(serialized["prompt_bubbles"]), serialized["prompt_bubbles"][0]["title"] if serialized["prompt_bubbles"] else None,
+            "[TRACE][FASTAPI_SERIALIZATION] executed=yes presentation_prompts=%d first_prompt=%s response_list_id=%s dumped_prompt_count=%d dumped_first=%s",
+            len(response.presentation.prompt_bubbles), response.presentation.prompt_bubbles[0].label if response.presentation.prompt_bubbles else None,
+            id(response.presentation.prompt_bubbles), len(serialized["presentation"]["prompt_bubbles"]), serialized["presentation"]["prompt_bubbles"][0]["label"] if serialized["presentation"]["prompt_bubbles"] else None,
         )
         logger.info(
             "[TRACE][API_RESPONSE] executed=yes output prompts=%d character_cards=%d relationships=%d duration_ms=%.1f",
-            len(response.prompt_bubbles), len(response.visual_drawer.character_cards), len(response.visual_drawer.relationship_summaries), (perf_counter() - started) * 1000,
+            len(response.presentation.prompt_bubbles), len(response.presentation.character_cards), len(response.presentation.relationship_summaries), (perf_counter() - started) * 1000,
         )
         return response
     except InvalidFrameError as error:

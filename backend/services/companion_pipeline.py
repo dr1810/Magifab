@@ -58,7 +58,6 @@ class CompanionPipelineService:
         self._logger.info("[TRACE][REASONING_ENGINE] executed=yes movie=%s scene=%s frame_hash=%s reasoning_rebuilt=yes output_prompts=%d character_cards=%d duration_ms=%.1f", request.movie_id, request.scene_id, frame_hash, len(presentation.prompt_bubbles), len(presentation.character_cards), (perf_counter() - reasoning_started) * 1000)
         response = self._serializer.prepare(
             presentation=presentation,
-            companion=request.companion_profile,
             knowledge_source=expansion.source,
             knowledge_revision=expansion.record.revision,
             cache=PreparationCacheMetadata(
@@ -74,7 +73,7 @@ class CompanionPipelineService:
         )
         self._logger.info(
             "[TRACE][RESPONSE_ASSEMBLY] executed=yes response_prompt_count=%d response_prompt_list_id=%s first_prompt=%s nested_prompt_count=%d nested_prompt_list_id=%s nested_first=%s",
-            len(response.prompt_bubbles), id(response.prompt_bubbles), response.prompt_bubbles[0].title if response.prompt_bubbles else None,
+            len(response.presentation.prompt_bubbles), id(response.presentation.prompt_bubbles), response.presentation.prompt_bubbles[0].label if response.presentation.prompt_bubbles else None,
             len(response.presentation.prompt_bubbles), id(response.presentation.prompt_bubbles), response.presentation.prompt_bubbles[0].label if response.presentation.prompt_bubbles else None,
         )
         self._logger.info("[TRACE][PREPARE_SERVICE] complete source=%s duration_ms=%.1f", expansion.source, (perf_counter() - started) * 1000)
@@ -94,14 +93,13 @@ class CompanionPipelineService:
             context=context,
             companion_profile=request.companion_profile,
         ))
-        content = self._serializer.content(presentation, request.companion_profile)
         cache_key = self._cache_key(request, self._semantic_cache_version, scene_id, self._timestamp_bucket_seconds)
         response, cache_hit = self._response_cache.get_or_create(cache_key, lambda: GPTPersonalizationResponse(
             response=self._answer_from_scene(request.question, presentation), model="semantic-retrieval",
         ))
         return CompanionPipelineResponse(
             knowledge_source="retrieved", response_cache_hit=cache_hit, cache_key=cache_key,
-            knowledge_revision=expansion.record.revision, response=response, accessibility_content=content,
+            knowledge_revision=expansion.record.revision, response=response, presentation=presentation,
         )
 
     @staticmethod

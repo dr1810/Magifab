@@ -8,7 +8,7 @@ import { TimelineDiagram } from './diagrams/TimelineDiagram'
 import { EmotionDiagram } from './diagrams/EmotionDiagram'
 import { CauseEffectDiagram } from './diagrams/CauseEffectDiagram'
 import { ObjectDiagram } from './diagrams/ObjectDiagram'
-import type { BackendAccessibilityContent } from '../services/backend/CompanionBackendService'
+import type { AccessibilityPresentation } from '../services/backend/CompanionBackendService'
 
 type TabKey = 'relationships' | 'timeline' | 'emotion' | 'causeEffect' | 'object' | 'memory'
 
@@ -24,7 +24,7 @@ const tabs: { key: TabKey; label: string }[] = [
 type VisualDrawerProps = {
   open: boolean
   scene: SceneData
-  accessibilityContent?: BackendAccessibilityContent | null
+  presentation?: AccessibilityPresentation | null
   onClose: () => void
   onMouseEnter: () => void
   onMouseLeave: () => void
@@ -32,20 +32,20 @@ type VisualDrawerProps = {
   onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
-export function VisualDrawer({ open, scene, accessibilityContent, onClose, onMouseEnter, onMouseLeave, onFocus, onBlur }: VisualDrawerProps) {
+export function VisualDrawer({ open, scene, presentation, onClose, onMouseEnter, onMouseLeave, onFocus, onBlur }: VisualDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('relationships')
   const { settings } = useAccessibility()
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
 
   const content = useMemo(() => {
-    if (accessibilityContent) return <BackendDrawerContent activeTab={activeTab} content={accessibilityContent} />
+    if (presentation) return <BackendDrawerContent activeTab={activeTab} presentation={presentation} />
     if (activeTab === 'relationships') return <RelationshipDiagram scene={scene} />
     if (activeTab === 'timeline') return <TimelineDiagram scene={scene} />
     if (activeTab === 'emotion') return <EmotionDiagram scene={scene} />
     if (activeTab === 'causeEffect') return <CauseEffectDiagram scene={scene} />
     if (activeTab === 'memory') return <p className="empty-aid">No memory reminder is available for this scene yet.</p>
     return <ObjectDiagram scene={scene} />
-  }, [activeTab, scene, accessibilityContent])
+  }, [activeTab, scene, presentation])
 
   return (
     <AnimatePresence initial={false}>
@@ -90,8 +90,8 @@ export function VisualDrawer({ open, scene, accessibilityContent, onClose, onMou
   )
 }
 
-function BackendDrawerContent({ activeTab, content }: { activeTab: TabKey; content: BackendAccessibilityContent }) {
-  const drawer = content.drawer
+function BackendDrawerContent({ activeTab, presentation }: { activeTab: TabKey; presentation: AccessibilityPresentation }) {
+  const drawer = presentation
   if (activeTab === 'relationships') {
     return (
       <div className="diagram-grid">

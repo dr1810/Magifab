@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from schemas.accessibility_reasoning import AccessibilityDrawerContent, AccessibilityProfile, AccessibilityReasoningResult, CompanionProfile
+from schemas.accessibility_reasoning import AccessibilityProfile, CompanionProfile
 from schemas.accessibility_presentation import AccessibilityPresentation
 from schemas.personalization import GPTPersonalizationResponse
 
@@ -37,7 +37,7 @@ class CompanionPipelineResponse(BaseModel):
     cache_key: str
     knowledge_revision: int = Field(ge=1)
     response: GPTPersonalizationResponse
-    accessibility_content: AccessibilityReasoningResult
+    presentation: AccessibilityPresentation
 
 
 class ScenePreparationRequest(BaseModel):
@@ -57,67 +57,6 @@ class ScenePreparationRequest(BaseModel):
     companion_profile: CompanionProfile
 
 
-class PreparedCharacter(BaseModel):
-    """A named identity only when the semantic matcher verified it."""
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    name: str
-    confidence: float = Field(ge=0, le=1)
-    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
-    verified: bool = True
-
-
-class PreparedObject(BaseModel):
-    """A visible object backed by cached perception evidence."""
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    name: str
-    confidence: float = Field(ge=0, le=1)
-    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
-    sources: list[str] = Field(default_factory=list)
-
-
-class SemanticGraphNode(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    label: str
-    kind: str
-    confidence: float | None = Field(default=None, ge=0, le=1)
-
-
-class SemanticGraphEdge(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    from_id: str
-    to_id: str
-    kind: str
-    label: str = ""
-
-
-class PreparedSemanticGraph(BaseModel):
-    """Read-only graph projection of the persisted Semantic Movie Knowledge."""
-    model_config = ConfigDict(extra="forbid")
-    movie_id: str
-    scene_id: str
-    revision: int = Field(ge=1)
-    nodes: list[SemanticGraphNode] = Field(default_factory=list)
-    edges: list[SemanticGraphEdge] = Field(default_factory=list)
-
-
-class PreparedPromptBubble(BaseModel):
-    """A ready-to-render prompt; selecting it performs retrieval-only reasoning."""
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    type: str
-    title: str
-    question: str
-    text: str
-    target_entity: str | None = None
-    bounding_box: list[float] | None = Field(default=None, min_length=4, max_length=4)
-    priority: int = Field(ge=1)
-    claim_ids: list[str] = Field(default_factory=list)
-    cached: bool = True
-
-
 class PreparationCacheMetadata(BaseModel):
     model_config = ConfigDict(extra="forbid")
     cache_key: str
@@ -133,11 +72,4 @@ class ScenePreparationResponse(BaseModel):
     knowledge_source: Literal["retrieved", "expanded"]
     knowledge_revision: int = Field(ge=1)
     presentation: AccessibilityPresentation
-    accessibility_content: AccessibilityReasoningResult
-    # First-class preparation data lets clients render the prompt panel and
-    # visual drawer immediately, rather than reconstructing them from a prose
-    # scene summary.
-    scene_summary: str
-    prompt_bubbles: list[PreparedPromptBubble] = Field(default_factory=list)
-    visual_drawer: AccessibilityDrawerContent
     cache: PreparationCacheMetadata

@@ -11,7 +11,7 @@ import { useCompanionProfile } from './hooks/useCompanionProfile'
 import { useExperiencePreparation } from './hooks/useExperiencePreparation'
 import { ExperiencePreparationScreen } from './components/ExperiencePreparationScreen'
 import type { CapturedVideoFrame } from './services/ai/VideoFrameCaptureService'
-import { companionBackendService, type BackendAccessibilityContent, type ScenePreparationResponse } from './services/backend/CompanionBackendService'
+import { companionBackendService, type AccessibilityPresentation, type ScenePreparationResponse } from './services/backend/CompanionBackendService'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion, SceneData } from './types/movie'
@@ -49,7 +49,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const [frameCaptureAvailable, setFrameCaptureAvailable] = useState(false)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
-  const [accessibilityContent, setAccessibilityContent] = useState<BackendAccessibilityContent | null>(null)
+  const [accessibilityPresentation, setAccessibilityPresentation] = useState<AccessibilityPresentation | null>(null)
   const [preparedScene, setPreparedScene] = useState<ScenePreparationResponse | null>(null)
   latestPreparationInputsRef.current = { settings, profile }
 
@@ -59,21 +59,21 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [movie])
 
   const backendPrompts = useMemo<PromptQuestion[]>(() => {
-    if (preparedScene?.prompt_bubbles) {
-      return preparedScene.prompt_bubbles.map((prompt) => ({
+    if (preparedScene?.presentation.prompt_bubbles) {
+      return preparedScene.presentation.prompt_bubbles.map((prompt) => ({
         id: `backend:${prompt.id}`,
-        label: prompt.title,
+        label: prompt.label,
         question: prompt.question,
         explanation: '',
       }))
     }
-    return accessibilityContent?.prompt_bubbles.map((prompt) => ({
+    return accessibilityPresentation?.prompt_bubbles.map((prompt) => ({
       id: `backend:${prompt.id}`,
       label: prompt.label,
       question: prompt.question,
       explanation: '',
     })) ?? []
-  }, [preparedScene, accessibilityContent])
+  }, [preparedScene, accessibilityPresentation])
   const prompts = backendPrompts
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
@@ -93,7 +93,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   useEffect(() => {
     // The Loading Experience owns the opening-scene result for the selected
     // movie. Scene updates from the mounted video must not erase its prompts.
-    setAccessibilityContent(null)
+    setAccessibilityPresentation(null)
     setPreparedScene(null)
     preparedSceneIdsRef.current.delete(movie)
   }, [movie])
@@ -118,13 +118,10 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     }).then((result) => {
       if (!result) return
       setPreparedScene(result)
-      setAccessibilityContent({
-        ...result.accessibility_content,
-        drawer: result.visual_drawer ?? result.accessibility_content.drawer,
-      })
+      setAccessibilityPresentation(result.presentation)
       setCompanionReady(true)
       console.info('[MagiFab] Preparation complete', { movieId: movieData.id, sceneId: scene.sceneId })
-      console.info('[MagiFab] Prompt bubbles received:', result.prompt_bubbles?.length ?? result.accessibility_content.prompt_bubbles.length)
+      console.info('[MagiFab] Prompt bubbles received:', result.presentation.prompt_bubbles.length)
     }).catch((error: unknown) => {
       if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() failed', { movieId: movieData.id, sceneId: scene.sceneId, error })
       preparedSceneIdsRef.current.delete(movieData.id)
@@ -165,24 +162,17 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     [prompts, selectedPromptId],
   )
 
-  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, result: Awaited<ReturnType<typeof companionBackendService.respond>>, frame: CapturedVideoFrame): PromptBubbleContent => {
-    const match = result.semantic_matches?.characters[0]
-    const card = result.accessibility_content.drawer.character_cards[0]
-    const bbox = match?.entity?.bounding_box
-    const visualAnchor = bbox && frame.width > 0 && frame.height > 0
-      ? { x: Math.max(0, Math.min(100, (bbox[0] / frame.width) * 100)), y: Math.max(0, Math.min(100, (bbox[1] / frame.height) * 100)), width: Math.max(4, Math.min(100, (bbox[2] / frame.width) * 100)), height: Math.max(4, Math.min(100, (bbox[3] / frame.height) * 100)) }
-      : undefined
-    const emotion = result.accessibility_content.drawer.emotion_summaries[0]?.summary
+  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, result: Awaited<ReturnType<typeof companionBackendService.respond>>): PromptBubbleContent => {
+    const card = result.presentation.character_cards[0]
+    const emotion = result.presentation.emotion_summaries[0]?.summary
     return {
       id: `${sceneData.sceneId}:${prompt.id}:${result.knowledge_revision}`,
       question: prompt.question,
-      title: match?.label ?? card?.name ?? prompt.label,
-      relationship: emotion ?? result.accessibility_content.scene_summary,
+      title: card?.name ?? prompt.label,
+      relationship: emotion ?? result.presentation.scene_explanation,
       explanation: result.response.response,
-      anchor: visualAnchor ? { x: visualAnchor.x, y: visualAnchor.y } : sceneData.companionPosition,
-      visualAnchor,
-      visualAidType: visualAnchor ? 'magnifier' : undefined,
-      highlightTarget: Boolean(visualAnchor),
+      anchor: sceneData.companionPosition,
+      highlightTarget: false,
     }
   }, [])
 
@@ -201,15 +191,15 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const loadingAnchor = { x: scene.companionPosition.x, y: scene.companionPosition.y }
     setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:loading`, question: prompt.question, title: 'Preparing help', relationship: '', explanation: '', anchor: loadingAnchor, highlightTarget: false, loading: true })
     const frame = preparedFrameRef.current
-    if (!frame || !accessibilityContent) {
+    if (!frame || !accessibilityPresentation) {
       setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:not-prepared`, question: prompt.question, title: 'Preparing this scene', relationship: '', explanation: 'Please wait a moment while this scene is prepared.', anchor: loadingAnchor, highlightTarget: false, loading: true })
       return
     }
     try {
       const result = await companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, timestamp: frame.timestamp, settings, companion: profile, signal: abortController.signal })
       if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-      setAccessibilityContent(result.accessibility_content)
-      setActiveBubble(buildPromptBubble(scene, prompt, result, frame))
+      setAccessibilityPresentation(result.presentation)
+      setActiveBubble(buildPromptBubble(scene, prompt, result))
       setAssistantText(result.response.response)
       if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: result.response.response, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
     } catch (error: unknown) {
@@ -348,7 +338,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
             <VisualDrawer
               open={drawerOpen}
               scene={scene}
-              accessibilityContent={accessibilityContent}
+              presentation={accessibilityPresentation}
               onClose={() => setDrawerOpen(false)}
               onMouseEnter={() => setDrawerOpen(true)}
               onMouseLeave={() => setDrawerOpen(false)}
