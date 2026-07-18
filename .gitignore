@@ -9,3 +9,8 @@ dist/
 
 .temp/
 supabase/.temp/
+
+backend/.venv-py311/
+backend/venv/
+.venv/
+venv/

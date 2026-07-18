@@ -11,7 +11,7 @@ import { useCompanionProfile } from './hooks/useCompanionProfile'
 import { useExperiencePreparation } from './hooks/useExperiencePreparation'
 import { ExperiencePreparationScreen } from './components/ExperiencePreparationScreen'
 import type { CapturedVideoFrame } from './services/ai/VideoFrameCaptureService'
-import { companionBackendService, type BackendAccessibilityContent } from './services/backend/CompanionBackendService'
+import { companionBackendService, type BackendAccessibilityContent, type ScenePreparationResponse } from './services/backend/CompanionBackendService'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion, SceneData } from './types/movie'
@@ -44,13 +44,13 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const frameCaptureRef = useRef<(() => Promise<CapturedVideoFrame>) | null>(null)
   const preparedFrameRef = useRef<CapturedVideoFrame | null>(null)
   const preparedSceneIdsRef = useRef<Set<string>>(new Set())
-  const preparationAbortControllerRef = useRef<AbortController | null>(null)
   const preparationEffectCountRef = useRef(0)
   const latestPreparationInputsRef = useRef({ settings, profile })
   const [frameCaptureAvailable, setFrameCaptureAvailable] = useState(false)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
   const [accessibilityContent, setAccessibilityContent] = useState<BackendAccessibilityContent | null>(null)
+  const [preparedScene, setPreparedScene] = useState<ScenePreparationResponse | null>(null)
   latestPreparationInputsRef.current = { settings, profile }
 
   useEffect(() => {
@@ -58,12 +58,22 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     return () => { if (import.meta.env.DEV) console.debug('[MagiFab companion] MovieViewer unmounted', { movieId: movie }) }
   }, [movie])
 
-  const backendPrompts = useMemo<PromptQuestion[]>(() => accessibilityContent?.prompt_bubbles.map((prompt) => ({
-    id: `backend:${prompt.id}`,
-    label: prompt.label,
-    question: prompt.question,
-    explanation: '',
-  })) ?? [], [accessibilityContent])
+  const backendPrompts = useMemo<PromptQuestion[]>(() => {
+    if (preparedScene?.prompt_bubbles) {
+      return preparedScene.prompt_bubbles.map((prompt) => ({
+        id: `backend:${prompt.id}`,
+        label: prompt.title,
+        question: prompt.question,
+        explanation: '',
+      }))
+    }
+    return accessibilityContent?.prompt_bubbles.map((prompt) => ({
+      id: `backend:${prompt.id}`,
+      label: prompt.label,
+      question: prompt.question,
+      explanation: '',
+    })) ?? []
+  }, [preparedScene, accessibilityContent])
   const prompts = backendPrompts
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
@@ -77,34 +87,44 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const sceneId = scene?.sceneId ?? ''
     currentSceneIdRef.current = sceneId
     setActiveBubble((bubble) => bubble?.id.startsWith(`${sceneId}:`) ? bubble : null)
-    setAccessibilityContent(null)
     setCompanionReady(false)
   }, [scene?.sceneId])
 
   useEffect(() => {
+    // The Loading Experience owns the opening-scene result for the selected
+    // movie. Scene updates from the mounted video must not erase its prompts.
+    setAccessibilityContent(null)
+    setPreparedScene(null)
+    preparedSceneIdsRef.current.delete(movie)
+  }, [movie])
+
+  useEffect(() => {
     const effectCount = ++preparationEffectCountRef.current
     if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare effect', { effectCount, movieId: movieData?.id, sceneId: scene?.sceneId, frameCaptureAvailable })
-    if (!movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(movieData.id)) return
+    // Prepare belongs to the Loading Experience gate; canplay only makes the
+    // already-owned frame capture available.
+    if (preparation.phase !== 'preparing' || !movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(movieData.id)) return
     const capture = frameCaptureRef.current
     if (!capture) return
-    const abortController = new AbortController()
-    preparationAbortControllerRef.current = abortController
     preparedSceneIdsRef.current.add(movieData.id)
     let requestStarted = false
     const startTimer = window.setTimeout(() => {
-      if (abortController.signal.aborted) return
       requestStarted = true
-      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() called', { movieId: movieData.id, sceneId: scene.sceneId })
+      console.info('[MagiFab] Preparation started', { movieId: movieData.id, sceneId: scene.sceneId })
       void capture().then((frame) => {
-      if (abortController.signal.aborted) return
       preparedFrameRef.current = frame
       const inputs = latestPreparationInputsRef.current
-      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings: inputs.settings, companion: inputs.profile, signal: abortController.signal })
+      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings: inputs.settings, companion: inputs.profile })
     }).then((result) => {
-      if (!result || abortController.signal.aborted) return
-      setAccessibilityContent(result.accessibility_content)
+      if (!result) return
+      setPreparedScene(result)
+      setAccessibilityContent({
+        ...result.accessibility_content,
+        drawer: result.visual_drawer ?? result.accessibility_content.drawer,
+      })
       setCompanionReady(true)
-      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() completed', { movieId: movieData.id, sceneId: scene.sceneId })
+      console.info('[MagiFab] Preparation complete', { movieId: movieData.id, sceneId: scene.sceneId })
+      console.info('[MagiFab] Prompt bubbles received:', result.prompt_bubbles?.length ?? result.accessibility_content.prompt_bubbles.length)
     }).catch((error: unknown) => {
       if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() failed', { movieId: movieData.id, sceneId: scene.sceneId, error })
       preparedSceneIdsRef.current.delete(movieData.id)
@@ -116,10 +136,10 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
       // development mount. That cleanup happens before the deferred request
       // begins, so it must not consume this movie's one preparation slot.
       if (!requestStarted) preparedSceneIdsRef.current.delete(movieData.id)
-      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() aborted by effect cleanup', { movieId: movieData.id, sceneId: scene.sceneId })
-      abortController.abort()
+      // Rerenders, overlays, and Strict Mode cleanup must not cancel a running
+      // prepare request. It is owned by the Loading Experience until it settles.
     }
-  }, [movieData?.id, scene?.sceneId, frameCaptureAvailable])
+  }, [movieData?.id, scene?.sceneId, frameCaptureAvailable, preparation.phase])
 
   useEffect(() => {
     const savedTimestamp = getPlaybackTimestamp(movie)

@@ -49,7 +49,7 @@ export type CompanionBackendResponse = {
   } | null
 }
 
-type PreparedPromptBubble = {
+export type PreparedPromptBubble = {
   id: string
   type: string
   title: string
@@ -60,8 +60,13 @@ type PreparedPromptBubble = {
   cached: boolean
 }
 
-type ScenePreparationBackendResponse = Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'> & {
+export type ScenePreparationResponse = Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'> & {
+  semantic_graph?: unknown
+  characters?: unknown[]
+  objects?: unknown[]
+  relationships?: unknown[]
   prompt_bubbles?: PreparedPromptBubble[]
+  visual_drawer?: BackendAccessibilityContent['drawer']
 }
 
 type BackendRequest = {
@@ -100,7 +105,7 @@ type RespondOptions = {
   signal?: AbortSignal
 }
 
-type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp'> & { frame: CapturedVideoFrame }
+type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp' | 'signal'> & { frame: CapturedVideoFrame }
 
 const configuredBackendUrl = import.meta.env.VITE_MAGIFAB_BACKEND_URL?.trim()
 /**
@@ -154,6 +159,8 @@ function isBackendResponse(value: unknown): value is CompanionBackendResponse {
 }
 
 export class CompanionBackendService {
+  private readonly activePreparationRequests = new Map<string, Promise<ScenePreparationResponse>>()
+
   /** The React app only sends frame/context/profile data; all accessibility reasoning remains server-side. */
   async respond(options: RespondOptions): Promise<CompanionBackendResponse> {
     const savedProfile = await getAccessibilityProfile()
@@ -184,17 +191,34 @@ export class CompanionBackendService {
     return body
   }
 
-  async prepareScene(options: PrepareOptions): Promise<CompanionBackendResponse> {
+  async prepareScene(options: PrepareOptions): Promise<ScenePreparationResponse> {
     const savedProfile = await getAccessibilityProfile()
     const payload: ScenePreparationRequest = {
       movie_id: options.movieId, timestamp_seconds: options.frame.timestamp, scene_id: options.scene.sceneId,
       scene_summary: options.scene.subtitle || options.scene.voiceNarration || 'Current movie scene.',
       image: options.frame.dataUrl, ...profilePayload(options.settings, options.companion, savedProfile),
     }
+    const requestKey = JSON.stringify({
+      movie_id: payload.movie_id,
+      scene_id: payload.scene_id,
+      accessibility_profile: payload.accessibility_profile,
+    })
+    const activeRequest = this.activePreparationRequests.get(requestKey)
+    if (activeRequest) return activeRequest
+
+    const request = this.sendPreparationRequest(payload)
+    this.activePreparationRequests.set(requestKey, request)
+    void request.finally(() => {
+      if (this.activePreparationRequests.get(requestKey) === request) this.activePreparationRequests.delete(requestKey)
+    }).catch(() => undefined)
+    return request
+  }
+
+  private async sendPreparationRequest(payload: ScenePreparationRequest): Promise<ScenePreparationResponse> {
     const payloadJson = JSON.stringify(payload)
     if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare payload', payloadJson)
     const response = await fetch(companionEndpoint.replace('/respond', '/prepare'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson, signal: options.signal,
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson,
     })
     const body: unknown = await response.json().catch(() => null)
     if (!response.ok) {
@@ -204,7 +228,7 @@ export class CompanionBackendService {
     if (!body || typeof body !== 'object' || !('accessibility_content' in body) || !('knowledge_revision' in body)) {
       throw new Error('The scene preparation service returned an invalid response.')
     }
-    const prepared = body as ScenePreparationBackendResponse
+    const prepared = body as ScenePreparationResponse
     const preparedBubbles = Array.isArray(prepared.prompt_bubbles) ? prepared.prompt_bubbles : null
     // The prompt panel consumes the first-class preparation map. Retain the
     // nested content shape only as the compatibility contract for the drawer.
@@ -223,9 +247,6 @@ export class CompanionBackendService {
     return {
       ...prepared,
       accessibility_content: accessibilityContent,
-      response_cache_hit: false,
-      cache_key: '',
-      response: { response: '', model: 'scene-preparation' },
     }
   }
 }
