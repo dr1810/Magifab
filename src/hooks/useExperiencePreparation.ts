@@ -53,7 +53,7 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
       reportProgress({ milestone: 'companion-profile', status: 'complete' })
       await presentationPause()
       try {
-        await initialMoviePreparationService.prepare(movie, (event) => {
+        await initialMoviePreparationService.prepare((event) => {
           if (!cancelled) reportProgress(event)
         })
         // Semantic baseline and backend scene preparation are distinct gates. The

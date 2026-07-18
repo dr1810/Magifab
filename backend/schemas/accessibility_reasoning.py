@@ -7,13 +7,6 @@ from schemas.knowledge import VisualAnchor
 from schemas.profiles import AccessibilityProfile, CompanionProfile
 from schemas.reasoning_context import ReasoningContext
 
-class ConfusionPrediction(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    kind: str
-    confidence: float = Field(ge=0, le=1)
-    reason: str
-
-
 class PromptBubbleSuggestion(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: str
@@ -95,12 +88,3 @@ class AccessibilityReasoningRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     context: ReasoningContext
     companion_profile: CompanionProfile
-
-
-class AccessibilityReasoningResult(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    companion_tone: str
-    scene_summary: str
-    likely_confusions: list[ConfusionPrediction] = Field(default_factory=list)
-    prompt_bubbles: list[PromptBubbleSuggestion] = Field(default_factory=list)
-    drawer: AccessibilityDrawerContent
