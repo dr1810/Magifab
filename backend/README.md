@@ -2,10 +2,10 @@
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 8 adds deterministic Accessibility Reasoning that turns verified movie knowledge and onboarding selections into structured accessibility content. It does not invoke GPT or integrate with the frontend.
+This is the modular backend for MagiFab. Phase 9 adds GPT-5.6 language personalization over verified semantic and accessibility facts. GPT does not receive images, detector output, or matching work, and the frontend is not integrated.
 
 ```text
-Movie frame → Perception → Knowledge Expansion → Semantic Movie Knowledge → Accessibility Reasoning → [later GPT personalization]
+Movie frame → Perception → Semantic Knowledge → Accessibility Reasoning → GPT-5.6 language personalization
 ```
 
 ## Status
@@ -18,7 +18,8 @@ Movie frame → Perception → Knowledge Expansion → Semantic Movie Knowledge 
 - Completed: Phase 6 — versioned Semantic Movie Knowledge storage, graph lookup, and retrieval-first access.
 - Completed: Phase 7 — retrieval-first knowledge expansion, observation merge, and cache-versioned results.
 - Completed: Phase 8 — deterministic, profile-adapted accessibility reasoning.
-- Pending: GPT personalization; face verification; Grounding DINO.
+- Completed: Phase 9 — GPT-5.6 language-only personalization over structured facts.
+- Pending: face verification; Grounding DINO.
 
 ## Structure
 
@@ -35,6 +36,7 @@ backend/
   models/semantic_matcher.py      # Replaceable SemanticMatcher contract
   models/knowledge_store.py       # Replaceable knowledge persistence contract
   models/accessibility_reasoner.py # Replaceable accessibility-reasoning contract
+  models/language_personalizer.py # Replaceable language-personalization contract
   routers/detect.py              # POST /api/v1/detect
   routers/understand.py          # POST /api/v1/understand
   routers/fusion.py              # POST /api/v1/fuse
@@ -42,6 +44,7 @@ backend/
   routers/knowledge.py           # Versioned knowledge storage/retrieval endpoints
   routers/knowledge_expansion.py # POST /api/v1/knowledge/expand
   routers/accessibility_reasoning.py # POST /api/v1/accessibility/reason
+  routers/personalization.py     # POST /api/v1/personalize
   services/object_detection.py   # Model-independent service
   services/vision_understanding.py # Model-independent service
   services/perception_fusion.py  # Evidence fusion service
@@ -51,6 +54,7 @@ backend/
   services/movie_knowledge_graph.py # Scene/timeline graph traversal
   services/knowledge_expansion.py # Retrieval-first perception-to-knowledge engine
   services/accessibility_reasoning.py # Deterministic accessibility content engine
+  services/gpt_personalization.py # Language-only personalization service
   schemas/detection.py           # Detection HTTP schemas
   schemas/understanding.py       # Scene-understanding HTTP schemas
   schemas/fusion.py              # Unified-scene and fusion HTTP schemas
@@ -59,6 +63,7 @@ backend/
   schemas/knowledge.py           # Versioned movie-knowledge record schemas
   schemas/knowledge_expansion.py # Expansion request/result schemas
   schemas/accessibility_reasoning.py # Accessibility request/result schemas
+  schemas/personalization.py     # GPT personalization request/result schemas
   utils/image.py                 # Safe base64 image decoder
   cache/                 # Runtime cache mount point
   Dockerfile
@@ -141,3 +146,11 @@ The expansion engine never creates character identities, relationships, events, 
 - Suggested follow-up questions and a companion tone descriptor
 
 The engine adapts output through onboarding selections: `accessibility_needs` decide which cards, summaries, prompts, reminders, and simplifications appear; `detail_level` controls the number of items; preferred prompt types filter suggestions; vocabulary and conversation toggles control their corresponding sections. It uses only explicit stored facts. Missing emotion, dialogue, relationship, or vocabulary facts produce empty structured sections rather than invented content. No GPT, image inference, semantic matching, cache mutation, or frontend change occurs in this phase.
+
+## Phase 9: GPT-5.6 Personalization
+
+`POST /api/v1/personalize` accepts a user message plus structured Semantic Movie Knowledge, the current scene, deterministic accessibility content, and onboarding-derived accessibility/companion profiles. It sends this JSON to GPT-5.6 through the server-side Responses API and returns a structured `{ "response", "model" }` object.
+
+The adapter instruction explicitly limits GPT to wording: accessible explanations, simplified language, personalized phrasing, and natural conversation. It forbids character identification, object detection, visual inspection, semantic matching, relationship/emotion inference, and redoing backend reasoning. Facts absent from the request must be treated as unknown.
+
+Set `OPENAI_API_KEY` only in the backend environment; it is never a browser variable or API response. `OPENAI_MODEL` is optional and defaults to `gpt-5.6`. The service is lazy: it does not create an OpenAI client until `/api/v1/personalize` is called. A missing key returns HTTP 503; an upstream provider failure returns HTTP 502.

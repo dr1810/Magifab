@@ -2,6 +2,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +20,9 @@ class Settings(BaseSettings):
     florence_max_new_tokens: int = 256
     semantic_match_confidence_threshold: float = 0.8
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
+    openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))
+    openai_model: str = Field(default="gpt-5.6", validation_alias=AliasChoices("OPENAI_MODEL", "MAGIFAB_OPENAI_MODEL"))
+    openai_max_output_tokens: int = 300
     max_image_bytes: int = 8_000_000
     max_image_dimension: int = 4_096
 
