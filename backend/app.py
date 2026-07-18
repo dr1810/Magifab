@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from config import Settings, get_settings
 from models.knowledge_store import KnowledgeStore
 from services.knowledge_retriever import KnowledgeRetriever
+from services.knowledge_expansion import KnowledgeExpansionEngine
 from services.knowledge_store import FileKnowledgeStore
 from services.object_detection import ObjectDetectionService
 from services.perception_fusion import PerceptionFusionService
@@ -58,6 +59,18 @@ def get_knowledge_retriever() -> KnowledgeRetriever:
     return KnowledgeRetriever(get_knowledge_store())
 
 
+@lru_cache
+def get_knowledge_expansion_engine() -> KnowledgeExpansionEngine:
+    """Composes retrieval, perception, fusion, and persistence without any GPT dependency."""
+    return KnowledgeExpansionEngine(
+        store=get_knowledge_store(),
+        retriever=get_knowledge_retriever(),
+        detector=get_object_detection_service(),
+        vision=get_vision_understanding_service(),
+        fusion=get_perception_fusion_service(),
+    )
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Create the HTTP application without loading YOLO or Florence weights."""
     active_settings = settings or get_settings()
@@ -65,7 +78,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(
         title=active_settings.app_name,
         version=active_settings.api_version,
-        description="Modular MagiFab backend. Phase 6 adds versioned semantic movie knowledge retrieval.",
+        description="Modular MagiFab backend. Phase 7 adds retrieval-first knowledge expansion without GPT.",
     )
     origins = [origin.strip() for origin in active_settings.cors_origins.split(",") if origin.strip()]
     application.add_middleware(
@@ -88,12 +101,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.fusion import router as fusion_router
     from routers.match import router as match_router
     from routers.knowledge import router as knowledge_router
+    from routers.knowledge_expansion import router as knowledge_expansion_router
     from routers.understand import router as understand_router
     application.include_router(health_router)
     application.include_router(detect_router)
     application.include_router(fusion_router)
     application.include_router(match_router)
     application.include_router(knowledge_router)
+    application.include_router(knowledge_expansion_router)
     application.include_router(understand_router)
     return application
 

@@ -2,10 +2,10 @@
 
 ## Overview
 
-This is the modular backend for MagiFab. Phase 6 adds versioned Semantic Movie Knowledge with retrieval-first access; it does not invoke GPT or integrate with the frontend.
+This is the modular backend for MagiFab. Phase 7 adds retrieval-first Knowledge Expansion: existing movie knowledge returns immediately, while a true miss can run the perception pipeline and persist only observed facts. It does not invoke GPT or integrate with the frontend.
 
 ```text
-Movie frame → Perception → Fusion → Semantic Matching → Semantic Movie Knowledge → [later personalization]
+Movie frame → Perception → Fusion → Knowledge Expansion → Semantic Movie Knowledge → [later personalization]
 ```
 
 ## Status
@@ -16,6 +16,7 @@ Movie frame → Perception → Fusion → Semantic Matching → Semantic Movie K
 - Completed: Phase 4 — model-independent perception fusion and unified scene representation.
 - Completed: Phase 5 — conservative semantic matching against structured movie knowledge.
 - Completed: Phase 6 — versioned Semantic Movie Knowledge storage, graph lookup, and retrieval-first access.
+- Completed: Phase 7 — retrieval-first knowledge expansion, observation merge, and cache-versioned results.
 - Pending: GPT personalization; face verification; Grounding DINO.
 
 ## Structure
@@ -37,6 +38,7 @@ backend/
   routers/fusion.py              # POST /api/v1/fuse
   routers/match.py               # POST /api/v1/match
   routers/knowledge.py           # Versioned knowledge storage/retrieval endpoints
+  routers/knowledge_expansion.py # POST /api/v1/knowledge/expand
   services/object_detection.py   # Model-independent service
   services/vision_understanding.py # Model-independent service
   services/perception_fusion.py  # Evidence fusion service
@@ -44,12 +46,14 @@ backend/
   services/knowledge_store.py    # Atomic JSON knowledge persistence
   services/knowledge_retriever.py # Retrieval-first service
   services/movie_knowledge_graph.py # Scene/timeline graph traversal
+  services/knowledge_expansion.py # Retrieval-first perception-to-knowledge engine
   schemas/detection.py           # Detection HTTP schemas
   schemas/understanding.py       # Scene-understanding HTTP schemas
   schemas/fusion.py              # Unified-scene and fusion HTTP schemas
   schemas/knowledge.py           # Structured semantic movie knowledge schema
   schemas/matching.py            # Semantic-match request and result schemas
   schemas/knowledge.py           # Versioned movie-knowledge record schemas
+  schemas/knowledge_expansion.py # Expansion request/result schemas
   utils/image.py                 # Safe base64 image decoder
   cache/                 # Runtime cache mount point
   Dockerfile
@@ -111,3 +115,14 @@ Character matching uses only a knowledge character's explicit `perception_labels
 - `PUT /api/v1/knowledge/{movie_id}` creates or updates a record and increments its revision.
 - `GET /api/v1/knowledge/{movie_id}` reads the latest record.
 - `POST /api/v1/knowledge/retrieve` returns the record plus an optional scene and timeline slice.
+
+## Phase 7: Knowledge Expansion
+
+`POST /api/v1/knowledge/expand` is the retrieval-first orchestration endpoint. Its input contains `movie_id`, `timestamp_seconds`, optional `scene_id`, and an image only for a potential miss.
+
+1. If the movie record exists, it is retrieved immediately. The image is not decoded, and YOLO, Florence, fusion, and GPT are not invoked.
+2. If no record exists, the engine decodes the image and runs the existing object-detection, scene-understanding, and perception-fusion services.
+3. It merges only observed entity labels, anchors, scene summary, environment, aliases, confidence, and observation-history items into a new `SemanticMovieKnowledge` record.
+4. The `FileKnowledgeStore` persists the next revision and the result returns a versioned cache key such as `movie-id:v1:scene-id`.
+
+The expansion engine never creates character identities, relationships, events, or dialogue from perception. `merge_observations` is exposed as a pure structured merge operation for future verified-update workflows; the endpoint's normal policy deliberately avoids reprocessing an existing record.
