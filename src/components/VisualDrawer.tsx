@@ -10,9 +10,10 @@ import { CauseEffectDiagram } from './diagrams/CauseEffectDiagram'
 import { ObjectDiagram } from './diagrams/ObjectDiagram'
 import type { AccessibilityPresentation } from '../services/backend/CompanionBackendService'
 
-type TabKey = 'relationships' | 'timeline' | 'emotion' | 'causeEffect' | 'object' | 'memory'
+type TabKey = 'story' | 'relationships' | 'timeline' | 'emotion' | 'causeEffect' | 'object' | 'memory'
 
 const tabs: { key: TabKey; label: string }[] = [
+  { key: 'story', label: 'Story Now' },
   { key: 'relationships', label: 'Relationships' },
   { key: 'timeline', label: 'Timeline' },
   { key: 'emotion', label: 'Emotion' },
@@ -92,6 +93,42 @@ export function VisualDrawer({ open, scene, presentation, onClose, onMouseEnter,
 
 function BackendDrawerContent({ activeTab, presentation }: { activeTab: TabKey; presentation: AccessibilityPresentation }) {
   const drawer = presentation
+  if (activeTab === 'story') {
+    const state = drawer.story_state
+    const story = drawer.live_story
+    if (!state && !story) return <p className="empty-aid">The live story memory is building from timestamped scenes.</p>
+    if (story) return (
+      <div className="diagram-grid" aria-label="Live story assistant">
+        <article className="diagram-node"><strong>Current Scene</strong><span>{story.current_scene} · {formatTime(story.current_timestamp)}</span></article>
+        <article className="diagram-node"><strong>Current Goal</strong><span>{story.current_goal ?? 'No active goal.'}</span></article>
+        <article className="diagram-node"><strong>Timeline Position</strong><span>{story.timeline_position ?? 'Learning the current story position.'}</span></article>
+        <article className="diagram-node"><strong>Characters</strong><span>{join(story.current_characters)}</span></article>
+        <article className="diagram-node"><strong>Emotions</strong><span>{join(story.current_emotions)}</span></article>
+        <article className="diagram-node"><strong>Relationships</strong><span>{join(story.current_relationships)}</span></article>
+        <article className="diagram-node"><strong>Recent Events</strong><span>{join(story.recent_events)}</span></article>
+        <article className="diagram-node"><strong>Story So Far</strong><span>{join(story.story_so_far)}</span></article>
+        <article className="diagram-node"><strong>Important Objects</strong><span>{join(story.important_objects)}</span></article>
+        <article className="diagram-node"><strong>Memory Reminders</strong><span>{join(story.memory_reminders)}</span></article>
+        <article className="diagram-node"><strong>Unresolved Threads</strong><span>{join(story.unresolved_story_threads)}</span></article>
+      </div>
+    )
+    if (state) return (
+      <div className="diagram-grid" aria-label="Live story assistant">
+        <article className="diagram-node"><strong>Current Scene</strong><span>{state.current_scene ?? 'Learning scene'} · {formatTime(state.current_timestamp)}</span></article>
+        <article className="diagram-node"><strong>Current Location</strong><span>{state.current_location ?? 'Not established yet.'}</span></article>
+        <article className="diagram-node"><strong>Current Goal</strong><span>{state.current_goal ?? 'No active goal.'}</span></article>
+        <article className="diagram-node"><strong>Characters</strong><span>{join(Object.values(state.known_characters).map((item) => item.name))}</span></article>
+        <article className="diagram-node"><strong>Emotions</strong><span>{join(Object.values(state.active_emotions))}</span></article>
+        <article className="diagram-node"><strong>Relationships</strong><span>{join(Object.values(state.known_relationships).map((item) => item.summary))}</span></article>
+        <article className="diagram-node"><strong>Recent Events</strong><span>{join(state.recent_events.map((item) => item.summary))}</span></article>
+        <article className="diagram-node"><strong>Story So Far</strong><span>{join(state.story_so_far.map((item) => item.summary))}</span></article>
+        <article className="diagram-node"><strong>Important Objects</strong><span>{join(Object.values(state.known_objects).map((item) => item.name))}</span></article>
+        <article className="diagram-node"><strong>Memory Reminders</strong><span>{join(state.memory_reminders.map((item) => item.summary))}</span></article>
+        <article className="diagram-node"><strong>Unresolved Threads</strong><span>{join(state.open_story_threads.map((item) => item.summary))}</span></article>
+      </div>
+    )
+    return <p className="empty-aid">The live story memory is building from timestamped scenes.</p>
+  }
   if (activeTab === 'relationships') {
     return (
       <div className="diagram-grid">
@@ -107,3 +144,6 @@ function BackendDrawerContent({ activeTab, presentation }: { activeTab: TabKey; 
   if (activeTab === 'object') return drawer.vocabulary_assistance.length ? <div className="object-diagram">{drawer.vocabulary_assistance.map((item) => <article key={item.term}><h4>{item.term}</h4><p>{item.simple_definition}</p></article>)}</div> : <p className="empty-aid">No vocabulary help is available yet.</p>
   return drawer.memory_reminders.length ? <ol className="timeline-diagram">{drawer.memory_reminders.map((item, index) => <li key={`${item.summary}-${index}`}><span>Earlier</span><strong>{item.summary}</strong></li>)}</ol> : <p className="empty-aid">No memory reminder is available yet.</p>
 }
+
+function join(values: string[]) { return values.length ? values.join(' · ') : 'None yet.' }
+function formatTime(seconds: number) { return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` }

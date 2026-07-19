@@ -56,3 +56,5 @@ class ReasoningContext(BaseModel):
     conversation_claims: list[SemanticClaim] = Field(default_factory=list)
     previous_explanations: list[PreviousExplanation] = Field(default_factory=list)
     unresolved_questions: list[UnresolvedQuestion] = Field(default_factory=list)
+    # Semantic-only projection of durable movie memory for accessibility.
+    live_story: dict[str, object] = Field(default_factory=dict)

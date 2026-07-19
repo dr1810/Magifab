@@ -5,7 +5,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.knowledge import VisualAnchor
 from schemas.profiles import AccessibilityProfile, CompanionProfile
-from schemas.reasoning_context import ReasoningContext
+from schemas.profiles import AccessibilityProfile
+from schemas.story_state import StoryState
+from schemas.timeline_memory import TimelineState
 
 class PromptBubbleSuggestion(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -15,6 +17,10 @@ class PromptBubbleSuggestion(BaseModel):
     question: str
     priority: int = Field(ge=1)
     claim_ids: list[str] = Field(default_factory=list)
+    timestamp_start: float | None = Field(default=None, ge=0)
+    timestamp_end: float | None = Field(default=None, ge=0)
+    semantic_event: str | None = None
+    screen_location: str = "bottom-right"
 
 
 class CharacterCard(BaseModel):
@@ -84,7 +90,26 @@ class AccessibilityDrawerContent(BaseModel):
     conversation_simplifications: list[ConversationSimplification] = Field(default_factory=list)
 
 
+class LiveStoryAssistant(BaseModel):
+    """Timestamped persistent-memory snapshot for the visual drawer."""
+    model_config = ConfigDict(extra="forbid")
+    current_scene: str
+    current_timestamp: float = Field(ge=0)
+    current_goal: str | None = None
+    current_characters: list[str] = Field(default_factory=list)
+    current_emotions: list[str] = Field(default_factory=list)
+    current_relationships: list[str] = Field(default_factory=list)
+    recent_events: list[str] = Field(default_factory=list)
+    timeline_position: str | None = None
+    story_so_far: list[str] = Field(default_factory=list)
+    important_objects: list[str] = Field(default_factory=list)
+    memory_reminders: list[str] = Field(default_factory=list)
+    unresolved_story_threads: list[str] = Field(default_factory=list)
+
+
 class AccessibilityReasoningRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    context: ReasoningContext
+    story_state: StoryState
+    timeline_state: TimelineState | None = None
+    accessibility_profile: AccessibilityProfile
     companion_profile: CompanionProfile

@@ -50,7 +50,7 @@ class KnowledgeExpansionEngine:
         observation_factory: ObservationFactory | None = None,
         graph_builder: SemanticGraphBuilder | None = None,
         movie_knowledge_provider: MovieKnowledgeProvider | None = None,
-        cache_version: int = 18,
+        cache_version: int = 21,
     ):
         self._store = store
         self._retriever = retriever
@@ -74,6 +74,12 @@ class KnowledgeExpansionEngine:
             request.movie_id, catalog is not None,
             catalog.movie_knowledge_version if catalog else None, (perf_counter() - catalog_started) * 1000,
         )
+        if catalog is not None:
+            logger.info(
+                "[TRACE][KNOWLEDGE] movie=%s characters=%d relationships=%d events=%d timeline=%d emotions=%d scenes=%d",
+                catalog.movie_id, len(catalog.characters), len(catalog.relationships), len(catalog.events),
+                len(catalog.timeline_positions), len(catalog.emotions), len(catalog.movie_scenes),
+            )
         retrieval_started = perf_counter()
         retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
             movie_id=request.movie_id,
@@ -95,25 +101,54 @@ class KnowledgeExpansionEngine:
                 record=retrieval.record,
                 scene_summary=retrieval.scene_summary,
             )
+        # Persist the entire curated graph before a frame is interpreted. This
+        # is the movie-level baseline: scene windows add observations to it but
+        # can never make the story disappear when a detector misses a frame.
+        if catalog is not None and retrieval.record is None:
+            baseline = _runtime_knowledge(catalog, None, request.movie_id, self._cache_version)
+            baseline_record = self._store.save(baseline)
+            logger.info(
+                "[TRACE][KNOWLEDGE_PERSISTENCE] baseline_saved=yes key=%s revision=%d characters=%d relationships=%d events=%d timeline=%d",
+                _movie_knowledge_key(request.movie_id, self._cache_version), baseline_record.revision,
+                len(baseline.characters), len(baseline.relationships), len(baseline.events), len(baseline.timeline_positions),
+            )
         if image is None:
             raise ValueError("image is required when movie knowledge or the requested scene is missing")
 
         logger.info("[TRACE][CACHE] semantic_map_replayed=no movie=%s scene=%s frame_hash=%s key=%s perception_rebuilt=yes semantic_rebuilt=yes retrieval_rebuilt=yes", request.movie_id, request.scene_id, request.frame_hash, cache_key)
+        # Movie knowledge is the perception plan.  Establish it before any
+        # image model runs so a generic detector/caption can never decide what
+        # this frame is "about".
+        base_knowledge = _runtime_knowledge(catalog, retrieval.record.knowledge if retrieval.record else None, request.movie_id, self._cache_version)
+        expected = _expected_scene_entities(base_knowledge, request.scene_id, request.timestamp_seconds)
+        catalog_window = next((item for item in base_knowledge.movie_scenes if item.scene_id == expected["scene_id"]), None)
+        logger.info(
+            "[TRACE][KNOWLEDGE_WINDOW] movie=%s knowledge_key=%s scene=%s start=%s end=%s overlap_seconds=%d",
+            request.movie_id, _movie_knowledge_key(request.movie_id, self._cache_version), expected["scene_id"],
+            catalog_window.start_seconds if catalog_window else None, catalog_window.end_seconds if catalog_window else None, 5,
+        )
+        grounding_queries = _grounding_queries(request.grounding_queries, expected, base_knowledge)
+        logger.info(
+            "[TRACE][EXPECTED_ENTITIES] movie=%s scene=%s characters=%s objects=%s locations=%s events=%s",
+            request.movie_id, expected["scene_id"], expected["characters"], expected["objects"], expected["locations"], expected["events"],
+        )
+        logger.info("[TRACE][GROUNDING_DINO_QUERIES] movie=%s scene=%s queries=%s", request.movie_id, expected["scene_id"], grounding_queries)
+
         yolo_started = perf_counter()
         detection = self._detector.detect(image)
         logger.info("[TRACE][YOLO] executed=yes input=%dx%d output_detections=%d duration_ms=%.1f", image.width, image.height, len(detection.detections), (perf_counter() - yolo_started) * 1000)
-        florence_started = perf_counter()
-        understanding = self._vision.understand(image)
-        logger.info("[TRACE][FLORENCE] executed=yes caption=%r output_objects=%s actions=%s interactions=%d duration_ms=%.1f", understanding.scene_description, understanding.important_objects, understanding.detected_actions, len(understanding.interactions), (perf_counter() - florence_started) * 1000)
-        base_knowledge = _runtime_knowledge(catalog, retrieval.record.knowledge if retrieval.record else None, request.movie_id, self._cache_version)
-        # Grounding is part of preparation, not an interaction-time fallback.
-        # Use caller hints when available and otherwise ground labels observed by
-        # YOLO in this exact frame. This keeps queries evidence-led and supports
-        # arbitrary uploaded movies without hard-coded object names.
-        grounding_queries = _grounding_queries(request.grounding_queries, detection.detections, base_knowledge)
         grounding_started = perf_counter()
         grounding = self._grounder.locate(image, grounding_queries) if grounding_queries else None
         logger.info("[TRACE][GROUNDING_DINO] executed=%s input_queries=%d output_matches=%d duration_ms=%.1f", bool(grounding_queries), len(grounding_queries), len(grounding.matches) if grounding else 0, (perf_counter() - grounding_started) * 1000)
+        logger.info("[TRACE][ENTITIES_CONFIRMED] movie=%s entities=%s", request.movie_id, [match.matched_object for match in grounding.matches] if grounding else [])
+        logger.info("[TRACE][ENTITIES_REJECTED] movie=%s entities=%s", request.movie_id, [query for query in grounding_queries if not grounding or query.lower() not in {match.matched_object.lower() for match in grounding.matches}])
+        # Florence runs after catalog-driven grounding.  Its output is retained
+        # only as atmosphere/action enrichment; it is never identity evidence.
+        florence_started = perf_counter()
+        understanding = self._vision.understand(image)
+        accepted_enrichment, discarded_enrichment = _florence_enrichment(understanding)
+        logger.info("[TRACE][FLORENCE_ENRICHMENT] accepted=%s discarded=%s", accepted_enrichment, discarded_enrichment)
+        logger.info("[TRACE][FLORENCE] executed=yes caption=%r output_objects=%s actions=%s interactions=%d duration_ms=%.1f", understanding.scene_description, understanding.important_objects, understanding.detected_actions, len(understanding.interactions), (perf_counter() - florence_started) * 1000)
         faces = self._face_verifier.verify(image, base_knowledge) if request.verify_faces and base_knowledge.face_references else None
         fusion_started = perf_counter()
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
@@ -148,7 +183,7 @@ class KnowledgeExpansionEngine:
         )
         log_claims("SemanticGraphBuilder.output", claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         logger.info(
-            "[TRACE][SEMANTIC_GRAPH_BUILDER] executed=yes observation_id=%s raw_caption_retained=yes claims=%d claim_kinds=%s",
+            "[TRACE][SEMANTIC_GRAPH_BUILDER] executed=yes observation_id=%s raw_caption_retained=observation_only claims=%d claim_kinds=%s",
             observation.id, len(claims), sorted({claim.kind for claim in claims}),
         )
         knowledge = self.merge_observations(base_knowledge, request, perception, semantic_matches, observation, claims)
@@ -282,9 +317,14 @@ class KnowledgeExpansionEngine:
 
 
 def _cache_key(movie_id: str, cache_version: int, scene_id: str | None, timestamp_seconds: float, frame_hash: str | None) -> str:
+    """Scene knowledge is movie-level; a frame fingerprint only validates input."""
     scene_key = scene_id or f"t{int(timestamp_seconds)}"
-    frame_key = frame_hash[:16] if frame_hash else "no-frame"
-    return f"{movie_id}:v{cache_version}:{scene_key}:t{timestamp_seconds:.3f}:h{frame_key}"
+    return f"{movie_id}:v{cache_version}:scene:{scene_key}"
+
+
+def _movie_knowledge_key(movie_id: str, cache_version: int) -> str:
+    """Stable persistent key for the whole movie graph, independent of frames."""
+    return f"{movie_id}:v{cache_version}:knowledge"
 
 
 def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version: int, catalog_version: int | None = None) -> bool:
@@ -299,16 +339,12 @@ def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version:
         return False
     if catalog_version is not None and retrieval.record.knowledge.movie_knowledge_version != catalog_version:
         return False
-    # /respond has no image. It can read a current scene record, but it never
-    # runs perception or writes a cache. /prepare always provides a fingerprint
-    # and must match all four identity components.
+    # A frame validates initial perception but is not knowledge identity. Once
+    # a catalog scene has a prepared graph, later frames in that scene reuse
+    # the persistent movie context rather than overwriting it.
     if request.frame_hash is None:
         return True
-    return (
-        summary.scene_id == (request.scene_id or summary.scene_id)
-        and abs(summary.start_seconds - request.timestamp_seconds) < 0.001
-        and summary.frame_hash == request.frame_hash
-    )
+    return summary.scene_id == (request.scene_id or summary.scene_id)
 
 
 def _stable_id(kind: str, label: str) -> str:
@@ -326,16 +362,41 @@ def _unique_entities(entities):
     return unique
 
 
-def _grounding_queries(requested: list[str], detections, knowledge: SemanticMovieKnowledge) -> list[str]:
-    """Ground current-frame labels plus trusted catalog aliases, never guessed identities."""
+def _expected_scene_entities(knowledge: SemanticMovieKnowledge, scene_id: str | None, timestamp_seconds: float) -> dict[str, object]:
+    """Return the catalog entities expected at this exact scene/time.
+
+    This is deliberately independent of YOLO and Florence: those models may
+    confirm an expectation, but cannot expand the movie's cast for a frame.
+    """
+    scene = next((item for item in knowledge.movie_scenes if item.scene_id == scene_id), None)
+    scene = scene or next((item for item in knowledge.movie_scenes if item.start_seconds <= timestamp_seconds <= item.end_seconds), None)
+    character_ids = set(scene.character_ids) if scene else set()
+    object_ids = set(scene.object_ids) if scene else set()
+    event_ids = set(scene.event_ids) if scene else set()
+    return {
+        "scene_id": scene.scene_id if scene else scene_id,
+        "characters": [item.name for item in knowledge.characters if item.id in character_ids],
+        "character_labels": [label for item in knowledge.characters if item.id in character_ids for label in item.perception_labels],
+        "objects": [item.name for item in knowledge.objects if item.id in object_ids],
+        "locations": [item.name for item in knowledge.locations],
+        "events": [item.description for item in knowledge.events if item.id in event_ids],
+        "event_terms": [term for item in knowledge.events if item.id in event_ids for term in item.evidence_terms],
+        "catalog_available": scene is not None,
+    }
+
+
+def _grounding_queries(requested: list[str], expected: dict[str, object], knowledge: SemanticMovieKnowledge) -> list[str]:
+    """Generate DINO phrases from expected scene entities, never YOLO labels.
+
+    Unsupported movies retain caller-provided queries for compatibility.  For
+    catalog movies, caller hints are supplemental only and generic detections
+    are intentionally excluded.
+    """
     catalog_labels = [
-        label for character in knowledge.characters
-        for label in [*character.perception_labels, character.name]
-    ] + [
-        label for item in knowledge.objects
-        for label in [*item.perception_labels, item.name]
+        *expected["characters"], *expected["character_labels"], *expected["objects"],
+        *expected["locations"], *expected["event_terms"],
     ]
-    candidates = [*requested, *(detection.label for detection in detections), *catalog_labels]
+    candidates = [*catalog_labels, *requested] if expected["catalog_available"] else [*requested]
     queries: list[str] = []
     seen: set[str] = set()
     for value in candidates:
@@ -347,6 +408,15 @@ def _grounding_queries(requested: list[str], detections, knowledge: SemanticMovi
         if len(queries) == 20:
             break
     return queries
+
+
+def _florence_enrichment(understanding) -> tuple[list[str], list[str]]:
+    """Audit Florence output without allowing environmental captions into claims."""
+    environmental = ("sky", "tree", "trees", "grass", "landscape", "blue sky", "green grass")
+    values = [understanding.scene_description, understanding.environment, *understanding.detected_actions, *understanding.important_objects, *understanding.interactions]
+    accepted = [value for value in values if value and not any(term in value.lower() for term in environmental)]
+    discarded = [value for value in values if value and value not in accepted]
+    return accepted, discarded
 
 
 def _runtime_knowledge(

@@ -1,0 +1,276 @@
+{
+  "movie_id": "bigBuckBunny",
+  "characters": {
+    "character-big-buck-bunny": {
+      "id": "character-big-buck-bunny",
+      "name": "Big Buck Bunny",
+      "first_seen": 1.0,
+      "last_seen": 1.0,
+      "appearances": [
+        1.0
+      ],
+      "current_location": "bbb-01",
+      "current_emotion": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "relationships": [],
+      "known_objects": [],
+      "important_event_ids": [
+        "claim-d96d54fca02e08b2",
+        "claim-732416938d7515c9"
+      ]
+    }
+  },
+  "objects": {},
+  "locations": {
+    "bbb-01": {
+      "id": "bbb-01",
+      "name": "Big Buck Bunny's quiet forest routine.",
+      "first_seen": 1.0,
+      "last_seen": 1.0,
+      "event_ids": [
+        "claim-d96d54fca02e08b2",
+        "claim-732416938d7515c9"
+      ],
+      "characters_present": [
+        "character-big-buck-bunny"
+      ],
+      "objects_present": [],
+      "importance": 1.0
+    },
+    "bbb-03": {
+      "id": "bbb-03",
+      "name": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "first_seen": 341.491298,
+      "last_seen": 341.491298,
+      "event_ids": [
+        "claim-17350cdb6fde1d38"
+      ],
+      "characters_present": [],
+      "objects_present": [],
+      "importance": 1.0
+    }
+  },
+  "events": {
+    "claim-d96d54fca02e08b2": {
+      "event_id": "claim-d96d54fca02e08b2",
+      "timestamp": 1.0,
+      "description": "appears_in",
+      "characters_involved": [
+        "character-big-buck-bunny"
+      ],
+      "location_id": "bbb-01",
+      "object_ids": [],
+      "cause": null,
+      "effect": null,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "observations": 1,
+      "claim": {
+        "id": "claim-d96d54fca02e08b2",
+        "kind": "timeline_change",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "appears_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-95f8d9a4b2a926b0a19a"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": []
+      }
+    },
+    "claim-732416938d7515c9": {
+      "event_id": "claim-732416938d7515c9",
+      "timestamp": 1.0,
+      "description": "Big Buck Bunny's quiet forest routine.",
+      "characters_involved": [
+        "character-big-buck-bunny"
+      ],
+      "location_id": "bbb-01",
+      "object_ids": [],
+      "cause": null,
+      "effect": "Big Buck Bunny's quiet forest routine.",
+      "importance_score": 2.0,
+      "confidence": 0.9,
+      "observations": 1,
+      "claim": {
+        "id": "claim-732416938d7515c9",
+        "kind": "timeline_change",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "timeline-opening",
+        "predicate": "active_at",
+        "object_id": "bbb-01",
+        "value": "Big Buck Bunny's quiet forest routine.",
+        "confidence": 0.9,
+        "observation_ids": [
+          "observation-95f8d9a4b2a926b0a19a"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "timeline-opening"
+        ]
+      }
+    },
+    "claim-17350cdb6fde1d38": {
+      "event_id": "claim-17350cdb6fde1d38",
+      "timestamp": 341.491298,
+      "description": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "characters_involved": [],
+      "location_id": "bbb-03",
+      "object_ids": [],
+      "cause": null,
+      "effect": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "importance_score": 2.0,
+      "confidence": 0.9,
+      "observations": 1,
+      "claim": {
+        "id": "claim-17350cdb6fde1d38",
+        "kind": "timeline_change",
+        "scene_id": "bbb-03",
+        "timestamp_seconds": 341.491298,
+        "subject_id": "timeline-conflict",
+        "predicate": "active_at",
+        "object_id": "bbb-03",
+        "value": "The rodents' pranks lead Big Buck Bunny to respond.",
+        "confidence": 0.9,
+        "observation_ids": [
+          "observation-2f7782e6e7cc6c4065fc"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "timeline-conflict"
+        ]
+      }
+    }
+  },
+  "relationships": {},
+  "timeline": [
+    "claim-d96d54fca02e08b2",
+    "claim-732416938d7515c9",
+    "claim-17350cdb6fde1d38"
+  ],
+  "emotions": [
+    {
+      "id": "claim-2731f4e79c43d64b",
+      "timestamp": 1.0,
+      "character_id": "character-big-buck-bunny",
+      "emotion": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "confidence": 1.0,
+      "claim": {
+        "id": "claim-2731f4e79c43d64b",
+        "kind": "emotion",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "feels",
+        "object_id": "bbb-01",
+        "value": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-95f8d9a4b2a926b0a19a"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "emotion-buck-calm"
+        ]
+      }
+    }
+  ],
+  "conversations": [],
+  "scene_history": [
+    {
+      "scene_id": "bbb-01",
+      "timestamp": 1.0,
+      "claim_ids": [
+        "claim-60f7a2d95ae0d74d",
+        "claim-d96d54fca02e08b2",
+        "claim-732416938d7515c9",
+        "claim-2731f4e79c43d64b",
+        "claim-1b23c6556a574c8c"
+      ],
+      "character_ids": [
+        "character-big-buck-bunny"
+      ],
+      "object_ids": [],
+      "location_id": "bbb-01",
+      "event_ids": [
+        "claim-d96d54fca02e08b2",
+        "claim-732416938d7515c9"
+      ]
+    },
+    {
+      "scene_id": "bbb-03",
+      "timestamp": 341.491298,
+      "claim_ids": [
+        "claim-17350cdb6fde1d38",
+        "claim-410a2d0aa60c8d51"
+      ],
+      "character_ids": [],
+      "object_ids": [],
+      "location_id": "bbb-03",
+      "event_ids": [
+        "claim-17350cdb6fde1d38"
+      ]
+    }
+  ],
+  "attention_history": [
+    {
+      "claim_id": "claim-d96d54fca02e08b2",
+      "importance_score": 2.0,
+      "character_change": 0.0,
+      "relationship_change": 0.0,
+      "plot_relevance": 2.0,
+      "emotional_change": 0.0
+    },
+    {
+      "claim_id": "claim-732416938d7515c9",
+      "importance_score": 2.0,
+      "character_change": 0.0,
+      "relationship_change": 0.0,
+      "plot_relevance": 2.0,
+      "emotional_change": 0.0
+    },
+    {
+      "claim_id": "claim-2731f4e79c43d64b",
+      "importance_score": 1.5,
+      "character_change": 0.0,
+      "relationship_change": 0.0,
+      "plot_relevance": 0.0,
+      "emotional_change": 1.5
+    },
+    {
+      "claim_id": "claim-17350cdb6fde1d38",
+      "importance_score": 2.0,
+      "character_change": 0.0,
+      "relationship_change": 0.0,
+      "plot_relevance": 2.0,
+      "emotional_change": 0.0
+    }
+  ],
+  "prompt_history": [
+    {
+      "prompt_id": "timeline-timeline-opening",
+      "timestamp": 1.0,
+      "claim_ids": [
+        "claim-732416938d7515c9"
+      ]
+    },
+    {
+      "prompt_id": "fallback-character-character-big-buck-bunny",
+      "timestamp": 1.0,
+      "claim_ids": [
+        "claim-60f7a2d95ae0d74d"
+      ]
+    },
+    {
+      "prompt_id": "timeline-timeline-conflict",
+      "timestamp": 341.491298,
+      "claim_ids": [
+        "claim-17350cdb6fde1d38"
+      ]
+    }
+  ]
+}

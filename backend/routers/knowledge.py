@@ -17,7 +17,7 @@ def save_knowledge(
 ) -> KnowledgeRecord:
     """Create a record or atomically store the next revision of a movie knowledge graph."""
     if movie_id != knowledge.movie_id:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="movie_id path and knowledge.movie_id must match")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="movie_id path and knowledge.movie_id must match")
     return store.save(knowledge)
 
 

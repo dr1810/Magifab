@@ -10,7 +10,9 @@ from schemas.accessibility_reasoning import (
     RelationshipSummary,
     TimelineSummary,
     VocabularyAssistance,
+    LiveStoryAssistant,
 )
+from schemas.story_state import StoryState
 
 
 class AccessibilityPresentation(BaseModel):
@@ -25,3 +27,7 @@ class AccessibilityPresentation(BaseModel):
     vocabulary_assistance: list[VocabularyAssistance] = Field(default_factory=list)
     memory_reminders: list[MemoryReminder] = Field(default_factory=list)
     conversation_simplifications: list[ConversationSimplification] = Field(default_factory=list)
+    live_story: LiveStoryAssistant | None = None
+    # Canonical frontend state. Legacy presentation fields remain projections
+    # for existing clients, but originate exclusively from this snapshot.
+    story_state: StoryState | None = None

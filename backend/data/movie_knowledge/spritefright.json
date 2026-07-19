@@ -1,6 +1,6 @@
 {
   "movie_id": "spriteFright",
-  "movie_knowledge_version": 1,
+  "movie_knowledge_version": 2,
   "cache_version": 18,
   "official_title": "Sprite Fright",
   "plot_summary": "A group of teenagers enters an isolated British forest and encounters peaceful mushroom sprites that become an unexpected force of nature.",
@@ -21,5 +21,9 @@
   "objects": [{"id": "object-mushroom", "name": "Mushroom", "perception_labels": ["mushroom"], "aliases": ["mushroom"], "confidence": 0.95}],
   "events": [{"id": "event-sprites-encountered", "description": "The teenagers encounter the mushroom sprites in the forest.", "evidence_terms": ["sprite", "forest"]}],
   "timeline_positions": [{"id": "timeline-forest-arrival", "start_seconds": 0, "end_seconds": 180, "description": "The teenagers enter the isolated forest."}, {"id": "timeline-sprite-encounter", "start_seconds": 180, "end_seconds": 660, "description": "The group encounters the mushroom sprites."}],
+  "emotions": [
+    {"id": "emotion-ellie-curious", "scene_id": "sf-01", "character_id": "character-ellie", "emotion": "Ellie is alert and curious as the group enters the forest.", "evidence": "Curated opening-scene story context.", "confidence": 1.0},
+    {"id": "emotion-group-wary", "scene_id": "sf-02", "emotion": "The group becomes wary when they encounter the mushroom sprites.", "evidence": "Curated encounter-scene story context.", "confidence": 1.0}
+  ],
   "movie_scenes": [{"scene_id": "sf-01", "start_seconds": 0, "end_seconds": 180, "description": "The group enters the isolated forest.", "character_ids": ["character-ellie", "character-rex", "character-jay", "character-victoria", "character-phil"]}, {"scene_id": "sf-02", "start_seconds": 180, "end_seconds": 390, "description": "The group encounters the mushroom sprites.", "character_ids": ["character-ellie", "character-rex", "character-jay", "character-victoria", "character-phil", "character-sprite"], "event_ids": ["event-sprites-encountered"]}]
 }

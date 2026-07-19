@@ -1,9 +1,13 @@
 """Retrieves a bounded graph-only context for the accessibility reasoner."""
+import logging
+
 from schemas.knowledge import SemanticMovieKnowledge
 from schemas.profiles import AccessibilityProfile
 from schemas.reasoning_context import ContextRelationship, ReasoningContext, ReasoningEntity
 from config import get_settings
 from services.semantic_claim_audit import log_claims
+
+logger = logging.getLogger(__name__)
 
 
 class ReasoningContextBuilder:
@@ -44,16 +48,7 @@ class ReasoningContextBuilder:
             active_objects=_entities(active_object_claims, object_by_id),
             timeline=timeline,
             timeline_claim_ids=[claim.id for claim in timeline_claims],
-            relationships=[
-                ContextRelationship(
-                    id=relationship.id,
-                    description=relationship.description,
-                    confidence=min(character_by_id[relationship.from_character_id].confidence, character_by_id[relationship.to_character_id].confidence),
-                    claim_ids=[claim.id for claim in relationship_claims if claim.subject_id == relationship.id],
-                )
-                for relationship in relationships
-                if relationship.from_character_id in character_by_id and relationship.to_character_id in character_by_id
-            ],
+            relationships=_context_relationships(relationships, relationship_claims, character_by_id),
             previous_events=[
                 claim for claim in knowledge.semantic_claims
                 if claim.kind == "event" and claim.timestamp_seconds < timestamp_seconds
@@ -67,6 +62,13 @@ class ReasoningContextBuilder:
             conversation_claims=[claim for claim in scene_claims if claim.kind == "callback" and claim.predicate == "dialogue"],
         )
         log_claims("ReasoningContextBuilder.output", context.semantic_scene, movie_id=knowledge.movie_id, scene_id=scene_id)
+        logger.info(
+            "[TRACE][REASONING_CONTEXT] movie=%s scene=%s semantic_claims=%d character_claims=%d "
+            "timeline_claims=%d relationship_claims=%d active_characters=%s timeline=%s",
+            knowledge.movie_id, scene_id, len(scene_claims), len(active_character_claims),
+            len(timeline_claims), len(relationship_claims), [entity.id for entity in context.active_characters],
+            context.timeline.id if context.timeline else None,
+        )
         return context
 
 
@@ -86,5 +88,23 @@ def _entities(claims, entities_by_id) -> list[ReasoningEntity]:
             name=entity.name,
             confidence=max(claim.confidence for claim in entity_claims),
             claim_ids=[claim.id for claim in entity_claims],
+        ))
+    return result
+
+
+def _context_relationships(relationships, relationship_claims, character_by_id) -> list[ContextRelationship]:
+    """A relationship is admissible only with graph evidence, never catalog text alone."""
+    result = []
+    for relationship in relationships:
+        if relationship.from_character_id not in character_by_id or relationship.to_character_id not in character_by_id:
+            continue
+        claim_ids = [claim.id for claim in relationship_claims if claim.subject_id == relationship.id]
+        if not claim_ids:
+            logger.info("[RELATIONSHIP LIFECYCLE] relationship=%s skipped=no_supporting_claims", relationship.id)
+            continue
+        result.append(ContextRelationship(
+            id=relationship.id, description=relationship.description,
+            confidence=min(character_by_id[relationship.from_character_id].confidence, character_by_id[relationship.to_character_id].confidence),
+            claim_ids=claim_ids,
         ))
     return result

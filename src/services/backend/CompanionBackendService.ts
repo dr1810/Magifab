@@ -21,7 +21,7 @@ export type BackendConversationSimplification = { dialogue_id: string; simple_te
 
 export type AccessibilityPresentation = {
   scene_explanation: string
-  prompt_bubbles: Array<{ id: string; kind: string; label: string; question: string; priority: number }>
+  prompt_bubbles: Array<{ id: string; kind: string; label: string; question: string; priority: number; claim_ids?: string[]; timestamp_start?: number; timestamp_end?: number; semantic_event?: string; screen_location?: string }>
   character_cards: BackendCharacterCard[]
   relationship_summaries: BackendRelationshipSummary[]
   timeline_summary: BackendTimelineSummary | null
@@ -29,6 +29,35 @@ export type AccessibilityPresentation = {
   memory_reminders: BackendMemoryReminder[]
   vocabulary_assistance: BackendVocabularyAssistance[]
   conversation_simplifications: BackendConversationSimplification[]
+  live_story?: {
+    current_scene: string
+    current_timestamp: number
+    current_goal?: string | null
+    current_characters: string[]
+    current_emotions: string[]
+    current_relationships: string[]
+    recent_events: string[]
+    timeline_position: string | null
+    story_so_far: string[]
+    important_objects: string[]
+    memory_reminders: string[]
+    unresolved_story_threads: string[]
+  } | null
+  story_state?: {
+    movie_id: string
+    current_scene: string | null
+    current_timestamp: number
+    current_location: string | null
+    current_goal: string | null
+    active_emotions: Record<string, string>
+    known_characters: Record<string, { id: string; name: string; first_seen_timestamp: number; last_seen_timestamp: number; total_screen_time: number; current_visibility: boolean; associated_events: string[]; relationships: string[] }>
+    known_relationships: Record<string, { id: string; summary: string; supporting_claim_ids: string[]; first_seen_timestamp: number; last_seen_timestamp: number; associated_events: string[] }>
+    known_objects: Record<string, { id: string; name: string; entity_type: string }>
+    recent_events: Array<{ event_id: string; summary: string; event_type: string; timestamp_start: number; timestamp_end: number }>
+    story_so_far: Array<{ event_id: string; summary: string }>
+    open_story_threads: Array<{ event_id: string; summary: string }>
+    memory_reminders: Array<{ event_id: string; summary: string }>
+  } | null
 }
 
 export type CompanionBackendResponse = {

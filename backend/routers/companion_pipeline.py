@@ -25,8 +25,9 @@ def respond(
     """Prompt interaction is retrieval-only: no image decoding, perception, or GPT work is allowed."""
     try:
         return service.respond(request)
-    except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)) from error
+    except (ValueError, AssertionError) as error:
+        logger.exception("[TIMELINE RESOLUTION] respond degraded to empty semantic state")
+        return service.empty_response(request, str(error))
     except PersonalizationConfigurationError as error:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="GPT personalization is not configured") from error
     except PersonalizationProviderError as error:
@@ -70,6 +71,10 @@ def prepare_scene(
         )
         return response
     except InvalidFrameError as error:
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"error": "invalid_frame", "reason": error.reason})
-    except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)) from error
+        # A rejected optional representative frame must not make timestamp
+        # playback unavailable. Return an empty, contract-valid timeline state.
+        logger.warning("[TIMELINE RESOLUTION] prepare degraded to empty state invalid_frame=%s", error.reason)
+        return service.empty_preparation(request, error.reason)
+    except (ValueError, AssertionError) as error:
+        logger.exception("[TIMELINE RESOLUTION] prepare degraded to empty semantic state")
+        return service.empty_preparation(request, str(error))

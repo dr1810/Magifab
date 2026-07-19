@@ -48,25 +48,29 @@ class SemanticMatchingService(SemanticMatcher):
 
     def _match_characters(self, scene, knowledge, catalog_scene, nearby_scenes, timestamp_seconds):
         """Separate scene membership from evidence-weighted visual presence."""
-        character_by_id = {character.id: character for character in knowledge.characters}
         participant_ids = set(catalog_scene.character_ids) if catalog_scene else set()
         direct_evidence = _direct_character_evidence(scene, knowledge)
-        candidate_ids = participant_ids | set(direct_evidence)
+        # For a catalog scene, its cast list is the authoritative scope. A
+        # detector alias outside that scope must not surface a global movie
+        # character in this scene's cards. Unsupported scenes retain the
+        # evidence-only fallback for backward compatibility.
+        candidate_ids = participant_ids if catalog_scene is not None else set(direct_evidence)
         previous = _previous_presence(knowledge, timestamp_seconds)
         nearby_ids = {item for nearby in nearby_scenes for item in nearby.character_ids}
         matches: list[CharacterMatch] = []
 
-        for character_id in candidate_ids:
-            character = character_by_id.get(character_id)
-            if character is None:
-                continue
+        # Preserve catalog declaration order so prepared cards are stable for
+        # the same movie/scene/timestamp across process restarts.
+        for character in (item for item in knowledge.characters if item.id in candidate_ids):
+            character_id = character.id
             direct = direct_evidence.get(character_id)
             scores = {
                 "scene_catalogue": 1.0 if character_id in participant_ids else 0.0,
                 "timeline": 0.95 if catalog_scene is not None else 0.0,
                 "visual_detection": direct["visual"] if direct else 0.0,
                 "grounding": direct["grounding"] if direct else 0.0,
-                "caption": direct["caption"] if direct else 0.0,
+                # Captions describe a frame but never identify its cast.
+                "caption": 0.0,
                 "temporal_continuity": previous.get(character_id, 0.0),
             }
             confidence = _presence_confidence(scores)
@@ -114,7 +118,10 @@ class SemanticMatchingService(SemanticMatcher):
                 continue
             obj = candidates[0]
             confidence = entity.confidence if entity.confidence is not None else 0.5
-            if confidence >= self._threshold or "scene_understanding" in entity.sources:
+            # Florence's text-only object list is descriptive enrichment, not
+            # visibility proof.  Only a boxed detector/grounding result can
+            # promote a catalog object into the semantic graph.
+            if confidence >= self._threshold and any(source in {"object_detection", "object_grounding"} for source in entity.sources):
                 matches.append(MatchedFact(id=obj.id, label=obj.name, confidence=max(confidence, 0.8),
                                            evidence=[f"entity:{entity.label}", "catalog_object_alias"]))
         return _unique_facts(matches)
@@ -232,9 +239,6 @@ def _direct_character_evidence(scene, knowledge):
         if "object_grounding" in entity.sources:
             item["grounding"] = max(item["grounding"], score)
             item["evidence"].append(f"grounding_identity:{entity.label}")
-        if "scene_understanding" in entity.sources:
-            item["caption"] = max(item["caption"], score)
-            item["evidence"].append(f"caption_identity:{entity.label}")
     return result
 
 
@@ -253,6 +257,10 @@ def _presence_confidence(scores: dict[str, float]) -> float:
 
 def _presence_state(confidence: float, direct, threshold: float) -> str:
     if direct and direct["face_verified"]:
+        return "visually_confirmed"
+    # A successful DINO match was queried from the current scene's catalog;
+    # it is direct visibility confirmation, not a caption guess.
+    if direct and direct["grounding"] > 0:
         return "visually_confirmed"
     return "likely_present" if confidence >= threshold else "scene_member"
 

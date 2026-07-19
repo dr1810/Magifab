@@ -43,6 +43,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const promptAbortControllerRef = useRef<AbortController | null>(null)
   const frameCaptureRef = useRef<(() => Promise<CapturedVideoFrame>) | null>(null)
   const preparedFrameRef = useRef<CapturedVideoFrame | null>(null)
+  // Preparation is progressive: each canonical movie scene is prepared at
+  // most once. The backend merges these scene windows into one movie graph.
   const preparedSceneIdsRef = useRef<Set<string>>(new Set())
   const preparationEffectCountRef = useRef(0)
   const latestPreparationInputsRef = useRef({ settings, profile })
@@ -95,18 +97,19 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     // movie. Scene updates from the mounted video must not erase its prompts.
     setAccessibilityPresentation(null)
     setPreparedScene(null)
-    preparedSceneIdsRef.current.delete(movie)
+    preparedSceneIdsRef.current.clear()
   }, [movie])
 
   useEffect(() => {
     const effectCount = ++preparationEffectCountRef.current
     if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare effect', { effectCount, movieId: movieData?.id, sceneId: scene?.sceneId, frameCaptureAvailable })
-    // Prepare belongs to the Loading Experience gate; canplay only makes the
-    // already-owned frame capture available.
-    if (preparation.phase !== 'preparing' || !movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(movieData.id)) return
+    // The opening scene gates playback; subsequent canonical scenes are
+    // prepared progressively as the viewer reaches their knowledge window.
+    const preparationKey = movieData && scene ? `${movieData.id}:${scene.sceneId}` : ''
+    if (!['preparing', 'ready'].includes(preparation.phase) || !movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(preparationKey)) return
     const capture = frameCaptureRef.current
     if (!capture) return
-    preparedSceneIdsRef.current.add(movieData.id)
+    preparedSceneIdsRef.current.add(preparationKey)
     let requestStarted = false
     const startTimer = window.setTimeout(() => {
       requestStarted = true
@@ -124,7 +127,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
       console.info('[MagiFab] Prompt bubbles received:', result.presentation.prompt_bubbles.length)
     }).catch((error: unknown) => {
       if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() failed', { movieId: movieData.id, sceneId: scene.sceneId, error })
-      preparedSceneIdsRef.current.delete(movieData.id)
+      preparedSceneIdsRef.current.delete(preparationKey)
     })
     }, 0)
     return () => {
@@ -132,7 +135,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
       // React Strict Mode deliberately runs an effect cleanup before its second
       // development mount. That cleanup happens before the deferred request
       // begins, so it must not consume this movie's one preparation slot.
-      if (!requestStarted) preparedSceneIdsRef.current.delete(movieData.id)
+      if (!requestStarted) preparedSceneIdsRef.current.delete(preparationKey)
       // Rerenders, overlays, and Strict Mode cleanup must not cancel a running
       // prepare request. It is owned by the Loading Experience until it settles.
     }

@@ -29,4 +29,4 @@ def expand_knowledge(
     try:
         return engine.retrieve_or_expand(request, image)
     except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error)) from error
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)) from error

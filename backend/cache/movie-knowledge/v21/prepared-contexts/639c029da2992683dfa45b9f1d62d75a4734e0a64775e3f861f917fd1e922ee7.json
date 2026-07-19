@@ -1,0 +1,395 @@
+{
+  "movie_id": "spriteFright",
+  "scene_id": "sf-01",
+  "timestamp_seconds": 5.0,
+  "preparation_cache_key": "spriteFright:v21:scene:sf-01",
+  "semantic_cache_version": 21,
+  "knowledge_revision": 2,
+  "knowledge_source": "retrieved",
+  "semantic_map_cached": true,
+  "reasoning_cached": false,
+  "frame_hash": "8a0f79dd1c7379312d3af2712b6c7a0b6d1b8028232f6f9b2b6df5e9a7a394a0",
+  "reasoning_context": {
+    "movie_id": "spriteFright",
+    "scene_id": "sf-01",
+    "timestamp_seconds": 5.0,
+    "accessibility_profile": {
+      "accessibility_needs": [
+        "Remembering characters",
+        "Understanding relationships",
+        "Remembering previous events",
+        "Understanding sarcasm",
+        "Understanding difficult words",
+        "Understanding scenes without dialogue"
+      ],
+      "detail_level": "A little more context",
+      "preferred_prompt_types": [
+        "character introduction",
+        "relationship update",
+        "callback reminder",
+        "sarcasm cue",
+        "word explanation",
+        "visual scene explanation"
+      ],
+      "conversation_simplification": true,
+      "vocabulary_assistance": true
+    },
+    "semantic_scene": [
+      {
+        "id": "claim-8043e0d1ae191a1b",
+        "kind": "character_present",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-rex",
+        "predicate": "present_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [
+          "character-rex"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-3f245252f830349c",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-rex",
+        "predicate": "appears_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-7a11af3e4ca1d1c9",
+        "kind": "character_present",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-victoria",
+        "predicate": "present_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [
+          "character-victoria"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-c82e02ace4d90fab",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-victoria",
+        "predicate": "appears_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-e1d07467d5615f8d",
+        "kind": "character_present",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-ellie",
+        "predicate": "present_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-ellie"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-1560035889e1f8a0",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-ellie",
+        "predicate": "appears_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-ellie"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-c329ee2d31d12bc3",
+        "kind": "character_present",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-jay",
+        "predicate": "present_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-jay"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-1c321742a6ed244d",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-jay",
+        "predicate": "appears_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-jay"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-07f5cd5011d05612",
+        "kind": "character_present",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-phil",
+        "predicate": "present_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-phil"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-de0466bc8856a6f5",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-phil",
+        "predicate": "appears_in",
+        "object_id": "sf-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-phil"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-c22e4ba6a7be0cae",
+        "kind": "timeline_change",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "timeline-forest-arrival",
+        "predicate": "active_at",
+        "object_id": "sf-01",
+        "value": "The teenagers enter the isolated forest.",
+        "confidence": 0.9,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "timeline-forest-arrival"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-e533622fbdef2a8d",
+        "kind": "emotion",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-ellie",
+        "predicate": "feels",
+        "object_id": "sf-01",
+        "value": "Ellie is alert and curious as the group enters the forest.",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "emotion-ellie-curious"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-d34993a598a5afe6",
+        "kind": "scene_state",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "scene-7d15f19c69d45adc",
+        "predicate": "has_state",
+        "object_id": "sf-01",
+        "value": "The group enters the isolated forest. Visible now: Rex, Victoria.",
+        "confidence": 0.5594247579574585,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [],
+        "supporting_claim_ids": []
+      }
+    ],
+    "active_characters": [
+      {
+        "id": "character-rex",
+        "name": "Rex",
+        "confidence": 1.0,
+        "claim_ids": [
+          "claim-8043e0d1ae191a1b"
+        ]
+      },
+      {
+        "id": "character-victoria",
+        "name": "Victoria",
+        "confidence": 1.0,
+        "claim_ids": [
+          "claim-7a11af3e4ca1d1c9"
+        ]
+      },
+      {
+        "id": "character-ellie",
+        "name": "Ellie",
+        "confidence": 1.0,
+        "claim_ids": [
+          "claim-e1d07467d5615f8d"
+        ]
+      },
+      {
+        "id": "character-jay",
+        "name": "Jay",
+        "confidence": 1.0,
+        "claim_ids": [
+          "claim-c329ee2d31d12bc3"
+        ]
+      },
+      {
+        "id": "character-phil",
+        "name": "Phil",
+        "confidence": 1.0,
+        "claim_ids": [
+          "claim-07f5cd5011d05612"
+        ]
+      }
+    ],
+    "active_objects": [],
+    "timeline": {
+      "id": "timeline-forest-arrival",
+      "start_seconds": 0.0,
+      "end_seconds": 180.0,
+      "description": "The teenagers enter the isolated forest."
+    },
+    "timeline_claim_ids": [
+      "claim-3f245252f830349c",
+      "claim-c82e02ace4d90fab",
+      "claim-1560035889e1f8a0",
+      "claim-1c321742a6ed244d",
+      "claim-de0466bc8856a6f5",
+      "claim-c22e4ba6a7be0cae"
+    ],
+    "relationships": [],
+    "previous_events": [],
+    "previous_character_presence": [],
+    "emotion_claims": [
+      {
+        "id": "claim-e533622fbdef2a8d",
+        "kind": "emotion",
+        "scene_id": "sf-01",
+        "timestamp_seconds": 43.452879,
+        "timestamp_start": 43.452879,
+        "timestamp_end": 43.452879,
+        "subject_id": "character-ellie",
+        "predicate": "feels",
+        "object_id": "sf-01",
+        "value": "Ellie is alert and curious as the group enters the forest.",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-b6ef77f36a0e9753f76d"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "emotion-ellie-curious"
+        ],
+        "supporting_claim_ids": []
+      }
+    ],
+    "vocabulary_claims": [],
+    "conversation_claims": [],
+    "previous_explanations": [],
+    "unresolved_questions": [],
+    "live_story": {}
+  }
+}

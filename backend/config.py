@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     semantic_presence_confidence_threshold: float = Field(default=0.6, ge=0, le=1)
     semantic_prompt_cooldown_seconds: float = Field(default=8.0, ge=0)
     # Bump whenever prepared-scene output changes. Used in every cache key.
-    # Version 18 adds claim-prioritized prompt generation and its response
-    # cache must not replay the previous card-driven prompt selection.
-    semantic_cache_version: int = Field(default=18, ge=1)
+    # Version 21 keys prepared scene knowledge by movie/scene rather than a
+    # one-off frame, and persists catalog emotion/timeline graph facts.
+    semantic_cache_version: int = Field(default=21, ge=1)
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
     debug_frames_dir: Path = Path("debug_frames")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))

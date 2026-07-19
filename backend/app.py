@@ -30,6 +30,11 @@ from services.semantic_graph_builder import SemanticGraphBuilder
 from services.movie_knowledge_provider import MovieKnowledgeProvider
 from services.reasoning_context_builder import ReasoningContextBuilder
 from services.companion_response_serializer import CompanionResponseSerializer
+from services.prepared_scene_context_store import PreparedSceneContextStore
+from services.sliding_window_memory import SlidingWindowMemoryManager
+from services.story_event_extractor import StoryEventExtractor
+from services.story_state_manager import StoryStateManager
+from services.timeline_memory import TimelineMemoryService
 
 
 def configure_logging(settings: Settings) -> None:
@@ -151,6 +156,36 @@ def get_response_cache() -> ResponseCache:
 
 
 @lru_cache
+def get_prepared_scene_context_store() -> PreparedSceneContextStore:
+    settings = get_settings()
+    return PreparedSceneContextStore(settings.knowledge_store_dir, settings.semantic_cache_version)
+
+
+@lru_cache
+def get_sliding_window_memory_manager() -> SlidingWindowMemoryManager:
+    """Process-local temporal state shared by preparation and response."""
+    return SlidingWindowMemoryManager()
+
+
+@lru_cache
+def get_story_state_manager() -> StoryStateManager:
+    """The only durable narrative memory owner in this backend process."""
+    settings = get_settings()
+    return StoryStateManager(settings.knowledge_store_dir, settings.semantic_cache_version)
+
+
+@lru_cache
+def get_story_event_extractor() -> StoryEventExtractor:
+    return StoryEventExtractor()
+
+
+@lru_cache
+def get_timeline_memory_service() -> TimelineMemoryService:
+    settings = get_settings()
+    return TimelineMemoryService(settings.knowledge_store_dir, settings.semantic_cache_version)
+
+
+@lru_cache
 def get_companion_pipeline_service() -> CompanionPipelineService:
     """Full retrieval-first runtime composition; heavy providers stay lazy behind dependencies."""
     return CompanionPipelineService(
@@ -160,6 +195,11 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
         settings=get_settings(),
         context_builder=get_reasoning_context_builder(),
         serializer=get_companion_response_serializer(),
+        prepared_contexts=get_prepared_scene_context_store(),
+        memory=get_sliding_window_memory_manager(),
+        story_state=get_story_state_manager(),
+        story_events=get_story_event_extractor(),
+        timeline_memory=get_timeline_memory_service(),
     )
 
 

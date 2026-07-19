@@ -21,7 +21,7 @@ def decode_base64_image_with_size(encoded: str, settings: Settings) -> tuple[Ima
     try:
         raw = base64.b64decode(payload, validate=True)
     except (ValueError, binascii.Error) as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="image must be valid base64") from error
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="image must be valid base64") from error
     if len(raw) > settings.max_image_bytes:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image exceeds the configured size limit")
     try:
@@ -29,7 +29,7 @@ def decode_base64_image_with_size(encoded: str, settings: Settings) -> tuple[Ima
             candidate.verify()
         image = Image.open(io.BytesIO(raw)).convert("RGB")
     except (UnidentifiedImageError, OSError) as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="image data is not a supported image") from error
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="image data is not a supported image") from error
     if image.width > settings.max_image_dimension or image.height > settings.max_image_dimension:
         raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="image dimensions exceed the configured limit")
     # Hash the received bytes before Pillow normalizes them.  This is the

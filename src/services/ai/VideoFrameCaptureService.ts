@@ -104,7 +104,7 @@ export async function captureVideoFrame(video: HTMLVideoElement | null): Promise
   canvas.width = width
   canvas.height = height
 
-  const context = canvas.getContext('2d')
+  const context = canvas.getContext('2d', { willReadFrequently: true })
   if (!context) throw new Error('Frame capture is not available in this browser.')
   const originalTimestamp = video.currentTime
   const duration = Number.isFinite(video.duration) ? video.duration : 0

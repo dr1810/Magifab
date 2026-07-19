@@ -1,0 +1,1458 @@
+{
+  "movie_id": "spriteFright",
+  "known_characters": {
+    "character-rex": {
+      "id": "character-rex",
+      "name": "Rex",
+      "first_seen_timestamp": 5.0,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 385.126748,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-8043e0d1ae191a1b:5.000",
+        "spriteFright:timeline_changed:claim-3f245252f830349c:5.000"
+      ],
+      "relationships": []
+    },
+    "character-victoria": {
+      "id": "character-victoria",
+      "name": "Victoria",
+      "first_seen_timestamp": 5.0,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 385.126748,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-7a11af3e4ca1d1c9:5.000",
+        "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000"
+      ],
+      "relationships": []
+    },
+    "character-ellie": {
+      "id": "character-ellie",
+      "name": "Ellie",
+      "first_seen_timestamp": 5.0,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 385.126748,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-e1d07467d5615f8d:5.000",
+        "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
+        "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000"
+      ],
+      "relationships": []
+    },
+    "character-jay": {
+      "id": "character-jay",
+      "name": "Jay",
+      "first_seen_timestamp": 5.0,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 385.126748,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-c329ee2d31d12bc3:5.000",
+        "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000"
+      ],
+      "relationships": []
+    },
+    "character-phil": {
+      "id": "character-phil",
+      "name": "Phil",
+      "first_seen_timestamp": 5.0,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 385.126748,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-07f5cd5011d05612:5.000",
+        "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000"
+      ],
+      "relationships": []
+    },
+    "character-sprite": {
+      "id": "character-sprite",
+      "name": "Mushroom Sprite",
+      "first_seen_timestamp": 182.094332,
+      "last_seen_timestamp": 390.126748,
+      "total_screen_time": 208.032416,
+      "current_visibility": true,
+      "associated_events": [
+        "spriteFright:character_introduced:claim-820c311f99e2be59:182.094",
+        "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094"
+      ],
+      "relationships": []
+    }
+  },
+  "known_relationships": {},
+  "known_locations": {
+    "spriteFright:location_changed:claim-d34993a598a5afe6:5.000": {
+      "id": "spriteFright:location_changed:claim-d34993a598a5afe6:5.000",
+      "name": "The group enters the isolated forest. Visible now: Rex, Victoria.",
+      "entity_type": "location"
+    },
+    "spriteFright:location_changed:claim-d8dfe5309005b8fd:182.094": {
+      "id": "spriteFright:location_changed:claim-d8dfe5309005b8fd:182.094",
+      "name": "The group encounters the mushroom sprites. Visible now: Victoria, person.",
+      "entity_type": "location"
+    },
+    "spriteFright:location_changed:claim-6fc4e20a4f24ca75:390.127": {
+      "id": "spriteFright:location_changed:claim-6fc4e20a4f24ca75:390.127",
+      "name": "No story-relevant entity has been confirmed in this frame.",
+      "entity_type": "location"
+    }
+  },
+  "known_objects": {
+    "object-38a81e87e79631e6": {
+      "id": "object-38a81e87e79631e6",
+      "name": "person",
+      "entity_type": "object"
+    }
+  },
+  "current_scene": "sf-03",
+  "current_timestamp": 390.126748,
+  "current_location": "No story-relevant entity has been confirmed in this frame.",
+  "current_goal": null,
+  "active_emotions": {
+    "character-ellie": "Ellie is alert and curious as the group enters the forest."
+  },
+  "recent_events": [
+    {
+      "event_id": "spriteFright:scene_transition:sf-03:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "scene_transition",
+      "semantic_claim_ids": [],
+      "entities": [],
+      "summary": "Story moves to sf-03",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f9f4304a700d13bf:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f9f4304a700d13bf"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:location_changed:claim-6fc4e20a4f24ca75:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 1.0,
+      "confidence": 0.5,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-6fc4e20a4f24ca75"
+      ],
+      "entities": [],
+      "summary": "No story-relevant entity has been confirmed in this frame.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    }
+  ],
+  "story_so_far": [
+    {
+      "event_id": "spriteFright:character_introduced:claim-8043e0d1ae191a1b:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-8043e0d1ae191a1b"
+      ],
+      "entities": [
+        {
+          "id": "character-rex",
+          "name": "Rex",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rex is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-7a11af3e4ca1d1c9:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-7a11af3e4ca1d1c9"
+      ],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Victoria is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-e1d07467d5615f8d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-e1d07467d5615f8d"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Ellie is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-c329ee2d31d12bc3:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-c329ee2d31d12bc3"
+      ],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Jay is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-07f5cd5011d05612:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-07f5cd5011d05612"
+      ],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Phil is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-3f245252f830349c:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-3f245252f830349c"
+      ],
+      "entities": [
+        {
+          "id": "character-rex",
+          "name": "Rex",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c82e02ace4d90fab"
+      ],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1560035889e1f8a0"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1c321742a6ed244d"
+      ],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de0466bc8856a6f5"
+      ],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c22e4ba6a7be0cae:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c22e4ba6a7be0cae"
+      ],
+      "entities": [],
+      "summary": "The teenagers enter the isolated forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-e533622fbdef2a8d"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Ellie is alert and curious as the group enters the forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:location_changed:claim-d34993a598a5afe6:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 1.0,
+      "confidence": 0.5594247579574585,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-d34993a598a5afe6"
+      ],
+      "entities": [],
+      "summary": "The group enters the isolated forest. Visible now: Rex, Victoria.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "spriteFright:semantic_observation:claim-8043e0d1ae191a1b:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 0.0,
+      "confidence": 0.5594247579574585,
+      "event_type": "semantic_observation",
+      "semantic_claim_ids": [
+        "claim-8043e0d1ae191a1b",
+        "claim-3f245252f830349c",
+        "claim-7a11af3e4ca1d1c9",
+        "claim-c82e02ace4d90fab",
+        "claim-e1d07467d5615f8d",
+        "claim-1560035889e1f8a0",
+        "claim-c329ee2d31d12bc3",
+        "claim-1c321742a6ed244d",
+        "claim-07f5cd5011d05612",
+        "claim-de0466bc8856a6f5",
+        "claim-c22e4ba6a7be0cae",
+        "claim-e533622fbdef2a8d",
+        "claim-d34993a598a5afe6"
+      ],
+      "entities": [],
+      "summary": "Existing semantic state remains active",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "spriteFright:scene_transition:sf-02:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "scene_transition",
+      "semantic_claim_ids": [],
+      "entities": [],
+      "summary": "Story moves to sf-02",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-820c311f99e2be59:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-820c311f99e2be59"
+      ],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Mushroom Sprite is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:object_becomes_important:claim-4210087509cbaac7:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "object_becomes_important",
+      "semantic_claim_ids": [
+        "claim-4210087509cbaac7"
+      ],
+      "entities": [
+        {
+          "id": "object-38a81e87e79631e6",
+          "name": "person",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "person becomes important",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-19b7145715ce6520:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.0,
+      "confidence": 0.44723784923553467,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-19b7145715ce6520"
+      ],
+      "entities": [
+        {
+          "id": "object-38a81e87e79631e6",
+          "name": "person",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f71ae902663ab22e"
+      ],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:story_event:claim-0db86f1104946436:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-0db86f1104946436"
+      ],
+      "entities": [],
+      "summary": "The teenagers encounter the mushroom sprites in the forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-95f96fb7c6f9850e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-95f96fb7c6f9850e"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:emotion_changed:claim-d141bc0aafe17d39:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-d141bc0aafe17d39"
+      ],
+      "entities": [],
+      "summary": "The group becomes wary when they encounter the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:location_changed:claim-d8dfe5309005b8fd:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 1.0,
+      "confidence": 0.5535861372947692,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-d8dfe5309005b8fd"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites. Visible now: Victoria, person.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "spriteFright:scene_transition:sf-03:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "scene_transition",
+      "semantic_claim_ids": [],
+      "entities": [],
+      "summary": "Story moves to sf-03",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f9f4304a700d13bf:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f9f4304a700d13bf"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:location_changed:claim-6fc4e20a4f24ca75:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 1.0,
+      "confidence": 0.5,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-6fc4e20a4f24ca75"
+      ],
+      "entities": [],
+      "summary": "No story-relevant entity has been confirmed in this frame.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    }
+  ],
+  "open_story_threads": [],
+  "resolved_threads": [],
+  "memory_reminders": [
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c82e02ace4d90fab"
+      ],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1560035889e1f8a0"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1c321742a6ed244d"
+      ],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de0466bc8856a6f5"
+      ],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c22e4ba6a7be0cae:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c22e4ba6a7be0cae"
+      ],
+      "entities": [],
+      "summary": "The teenagers enter the isolated forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-e533622fbdef2a8d"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Ellie is alert and curious as the group enters the forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_introduced:claim-820c311f99e2be59:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-820c311f99e2be59"
+      ],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Mushroom Sprite is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-19b7145715ce6520:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.0,
+      "confidence": 0.44723784923553467,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-19b7145715ce6520"
+      ],
+      "entities": [
+        {
+          "id": "object-38a81e87e79631e6",
+          "name": "person",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f71ae902663ab22e"
+      ],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-95f96fb7c6f9850e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-95f96fb7c6f9850e"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:emotion_changed:claim-d141bc0aafe17d39:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-d141bc0aafe17d39"
+      ],
+      "entities": [],
+      "summary": "The group becomes wary when they encounter the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f9f4304a700d13bf:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f9f4304a700d13bf"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    }
+  ],
+  "character_history": {
+    "character-rex": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-8043e0d1ae191a1b:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-8043e0d1ae191a1b"
+        ],
+        "entities": [
+          {
+            "id": "character-rex",
+            "name": "Rex",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rex is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-3f245252f830349c:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.0,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-3f245252f830349c"
+        ],
+        "entities": [
+          {
+            "id": "character-rex",
+            "name": "Rex",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-victoria": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-7a11af3e4ca1d1c9:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-7a11af3e4ca1d1c9"
+        ],
+        "entities": [
+          {
+            "id": "character-victoria",
+            "name": "Victoria",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Victoria is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.0,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-c82e02ace4d90fab"
+        ],
+        "entities": [
+          {
+            "id": "character-victoria",
+            "name": "Victoria",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-ellie": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-e1d07467d5615f8d:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-e1d07467d5615f8d"
+        ],
+        "entities": [
+          {
+            "id": "character-ellie",
+            "name": "Ellie",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Ellie is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-1560035889e1f8a0"
+        ],
+        "entities": [
+          {
+            "id": "character-ellie",
+            "name": "Ellie",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-e533622fbdef2a8d"
+        ],
+        "entities": [
+          {
+            "id": "character-ellie",
+            "name": "Ellie",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Ellie is alert and curious as the group enters the forest.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-jay": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-c329ee2d31d12bc3:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-c329ee2d31d12bc3"
+        ],
+        "entities": [
+          {
+            "id": "character-jay",
+            "name": "Jay",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Jay is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-1c321742a6ed244d"
+        ],
+        "entities": [
+          {
+            "id": "character-jay",
+            "name": "Jay",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-phil": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-07f5cd5011d05612:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-07f5cd5011d05612"
+        ],
+        "entities": [
+          {
+            "id": "character-phil",
+            "name": "Phil",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Phil is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000",
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-de0466bc8856a6f5"
+        ],
+        "entities": [
+          {
+            "id": "character-phil",
+            "name": "Phil",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-sprite": [
+      {
+        "event_id": "spriteFright:character_introduced:claim-820c311f99e2be59:182.094",
+        "timestamp_start": 182.094332,
+        "timestamp_end": 182.094332,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-820c311f99e2be59"
+        ],
+        "entities": [
+          {
+            "id": "character-sprite",
+            "name": "Mushroom Sprite",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Mushroom Sprite is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094",
+        "timestamp_start": 182.094332,
+        "timestamp_end": 182.094332,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-f71ae902663ab22e"
+        ],
+        "entities": [
+          {
+            "id": "character-sprite",
+            "name": "Mushroom Sprite",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ]
+  },
+  "relationship_history": {},
+  "timeline_history": [
+    {
+      "event_id": "spriteFright:timeline_changed:claim-3f245252f830349c:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-3f245252f830349c"
+      ],
+      "entities": [
+        {
+          "id": "character-rex",
+          "name": "Rex",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.0,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c82e02ace4d90fab"
+      ],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1560035889e1f8a0"
+      ],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1c321742a6ed244d"
+      ],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de0466bc8856a6f5"
+      ],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-c22e4ba6a7be0cae:5.000",
+      "timestamp_start": 5.0,
+      "timestamp_end": 5.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-c22e4ba6a7be0cae"
+      ],
+      "entities": [],
+      "summary": "The teenagers enter the isolated forest.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:scene_transition:sf-02:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "scene_transition",
+      "semantic_claim_ids": [],
+      "entities": [],
+      "summary": "Story moves to sf-02",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-19b7145715ce6520:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.0,
+      "confidence": 0.44723784923553467,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-19b7145715ce6520"
+      ],
+      "entities": [
+        {
+          "id": "object-38a81e87e79631e6",
+          "name": "person",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f71ae902663ab22e"
+      ],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-95f96fb7c6f9850e:182.094",
+      "timestamp_start": 182.094332,
+      "timestamp_end": 182.094332,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-95f96fb7c6f9850e"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:scene_transition:sf-03:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "scene_transition",
+      "semantic_claim_ids": [],
+      "entities": [],
+      "summary": "Story moves to sf-03",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:timeline_changed:claim-f9f4304a700d13bf:390.127",
+      "timestamp_start": 390.126748,
+      "timestamp_end": 390.126748,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-f9f4304a700d13bf"
+      ],
+      "entities": [],
+      "summary": "The group encounters the mushroom sprites.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    }
+  ],
+  "prompt_history": {}
+}
