@@ -8,7 +8,7 @@ import { captureVideoFrame, type CapturedVideoFrame } from '../services/ai/Video
 
 type MoviePlayerProps = {
   movie: MovieData
-  scene: SceneData
+  scene: SceneData | null
   playing: boolean
   muted: boolean
   volume: number
@@ -22,7 +22,7 @@ type MoviePlayerProps = {
   onDurationChange: (value: number) => void
   onSeeking?: () => void
   onSeekComplete?: (timestamp: number) => void
-  onVideoFrameCaptureReady?: (capture: (() => Promise<CapturedVideoFrame>) | null) => void
+  onVideoFrameCaptureReady?: (capture: ((timestamp: number) => Promise<CapturedVideoFrame>) | null) => void
   promptOpen: boolean
   onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
@@ -180,10 +180,10 @@ export function MoviePlayer({
     }
     const handleCanPlay = () => {
       applyPendingResume(video, 'canplay')
-      frameCaptureReadyRef.current?.(async () => {
+      frameCaptureReadyRef.current?.(async (timestamp: number) => {
         frameCaptureInProgressRef.current = true
         try {
-          return await captureVideoFrame(videoRef.current)
+          return await captureVideoFrame(videoRef.current, timestamp)
         } finally {
           frameCaptureInProgressRef.current = false
         }
@@ -349,7 +349,7 @@ export function MoviePlayer({
         {videoFailed && <div className="video-notice" role="status">This browser cannot play this video format. Try Sprite Fright, or open Big Buck Bunny in a browser that supports its MOV codec.</div>}
         {overlays}
         {drawerOverlay}
-        <SubtitleOverlay subtitle={scene.subtitle} />
+        <SubtitleOverlay subtitle={scene?.subtitle ?? ''} />
         <button
           type="button"
           className="prompt-sidebar-toggle"

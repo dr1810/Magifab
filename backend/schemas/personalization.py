@@ -5,7 +5,7 @@ from schemas.accessibility_reasoning import (
     AccessibilityProfile,
     CompanionProfile,
 )
-from schemas.accessibility_presentation import AccessibilityPresentation
+from schemas.interval_state import IntervalState
 from schemas.reasoning_context import ReasoningContext
 
 
@@ -14,7 +14,7 @@ class GPTPersonalizationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     user_message: str = Field(min_length=1, max_length=2_000)
     reasoning_context: ReasoningContext
-    presentation: AccessibilityPresentation
+    interval_state: IntervalState
     accessibility_profile: AccessibilityProfile
     companion_profile: CompanionProfile
 

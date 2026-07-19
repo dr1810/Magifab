@@ -1,4 +1,4 @@
-"""Persistent semantic timeline. This is the canonical playback presentation source."""
+"""Preprocessing semantic timeline used to assemble IntervalStates."""
 from __future__ import annotations
 
 from hashlib import sha256
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class TimelineMemoryService:
-    """Writes intervals only when StoryEvents change semantic state."""
+    """Writes one fixed interval snapshot for every preprocessing step."""
 
     def __init__(self, root: Path, semantic_cache_version: int):
         self._root = root / f"v{semantic_cache_version}" / "timeline-memory"
@@ -51,6 +51,48 @@ class TimelineMemoryService:
         logger.info("[TIMELINE MEMORY] movie=%s interval=%s events=%d timestamp=%.2f", state_after.movie_id, interval.interval_id, len(events), timestamp)
         return memory
 
+    def write_interval(
+        self,
+        state_before: StoryState,
+        state_after: StoryState,
+        events: list[StoryEvent],
+        *,
+        interval_id: str,
+        interval_start: float,
+        interval_end: float,
+    ) -> TimelineState:
+        """Freeze timeline/prompt/drawer data at every fixed interval.
+
+        Empty semantic intervals are meaningful: they retain the prior story
+        state rather than becoming a gap or expiring the current prompt set.
+        """
+        with self._lock:
+            memory = self._repair(self._load(state_after.movie_id))
+            memory.intervals = [item for item in memory.intervals if item.interval_id != interval_id]
+            scheduled = self._prompts.schedule(state_after, events) if events else []
+            active_prompts = _unique_active_prompts(memory, interval_start)
+            state = TimelineState(
+                timestamp=interval_start,
+                story_state=state_after.model_copy(deep=True),
+                prompts=_dedupe_prompts([*active_prompts, *scheduled], interval_start, interval_end),
+                drawer_state=self._drawer.build(state_after, interval_start),
+            )
+            state.drawer_state.end_timestamp = interval_end
+            memory.intervals.append(TimelineInterval(
+                interval_id=interval_id,
+                start_timestamp=interval_start,
+                end_timestamp=interval_end,
+                triggering_event_ids=[event.event_id for event in events],
+                importance=max((event.importance_score for event in events), default=0.0),
+                story_state_before=state_before.model_copy(deep=True),
+                story_state_after=state_after.model_copy(deep=True),
+                state=state,
+            ))
+            memory.intervals.sort(key=lambda item: item.start_timestamp)
+            self._save(self._repair(memory))
+        logger.info("[INTERVAL TIMELINE SNAPSHOT] movie=%s interval=%s events=%d start=%.2f end=%.2f", state_after.movie_id, interval_id, len(events), interval_start, interval_end)
+        return state
+
     def at(self, movie_id: str, timestamp: float) -> TimelineState | None:
         with self._lock:
             return self._resolver.at(self._repair(self._load(movie_id)), timestamp)
@@ -58,6 +100,14 @@ class TimelineMemoryService:
     def get(self, movie_id: str) -> TimelineMemory:
         with self._lock:
             return self._repair(self._load(movie_id))
+
+    def reset(self, movie_id: str) -> None:
+        """Discard only the prior preprocessing timeline before a fresh run."""
+        with self._lock:
+            path = self._path(movie_id)
+            if path.is_file():
+                path.unlink()
+        logger.info("[PREPROCESSING TIMELINE RESET] movie=%s", movie_id)
 
     def _load(self, movie_id: str) -> TimelineMemory:
         path = self._path(movie_id)

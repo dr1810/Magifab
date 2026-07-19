@@ -20,9 +20,6 @@ class StoryEventExtractor:
         # events use the claim/playback timestamp, never a fixed window range.
         interval_start = context.timestamp_seconds
         interval_end = context.timestamp_seconds
-        active_character_ids = set(characters)
-        if previous.current_scene and previous.current_scene != context.scene_id:
-            events.append(self._event("scene_transition", context, [], [], f"Story moves to {context.scene_id}", 1.5, True, True, start=interval_start, end=interval_end))
         character_claims = {entity.id: entity.claim_ids for entity in context.active_characters}
         object_claims = {entity.id: entity.claim_ids for entity in context.active_objects}
         for character in characters.values():
@@ -31,9 +28,8 @@ class StoryEventExtractor:
         for obj in objects.values():
             if obj.id not in previous.known_objects:
                 events.append(self._event("object_becomes_important", context, object_claims[obj.id], [obj], f"{obj.name} becomes important", 1.5, True, True, start=interval_start, end=interval_end))
-        for character_id, character in previous.known_characters.items():
-            if character_id not in active_character_ids and previous.current_scene == context.scene_id:
-                events.append(self._event("character_left", context, [], [StoryEntity(id=character.id, name=character.name, entity_type="character")], f"{character.name} leaves the current moment", 1.0, True, True, start=interval_start, end=interval_end))
+        # A missing detector/catalog match is never proof that a character
+        # left. State carries forward until explicit leave evidence exists.
         for claim in context.semantic_scene:
             kind = _event_type(claim.kind, claim.predicate, claim.value)
             if kind is None:
@@ -56,14 +52,10 @@ class StoryEventExtractor:
         known_ids = {event.event_id for event in previous.story_so_far}
         result = [event.model_copy(update={"is_new": event.event_id not in known_ids}) for event in result]
         if context.semantic_scene and not result:
-            # Every observation window is represented, but this event is not
-            # a semantic state transition and therefore creates no interval.
-            result = [self._event(
-                "semantic_observation", context, [claim.id for claim in context.semantic_scene], [],
-                "Existing semantic state remains active", 0.0, True, False,
-                confidence=min(claim.confidence for claim in context.semantic_scene),
-                start=context.timestamp_seconds, end=context.timestamp_seconds,
-            )]
+            # Reused semantic evidence is useful operational telemetry, but it
+            # is not a story event and must never enter StoryState, timeline
+            # memory, or an IntervalState presentation list.
+            logger.info("[SEMANTIC STATE REUSED] movie=%s scene=%s timestamp=%.2f", context.movie_id, context.scene_id, context.timestamp_seconds)
         logger.info("[STORY EVENT] movie=%s scene=%s extracted=%d new=%d", context.movie_id, context.scene_id, len(result), sum(event.is_new for event in result))
         return result
 

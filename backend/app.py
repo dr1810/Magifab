@@ -33,8 +33,9 @@ from services.companion_response_serializer import CompanionResponseSerializer
 from services.prepared_scene_context_store import PreparedSceneContextStore
 from services.sliding_window_memory import SlidingWindowMemoryManager
 from services.story_event_extractor import StoryEventExtractor
-from services.story_state_manager import StoryStateManager
+from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
+from services.interval_state_store import IntervalStateRepository
 
 
 def configure_logging(settings: Settings) -> None:
@@ -168,10 +169,10 @@ def get_sliding_window_memory_manager() -> SlidingWindowMemoryManager:
 
 
 @lru_cache
-def get_story_state_manager() -> StoryStateManager:
-    """The only durable narrative memory owner in this backend process."""
+def get_preprocessing_story_builder() -> PreprocessingStoryBuilder:
+    """Chronological narrative builder used only while generating intervals."""
     settings = get_settings()
-    return StoryStateManager(settings.knowledge_store_dir, settings.semantic_cache_version)
+    return PreprocessingStoryBuilder(settings.knowledge_store_dir, settings.semantic_cache_version)
 
 
 @lru_cache
@@ -186,6 +187,12 @@ def get_timeline_memory_service() -> TimelineMemoryService:
 
 
 @lru_cache
+def get_interval_state_repository() -> IntervalStateRepository:
+    settings = get_settings()
+    return IntervalStateRepository(settings.knowledge_store_dir, settings.semantic_cache_version)
+
+
+@lru_cache
 def get_companion_pipeline_service() -> CompanionPipelineService:
     """Full retrieval-first runtime composition; heavy providers stay lazy behind dependencies."""
     return CompanionPipelineService(
@@ -197,9 +204,10 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
         serializer=get_companion_response_serializer(),
         prepared_contexts=get_prepared_scene_context_store(),
         memory=get_sliding_window_memory_manager(),
-        story_state=get_story_state_manager(),
+        preprocessing_story=get_preprocessing_story_builder(),
         story_events=get_story_event_extractor(),
         timeline_memory=get_timeline_memory_service(),
+        interval_states=get_interval_state_repository(),
     )
 
 

@@ -1,14 +1,8 @@
-import { useMemo, useState, type FocusEvent, type MouseEvent } from 'react'
+import { useState, type FocusEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
-import type { SceneData } from '../types/movie'
 import { useAccessibility } from '../accessibility-context'
-import { RelationshipDiagram } from './diagrams/RelationshipDiagram'
-import { TimelineDiagram } from './diagrams/TimelineDiagram'
-import { EmotionDiagram } from './diagrams/EmotionDiagram'
-import { CauseEffectDiagram } from './diagrams/CauseEffectDiagram'
-import { ObjectDiagram } from './diagrams/ObjectDiagram'
-import type { AccessibilityPresentation } from '../services/backend/CompanionBackendService'
+import type { IntervalState } from '../services/backend/CompanionBackendService'
 
 type TabKey = 'story' | 'relationships' | 'timeline' | 'emotion' | 'causeEffect' | 'object' | 'memory'
 
@@ -24,8 +18,7 @@ const tabs: { key: TabKey; label: string }[] = [
 
 type VisualDrawerProps = {
   open: boolean
-  scene: SceneData
-  presentation?: AccessibilityPresentation | null
+  intervalState?: IntervalState | null
   onClose: () => void
   onMouseEnter: () => void
   onMouseLeave: () => void
@@ -33,117 +26,54 @@ type VisualDrawerProps = {
   onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
-export function VisualDrawer({ open, scene, presentation, onClose, onMouseEnter, onMouseLeave, onFocus, onBlur }: VisualDrawerProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>('relationships')
+/** Each fixed tab renders only pre-composed content from the active StoryState. */
+export function VisualDrawer({ open, intervalState, onClose, onMouseEnter, onMouseLeave, onFocus, onBlur }: VisualDrawerProps) {
+  const [activeTab, setActiveTab] = useState<TabKey>('story')
   const { settings } = useAccessibility()
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
-
-  const content = useMemo(() => {
-    if (presentation) return <BackendDrawerContent activeTab={activeTab} presentation={presentation} />
-    if (activeTab === 'relationships') return <RelationshipDiagram scene={scene} />
-    if (activeTab === 'timeline') return <TimelineDiagram scene={scene} />
-    if (activeTab === 'emotion') return <EmotionDiagram scene={scene} />
-    if (activeTab === 'causeEffect') return <CauseEffectDiagram scene={scene} />
-    if (activeTab === 'memory') return <p className="empty-aid">No memory reminder is available for this scene yet.</p>
-    return <ObjectDiagram scene={scene} />
-  }, [activeTab, scene, presentation])
+  const state = intervalState
 
   return (
     <AnimatePresence initial={false}>
       {open && (
-        <motion.section
-          className="visual-drawer"
-          aria-label="Visual aids drawer"
-          initial={reduceMotion ? false : { y: '100%' }}
-          animate={{ y: 0 }}
-          exit={reduceMotion ? { y: 0 } : { y: '100%' }}
-          transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
-          onMouseEnter={onMouseEnter}
-          onMouseLeave={onMouseLeave}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          style={{ position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'min(48%, 360px)', overflow: 'auto' }}
-        >
+        <motion.section className="visual-drawer" aria-label="Story companion dashboard" initial={reduceMotion ? false : { y: '100%' }} animate={{ y: 0 }} exit={reduceMotion ? { y: 0 } : { y: '100%' }} transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onFocus={onFocus} onBlur={onBlur} style={{ position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'min(48%, 360px)', overflow: 'auto' }}>
           <div className="drawer-header">
-            <div>
-              <p className="eyebrow">Visual Aids</p>
-              <h3>{scene.sceneId}</h3>
-            </div>
+            <div><p className="eyebrow">Story Companion</p><h3>Movie right now</h3></div>
             <button className="ghost-btn" onClick={onClose}><ChevronDown size={16} /> Close</button>
           </div>
-          <div className="tab-row" role="tablist" aria-label="Visual aid tabs">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                role="tab"
-                aria-selected={activeTab === tab.key}
-                className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="tab-row" role="tablist" aria-label="Story companion tabs">
+            {tabs.map((tab) => <button key={tab.key} role="tab" aria-selected={activeTab === tab.key} className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} onClick={() => setActiveTab(tab.key)}>{tab.label}</button>)}
           </div>
-          <div className="drawer-content">{content}</div>
+          <div className="drawer-content">
+            {state ? <StoryTab state={state} tab={activeTab} /> : <p className="empty-aid">Story context will appear as this moment is understood.</p>}
+          </div>
         </motion.section>
       )}
     </AnimatePresence>
   )
 }
 
-function BackendDrawerContent({ activeTab, presentation }: { activeTab: TabKey; presentation: AccessibilityPresentation }) {
-  const drawer = presentation
-  if (activeTab === 'story') {
-    const state = drawer.story_state
-    const story = drawer.live_story
-    if (!state && !story) return <p className="empty-aid">The live story memory is building from timestamped scenes.</p>
-    if (story) return (
-      <div className="diagram-grid" aria-label="Live story assistant">
-        <article className="diagram-node"><strong>Current Scene</strong><span>{story.current_scene} · {formatTime(story.current_timestamp)}</span></article>
-        <article className="diagram-node"><strong>Current Goal</strong><span>{story.current_goal ?? 'No active goal.'}</span></article>
-        <article className="diagram-node"><strong>Timeline Position</strong><span>{story.timeline_position ?? 'Learning the current story position.'}</span></article>
-        <article className="diagram-node"><strong>Characters</strong><span>{join(story.current_characters)}</span></article>
-        <article className="diagram-node"><strong>Emotions</strong><span>{join(story.current_emotions)}</span></article>
-        <article className="diagram-node"><strong>Relationships</strong><span>{join(story.current_relationships)}</span></article>
-        <article className="diagram-node"><strong>Recent Events</strong><span>{join(story.recent_events)}</span></article>
-        <article className="diagram-node"><strong>Story So Far</strong><span>{join(story.story_so_far)}</span></article>
-        <article className="diagram-node"><strong>Important Objects</strong><span>{join(story.important_objects)}</span></article>
-        <article className="diagram-node"><strong>Memory Reminders</strong><span>{join(story.memory_reminders)}</span></article>
-        <article className="diagram-node"><strong>Unresolved Threads</strong><span>{join(story.unresolved_story_threads)}</span></article>
-      </div>
-    )
-    if (state) return (
-      <div className="diagram-grid" aria-label="Live story assistant">
-        <article className="diagram-node"><strong>Current Scene</strong><span>{state.current_scene ?? 'Learning scene'} · {formatTime(state.current_timestamp)}</span></article>
-        <article className="diagram-node"><strong>Current Location</strong><span>{state.current_location ?? 'Not established yet.'}</span></article>
-        <article className="diagram-node"><strong>Current Goal</strong><span>{state.current_goal ?? 'No active goal.'}</span></article>
-        <article className="diagram-node"><strong>Characters</strong><span>{join(Object.values(state.known_characters).map((item) => item.name))}</span></article>
-        <article className="diagram-node"><strong>Emotions</strong><span>{join(Object.values(state.active_emotions))}</span></article>
-        <article className="diagram-node"><strong>Relationships</strong><span>{join(Object.values(state.known_relationships).map((item) => item.summary))}</span></article>
-        <article className="diagram-node"><strong>Recent Events</strong><span>{join(state.recent_events.map((item) => item.summary))}</span></article>
-        <article className="diagram-node"><strong>Story So Far</strong><span>{join(state.story_so_far.map((item) => item.summary))}</span></article>
-        <article className="diagram-node"><strong>Important Objects</strong><span>{join(Object.values(state.known_objects).map((item) => item.name))}</span></article>
-        <article className="diagram-node"><strong>Memory Reminders</strong><span>{join(state.memory_reminders.map((item) => item.summary))}</span></article>
-        <article className="diagram-node"><strong>Unresolved Threads</strong><span>{join(state.open_story_threads.map((item) => item.summary))}</span></article>
-      </div>
-    )
-    return <p className="empty-aid">The live story memory is building from timestamped scenes.</p>
-  }
-  if (activeTab === 'relationships') {
-    return (
-      <div className="diagram-grid">
-        {drawer.character_cards.map((card) => <article key={card.character_id} className="diagram-node"><strong>{card.name}</strong><span>{card.reminder}</span></article>)}
-        {drawer.relationship_summaries.map((item) => <article key={item.relationship_id} className="diagram-node"><span>{item.summary}</span></article>)}
-        {drawer.character_cards.length === 0 && drawer.relationship_summaries.length === 0 && <p className="empty-aid">No verified character or relationship information is available yet.</p>}
-      </div>
-    )
-  }
-  if (activeTab === 'timeline') return drawer.timeline_summary ? <ol className="timeline-diagram"><li><span>Now</span><strong>{drawer.timeline_summary.summary}</strong></li></ol> : <p className="empty-aid">No timeline summary is available yet.</p>
-  if (activeTab === 'emotion') return drawer.emotion_summaries.length ? <div className="emotion-diagram">{drawer.emotion_summaries.map((item) => <div key={item.emotion_id}><h4>{item.summary}</h4></div>)}</div> : <p className="empty-aid">No verified emotion information is available yet.</p>
-  if (activeTab === 'causeEffect') return drawer.conversation_simplifications.length ? <div className="cause-effect">{drawer.conversation_simplifications.map((item) => <article key={item.dialogue_id}><h4>Simple conversation</h4><p>{item.simple_text}</p></article>)}</div> : <p className="empty-aid">No conversation simplification is available yet.</p>
-  if (activeTab === 'object') return drawer.vocabulary_assistance.length ? <div className="object-diagram">{drawer.vocabulary_assistance.map((item) => <article key={item.term}><h4>{item.term}</h4><p>{item.simple_definition}</p></article>)}</div> : <p className="empty-aid">No vocabulary help is available yet.</p>
-  return drawer.memory_reminders.length ? <ol className="timeline-diagram">{drawer.memory_reminders.map((item, index) => <li key={`${item.summary}-${index}`}><span>Earlier</span><strong>{item.summary}</strong></li>)}</ol> : <p className="empty-aid">No memory reminder is available yet.</p>
+type PresentedState = IntervalState
+
+function StoryTab({ state, tab }: { state: PresentedState; tab: TabKey }) {
+  const content = state.visualDrawer
+  const intervalId = state.metadata.interval_id
+  if (tab === 'story') return <TabCard title="Story Now" subtitle={formatTime(state.metadata.start_time)} items={content.story_now} fallback="The story is continuing in this moment." intervalId={intervalId} />
+  if (tab === 'relationships') return <TabCard title="Relationships" items={content.relationships} fallback="The people here are sharing this moment together." intervalId={intervalId} />
+  if (tab === 'timeline') return (
+    <article className="diagram-node"><strong>Timeline</strong><ul className="drawer-list">
+      {content.timeline.map((event, index) => <li key={`${state.metadata.interval_id}:timeline:${index}`}><small>{index === 0 ? 'Now' : 'Story'}</small>{event}</li>)}
+      {!content.timeline.length && <li><small>Now</small>{state.storyState.scene_summary ?? 'The story is continuing.'}</li>}
+    </ul></article>
+  )
+  if (tab === 'emotion') return <TabCard title="Emotion" text={content.emotion} fallback="The characters are reacting to what is happening now." intervalId={intervalId} />
+  if (tab === 'causeEffect') return content.cause_effect.length ? <article className="diagram-node"><strong>Cause &amp; Effect</strong><ul className="drawer-list">{content.cause_effect.map((item, index) => <li key={`${state.metadata.interval_id}:cause-effect:${index}`}><small>Cause</small>{item.cause}<small>Effect</small>{item.effect}</li>)}</ul></article> : <TabCard title="Cause & Effect" text="This moment moves the story forward." intervalId={intervalId} />
+  if (tab === 'object') return <TabCard title="Important Objects" items={content.objects} fallback="No object is more important than the characters' actions in this moment." intervalId={intervalId} />
+  return <TabCard title="Memory" items={content.memory} fallback="There are no earlier events needed to understand this moment." intervalId={intervalId} />
 }
 
-function join(values: string[]) { return values.length ? values.join(' · ') : 'None yet.' }
+function TabCard({ title, subtitle, text, items, fallback, intervalId }: { title: string; subtitle?: string; text?: string | null; items?: string[]; fallback?: string; intervalId?: string }) {
+  return <article className="diagram-node"><strong>{title}</strong>{subtitle && <small>{subtitle}</small>}{text && <span>{text}</span>}{items && <ul className="drawer-list">{(items.length ? items : [fallback]).filter(Boolean).map((item, index) => <li key={`${intervalId ?? title}:${index}`}>{item}</li>)}</ul>}</article>
+}
+
 function formatTime(seconds: number) { return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` }

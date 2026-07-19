@@ -5,12 +5,13 @@
       "id": "character-rex",
       "name": "Rex",
       "first_seen_timestamp": 5.0,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 385.126748,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 391.928456,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-8043e0d1ae191a1b:5.000",
-        "spriteFright:timeline_changed:claim-3f245252f830349c:5.000"
+        "spriteFright:timeline_changed:claim-3f245252f830349c:5.000",
+        "spriteFright:character_left:character-rex:396.928"
       ],
       "relationships": []
     },
@@ -18,12 +19,13 @@
       "id": "character-victoria",
       "name": "Victoria",
       "first_seen_timestamp": 5.0,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 385.126748,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 391.928456,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-7a11af3e4ca1d1c9:5.000",
-        "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000"
+        "spriteFright:timeline_changed:claim-c82e02ace4d90fab:5.000",
+        "spriteFright:character_left:character-victoria:396.928"
       ],
       "relationships": []
     },
@@ -31,13 +33,14 @@
       "id": "character-ellie",
       "name": "Ellie",
       "first_seen_timestamp": 5.0,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 385.126748,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 391.928456,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-e1d07467d5615f8d:5.000",
         "spriteFright:timeline_changed:claim-1560035889e1f8a0:5.000",
-        "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000"
+        "spriteFright:emotion_changed:claim-e533622fbdef2a8d:5.000",
+        "spriteFright:character_left:character-ellie:396.928"
       ],
       "relationships": []
     },
@@ -45,12 +48,13 @@
       "id": "character-jay",
       "name": "Jay",
       "first_seen_timestamp": 5.0,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 385.126748,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 391.928456,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-c329ee2d31d12bc3:5.000",
-        "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000"
+        "spriteFright:timeline_changed:claim-1c321742a6ed244d:5.000",
+        "spriteFright:character_left:character-jay:396.928"
       ],
       "relationships": []
     },
@@ -58,12 +62,13 @@
       "id": "character-phil",
       "name": "Phil",
       "first_seen_timestamp": 5.0,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 385.126748,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 391.928456,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-07f5cd5011d05612:5.000",
-        "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000"
+        "spriteFright:timeline_changed:claim-de0466bc8856a6f5:5.000",
+        "spriteFright:character_left:character-phil:396.928"
       ],
       "relationships": []
     },
@@ -71,12 +76,13 @@
       "id": "character-sprite",
       "name": "Mushroom Sprite",
       "first_seen_timestamp": 182.094332,
-      "last_seen_timestamp": 390.126748,
-      "total_screen_time": 208.032416,
-      "current_visibility": true,
+      "last_seen_timestamp": 396.928456,
+      "total_screen_time": 214.83412399999997,
+      "current_visibility": false,
       "associated_events": [
         "spriteFright:character_introduced:claim-820c311f99e2be59:182.094",
-        "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094"
+        "spriteFright:timeline_changed:claim-f71ae902663ab22e:182.094",
+        "spriteFright:character_left:character-sprite:396.928"
       ],
       "relationships": []
     }
@@ -107,7 +113,7 @@
     }
   },
   "current_scene": "sf-03",
-  "current_timestamp": 390.126748,
+  "current_timestamp": 396.928456,
   "current_location": "No story-relevant entity has been confirmed in this frame.",
   "current_goal": null,
   "active_emotions": {
@@ -115,50 +121,124 @@
   },
   "recent_events": [
     {
-      "event_id": "spriteFright:scene_transition:sf-03:390.127",
-      "timestamp_start": 390.126748,
-      "timestamp_end": 390.126748,
-      "importance_score": 1.5,
-      "confidence": 1.0,
-      "event_type": "scene_transition",
-      "semantic_claim_ids": [],
-      "entities": [],
-      "summary": "Story moves to sf-03",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "spriteFright:timeline_changed:claim-f9f4304a700d13bf:390.127",
-      "timestamp_start": 390.126748,
-      "timestamp_end": 390.126748,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-f9f4304a700d13bf"
-      ],
-      "entities": [],
-      "summary": "The group encounters the mushroom sprites.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "spriteFright:location_changed:claim-6fc4e20a4f24ca75:390.127",
-      "timestamp_start": 390.126748,
-      "timestamp_end": 390.126748,
+      "event_id": "spriteFright:character_left:character-rex:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
       "importance_score": 1.0,
-      "confidence": 0.5,
-      "event_type": "location_changed",
-      "semantic_claim_ids": [
-        "claim-6fc4e20a4f24ca75"
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rex",
+          "name": "Rex",
+          "entity_type": "character"
+        }
       ],
-      "entities": [],
-      "summary": "No story-relevant entity has been confirmed in this frame.",
+      "summary": "Rex leaves the current moment",
       "is_new": true,
       "requires_memory": true,
-      "requires_prompt": false
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-victoria:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Victoria leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-ellie:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Ellie leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-jay:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Jay leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-phil:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Phil leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-sprite:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Mushroom Sprite leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
     }
   ],
   "story_so_far": [
@@ -675,6 +755,126 @@
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": false
+    },
+    {
+      "event_id": "spriteFright:character_left:character-rex:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rex",
+          "name": "Rex",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rex leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-victoria:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-victoria",
+          "name": "Victoria",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Victoria leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-ellie:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-ellie",
+          "name": "Ellie",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Ellie leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-jay:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-jay",
+          "name": "Jay",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Jay leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-phil:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-phil",
+          "name": "Phil",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Phil leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "spriteFright:character_left:character-sprite:396.928",
+      "timestamp_start": 396.928456,
+      "timestamp_end": 396.928456,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-sprite",
+          "name": "Mushroom Sprite",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Mushroom Sprite leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
     }
   ],
   "open_story_threads": [],
@@ -966,6 +1166,26 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-rex:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rex",
+            "name": "Rex",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rex leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-victoria": [
@@ -1009,6 +1229,26 @@
           }
         ],
         "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-victoria:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-victoria",
+            "name": "Victoria",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Victoria leaves the current moment",
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
@@ -1080,6 +1320,26 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-ellie:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-ellie",
+            "name": "Ellie",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Ellie leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-jay": [
@@ -1123,6 +1383,26 @@
           }
         ],
         "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-jay:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-jay",
+            "name": "Jay",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Jay leaves the current moment",
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
@@ -1172,6 +1452,26 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-phil:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-phil",
+            "name": "Phil",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Phil leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-sprite": [
@@ -1215,6 +1515,26 @@
           }
         ],
         "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "spriteFright:character_left:character-sprite:396.928",
+        "timestamp_start": 396.928456,
+        "timestamp_end": 396.928456,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-sprite",
+            "name": "Mushroom Sprite",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Mushroom Sprite leaves the current moment",
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true

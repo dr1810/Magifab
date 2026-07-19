@@ -511,6 +511,30 @@
   text-align: center;
 }
 
+.movie-experience .diagram-node small {
+  color: #fdd88b;
+  font-size: 0.78rem;
+}
+
+.movie-experience .drawer-list {
+  display: grid;
+  gap: 5px;
+  list-style: disc;
+  margin: 3px 0 0;
+  padding-left: 1.15rem;
+  text-align: left;
+}
+
+.movie-experience .drawer-list li {
+  display: grid;
+  gap: 1px;
+}
+
+.movie-experience .drawer-list li span {
+  color: #cce2ff;
+  font-size: 0.84rem;
+}
+
 .movie-experience .timeline-diagram {
   list-style: none;
   margin: 0;

@@ -5,53 +5,81 @@
       "id": "character-big-buck-bunny",
       "name": "Big Buck Bunny",
       "first_seen_timestamp": 1.0,
-      "last_seen_timestamp": 340.227458,
-      "total_screen_time": 339.227458,
-      "current_visibility": true,
+      "last_seen_timestamp": 571.0,
+      "total_screen_time": 390.0,
+      "current_visibility": false,
       "associated_events": [
         "bigBuckBunny:character_introduced:claim-60f7a2d95ae0d74d:1.000",
         "bigBuckBunny:timeline_changed:claim-d96d54fca02e08b2:1.000",
         "bigBuckBunny:emotion_changed:claim-2731f4e79c43d64b:1.000",
-        "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:160.144"
+        "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:181.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:391.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:421.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:451.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:481.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:511.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:541.000",
+        "bigBuckBunny:character_left:character-big-buck-bunny:571.000"
       ],
       "relationships": []
     },
     "character-frank": {
       "id": "character-frank",
       "name": "Frank",
-      "first_seen_timestamp": 160.143713,
-      "last_seen_timestamp": 340.227458,
-      "total_screen_time": 180.08374500000002,
-      "current_visibility": true,
+      "first_seen_timestamp": 181.0,
+      "last_seen_timestamp": 571.0,
+      "total_screen_time": 210.0,
+      "current_visibility": false,
       "associated_events": [
-        "bigBuckBunny:character_introduced:claim-923b66081db83f76:160.144",
-        "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:160.144"
+        "bigBuckBunny:character_introduced:claim-923b66081db83f76:181.000",
+        "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:181.000",
+        "bigBuckBunny:character_left:character-frank:391.000",
+        "bigBuckBunny:character_left:character-frank:421.000",
+        "bigBuckBunny:character_left:character-frank:451.000",
+        "bigBuckBunny:character_left:character-frank:481.000",
+        "bigBuckBunny:character_left:character-frank:511.000",
+        "bigBuckBunny:character_left:character-frank:541.000",
+        "bigBuckBunny:character_left:character-frank:571.000"
       ],
       "relationships": []
     },
     "character-rinky": {
       "id": "character-rinky",
       "name": "Rinky",
-      "first_seen_timestamp": 160.143713,
-      "last_seen_timestamp": 340.227458,
-      "total_screen_time": 180.08374500000002,
-      "current_visibility": true,
+      "first_seen_timestamp": 181.0,
+      "last_seen_timestamp": 571.0,
+      "total_screen_time": 210.0,
+      "current_visibility": false,
       "associated_events": [
-        "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:160.144",
-        "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:160.144"
+        "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:181.000",
+        "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:181.000",
+        "bigBuckBunny:character_left:character-rinky:391.000",
+        "bigBuckBunny:character_left:character-rinky:421.000",
+        "bigBuckBunny:character_left:character-rinky:451.000",
+        "bigBuckBunny:character_left:character-rinky:481.000",
+        "bigBuckBunny:character_left:character-rinky:511.000",
+        "bigBuckBunny:character_left:character-rinky:541.000",
+        "bigBuckBunny:character_left:character-rinky:571.000"
       ],
       "relationships": []
     },
     "character-gimera": {
       "id": "character-gimera",
       "name": "Gimera",
-      "first_seen_timestamp": 160.143713,
-      "last_seen_timestamp": 340.227458,
-      "total_screen_time": 180.08374500000002,
-      "current_visibility": true,
+      "first_seen_timestamp": 181.0,
+      "last_seen_timestamp": 571.0,
+      "total_screen_time": 210.0,
+      "current_visibility": false,
       "associated_events": [
-        "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:160.144",
-        "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:160.144"
+        "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:181.000",
+        "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:181.000",
+        "bigBuckBunny:character_left:character-gimera:391.000",
+        "bigBuckBunny:character_left:character-gimera:421.000",
+        "bigBuckBunny:character_left:character-gimera:451.000",
+        "bigBuckBunny:character_left:character-gimera:481.000",
+        "bigBuckBunny:character_left:character-gimera:511.000",
+        "bigBuckBunny:character_left:character-gimera:541.000",
+        "bigBuckBunny:character_left:character-gimera:571.000"
       ],
       "relationships": []
     }
@@ -63,20 +91,20 @@
       "name": "Big Buck Bunny is in the forest before the conflict escalates. Visible now: Big Buck Bunny.",
       "entity_type": "location"
     },
-    "bigBuckBunny:location_changed:claim-96b6b70937c557f1:160.144": {
-      "id": "bigBuckBunny:location_changed:claim-96b6b70937c557f1:160.144",
+    "bigBuckBunny:location_changed:claim-96b6b70937c557f1:181.000": {
+      "id": "bigBuckBunny:location_changed:claim-96b6b70937c557f1:181.000",
       "name": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny.",
       "entity_type": "location"
     },
-    "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:340.227": {
-      "id": "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:340.227",
+    "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:361.000": {
+      "id": "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:361.000",
       "name": "No story-relevant entity has been confirmed in this frame.",
       "entity_type": "location"
     }
   },
   "known_objects": {},
   "current_scene": "bbb-03",
-  "current_timestamp": 340.227458,
+  "current_timestamp": 571.0,
   "current_location": "No story-relevant entity has been confirmed in this frame.",
   "current_goal": null,
   "active_emotions": {
@@ -84,50 +112,84 @@
   },
   "recent_events": [
     {
-      "event_id": "bigBuckBunny:scene_transition:bbb-03:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
-      "importance_score": 1.5,
-      "confidence": 1.0,
-      "event_type": "scene_transition",
-      "semantic_claim_ids": [],
-      "entities": [],
-      "summary": "Story moves to bbb-03",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-17350cdb6fde1d38"
-      ],
-      "entities": [],
-      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
       "importance_score": 1.0,
-      "confidence": 0.5474647879600525,
-      "event_type": "location_changed",
-      "semantic_claim_ids": [
-        "claim-410a2d0aa60c8d51"
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
       ],
-      "entities": [],
-      "summary": "No story-relevant entity has been confirmed in this frame.",
+      "summary": "Big Buck Bunny leaves the current moment",
       "is_new": true,
       "requires_memory": true,
-      "requires_prompt": false
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
     }
   ],
   "story_so_far": [
@@ -230,9 +292,9 @@
       "requires_prompt": false
     },
     {
-      "event_id": "bigBuckBunny:scene_transition:bbb-02:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:scene_transition:bbb-02:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 1.5,
       "confidence": 1.0,
       "event_type": "scene_transition",
@@ -244,9 +306,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -266,9 +328,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -288,9 +350,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -310,9 +372,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -332,9 +394,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -354,9 +416,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -376,9 +438,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:story_event:claim-dcdbb2fa3a55d442:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:story_event:claim-dcdbb2fa3a55d442:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 1.5,
       "confidence": 0.86,
       "event_type": "story_event",
@@ -392,9 +454,9 @@
       "requires_prompt": false
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -408,9 +470,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
@@ -430,9 +492,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:location_changed:claim-96b6b70937c557f1:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:location_changed:claim-96b6b70937c557f1:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 1.0,
       "confidence": 0.39684244990348816,
       "event_type": "location_changed",
@@ -446,9 +508,9 @@
       "requires_prompt": false
     },
     {
-      "event_id": "bigBuckBunny:scene_transition:bbb-03:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:scene_transition:bbb-03:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 1.5,
       "confidence": 1.0,
       "event_type": "scene_transition",
@@ -460,9 +522,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -476,9 +538,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 1.0,
       "confidence": 0.5474647879600525,
       "event_type": "location_changed",
@@ -490,6 +552,566 @@
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:391.000",
+      "timestamp_start": 391.0,
+      "timestamp_end": 391.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:391.000",
+      "timestamp_start": 391.0,
+      "timestamp_end": 391.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:391.000",
+      "timestamp_start": 391.0,
+      "timestamp_end": 391.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:391.000",
+      "timestamp_start": 391.0,
+      "timestamp_end": 391.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:421.000",
+      "timestamp_start": 421.0,
+      "timestamp_end": 421.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:421.000",
+      "timestamp_start": 421.0,
+      "timestamp_end": 421.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:421.000",
+      "timestamp_start": 421.0,
+      "timestamp_end": 421.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:421.000",
+      "timestamp_start": 421.0,
+      "timestamp_end": 421.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:451.000",
+      "timestamp_start": 451.0,
+      "timestamp_end": 451.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:451.000",
+      "timestamp_start": 451.0,
+      "timestamp_end": 451.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:451.000",
+      "timestamp_start": 451.0,
+      "timestamp_end": 451.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:451.000",
+      "timestamp_start": 451.0,
+      "timestamp_end": 451.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:481.000",
+      "timestamp_start": 481.0,
+      "timestamp_end": 481.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:481.000",
+      "timestamp_start": 481.0,
+      "timestamp_end": 481.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:481.000",
+      "timestamp_start": 481.0,
+      "timestamp_end": 481.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:481.000",
+      "timestamp_start": 481.0,
+      "timestamp_end": 481.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:511.000",
+      "timestamp_start": 511.0,
+      "timestamp_end": 511.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:511.000",
+      "timestamp_start": 511.0,
+      "timestamp_end": 511.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:511.000",
+      "timestamp_start": 511.0,
+      "timestamp_end": 511.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:511.000",
+      "timestamp_start": 511.0,
+      "timestamp_end": 511.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:541.000",
+      "timestamp_start": 541.0,
+      "timestamp_end": 541.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:541.000",
+      "timestamp_start": 541.0,
+      "timestamp_end": 541.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:541.000",
+      "timestamp_start": 541.0,
+      "timestamp_end": 541.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:541.000",
+      "timestamp_start": 541.0,
+      "timestamp_end": 541.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-frank:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-rinky:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_left:character-gimera:571.000",
+      "timestamp_start": 571.0,
+      "timestamp_end": 571.0,
+      "importance_score": 1.0,
+      "confidence": 1.0,
+      "event_type": "character_left",
+      "semantic_claim_ids": [],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera leaves the current moment",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
     }
   ],
   "open_story_threads": [],
@@ -556,9 +1178,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -578,9 +1200,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -600,9 +1222,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -622,9 +1244,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -644,9 +1266,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -666,9 +1288,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -688,9 +1310,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -704,9 +1326,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
@@ -726,9 +1348,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -811,9 +1433,9 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:emotion_changed:claim-4b08ddfbcd70985c:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "emotion_changed",
@@ -831,13 +1453,153 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:391.000",
+        "timestamp_start": 391.0,
+        "timestamp_end": 391.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:421.000",
+        "timestamp_start": 421.0,
+        "timestamp_end": 421.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:451.000",
+        "timestamp_start": 451.0,
+        "timestamp_end": 451.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:481.000",
+        "timestamp_start": 481.0,
+        "timestamp_end": 481.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:511.000",
+        "timestamp_start": 511.0,
+        "timestamp_end": 511.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:541.000",
+        "timestamp_start": 541.0,
+        "timestamp_end": 541.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-big-buck-bunny:571.000",
+        "timestamp_start": 571.0,
+        "timestamp_end": 571.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-frank": [
       {
-        "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:character_introduced:claim-923b66081db83f76:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "character_introduced",
@@ -857,9 +1619,9 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "timeline_changed",
@@ -877,13 +1639,153 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:391.000",
+        "timestamp_start": 391.0,
+        "timestamp_end": 391.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:421.000",
+        "timestamp_start": 421.0,
+        "timestamp_end": 421.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:451.000",
+        "timestamp_start": 451.0,
+        "timestamp_end": 451.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:481.000",
+        "timestamp_start": 481.0,
+        "timestamp_end": 481.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:511.000",
+        "timestamp_start": 511.0,
+        "timestamp_end": 511.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:541.000",
+        "timestamp_start": 541.0,
+        "timestamp_end": 541.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-frank:571.000",
+        "timestamp_start": 571.0,
+        "timestamp_end": 571.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-rinky": [
       {
-        "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:character_introduced:claim-7385d8e93ca41271:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "character_introduced",
@@ -903,9 +1805,9 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "timeline_changed",
@@ -923,13 +1825,153 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:391.000",
+        "timestamp_start": 391.0,
+        "timestamp_end": 391.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:421.000",
+        "timestamp_start": 421.0,
+        "timestamp_end": 421.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:451.000",
+        "timestamp_start": 451.0,
+        "timestamp_end": 451.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:481.000",
+        "timestamp_start": 481.0,
+        "timestamp_end": 481.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:511.000",
+        "timestamp_start": 511.0,
+        "timestamp_end": 511.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:541.000",
+        "timestamp_start": 541.0,
+        "timestamp_end": 541.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-rinky:571.000",
+        "timestamp_start": 571.0,
+        "timestamp_end": 571.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ],
     "character-gimera": [
       {
-        "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:character_introduced:claim-762f28c5a8f3e6cf:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "character_introduced",
@@ -949,9 +1991,9 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:160.144",
-        "timestamp_start": 160.143713,
-        "timestamp_end": 160.143713,
+        "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:181.000",
+        "timestamp_start": 181.0,
+        "timestamp_end": 181.0,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "timeline_changed",
@@ -966,6 +2008,146 @@
           }
         ],
         "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:391.000",
+        "timestamp_start": 391.0,
+        "timestamp_end": 391.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:421.000",
+        "timestamp_start": 421.0,
+        "timestamp_end": 421.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:451.000",
+        "timestamp_start": 451.0,
+        "timestamp_end": 451.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:481.000",
+        "timestamp_start": 481.0,
+        "timestamp_end": 481.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:511.000",
+        "timestamp_start": 511.0,
+        "timestamp_end": 511.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:541.000",
+        "timestamp_start": 541.0,
+        "timestamp_end": 541.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:character_left:character-gimera:571.000",
+        "timestamp_start": 571.0,
+        "timestamp_end": 571.0,
+        "importance_score": 1.0,
+        "confidence": 1.0,
+        "event_type": "character_left",
+        "semantic_claim_ids": [],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera leaves the current moment",
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
@@ -1013,9 +2195,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:scene_transition:bbb-02:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:scene_transition:bbb-02:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 1.5,
       "confidence": 1.0,
       "event_type": "scene_transition",
@@ -1027,9 +2209,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17ff930bbd02fdfd:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -1049,9 +2231,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-560a7ad06e489137:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -1071,9 +2253,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9d9a103c9308f2d9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -1093,9 +2275,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:160.144",
-      "timestamp_start": 160.143713,
-      "timestamp_end": 160.143713,
+      "event_id": "bigBuckBunny:timeline_changed:claim-9a069acdaf68dcb9:181.000",
+      "timestamp_start": 181.0,
+      "timestamp_end": 181.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -1109,9 +2291,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:scene_transition:bbb-03:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:scene_transition:bbb-03:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 1.5,
       "confidence": 1.0,
       "event_type": "scene_transition",
@@ -1123,9 +2305,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:340.227",
-      "timestamp_start": 340.227458,
-      "timestamp_end": 340.227458,
+      "event_id": "bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:361.000",
+      "timestamp_start": 361.0,
+      "timestamp_end": 361.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -1138,6 +2320,5 @@
       "requires_memory": true,
       "requires_prompt": true
     }
-  ],
-  "prompt_history": {}
+  ]
 }

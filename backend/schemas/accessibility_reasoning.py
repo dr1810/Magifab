@@ -5,12 +5,11 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.knowledge import VisualAnchor
 from schemas.profiles import AccessibilityProfile, CompanionProfile
-from schemas.profiles import AccessibilityProfile
 from schemas.story_state import StoryState
 from schemas.timeline_memory import TimelineState
 
 class PromptBubbleSuggestion(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     id: str
     kind: str
     label: str
@@ -24,7 +23,7 @@ class PromptBubbleSuggestion(BaseModel):
 
 
 class CharacterCard(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     character_id: str
     name: str
     reminder: str
@@ -34,22 +33,15 @@ class CharacterCard(BaseModel):
 
 
 class RelationshipSummary(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     relationship_id: str
     summary: str
     confidence: float = Field(ge=0, le=1)
     claim_ids: list[str] = Field(default_factory=list)
 
 
-class TimelineSummary(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    summary: str
-    confidence: float = Field(ge=0, le=1)
-    claim_ids: list[str] = Field(default_factory=list)
-
-
 class EmotionSummary(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     emotion_id: str
     summary: str
     confidence: float = Field(ge=0, le=1)
@@ -57,14 +49,14 @@ class EmotionSummary(BaseModel):
 
 
 class MemoryReminder(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     summary: str
     confidence: float = Field(ge=0, le=1)
     claim_ids: list[str] = Field(default_factory=list)
 
 
 class VocabularyAssistance(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     term: str
     simple_definition: str
     confidence: float = Field(ge=0, le=1)
@@ -72,39 +64,11 @@ class VocabularyAssistance(BaseModel):
 
 
 class ConversationSimplification(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
     dialogue_id: str
     simple_text: str
     confidence: float = Field(ge=0, le=1)
     claim_ids: list[str] = Field(default_factory=list)
-
-
-class AccessibilityDrawerContent(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    character_cards: list[CharacterCard] = Field(default_factory=list)
-    relationship_summaries: list[RelationshipSummary] = Field(default_factory=list)
-    timeline_summary: TimelineSummary | None = None
-    emotion_summaries: list[EmotionSummary] = Field(default_factory=list)
-    memory_reminders: list[MemoryReminder] = Field(default_factory=list)
-    vocabulary_assistance: list[VocabularyAssistance] = Field(default_factory=list)
-    conversation_simplifications: list[ConversationSimplification] = Field(default_factory=list)
-
-
-class LiveStoryAssistant(BaseModel):
-    """Timestamped persistent-memory snapshot for the visual drawer."""
-    model_config = ConfigDict(extra="forbid")
-    current_scene: str
-    current_timestamp: float = Field(ge=0)
-    current_goal: str | None = None
-    current_characters: list[str] = Field(default_factory=list)
-    current_emotions: list[str] = Field(default_factory=list)
-    current_relationships: list[str] = Field(default_factory=list)
-    recent_events: list[str] = Field(default_factory=list)
-    timeline_position: str | None = None
-    story_so_far: list[str] = Field(default_factory=list)
-    important_objects: list[str] = Field(default_factory=list)
-    memory_reminders: list[str] = Field(default_factory=list)
-    unresolved_story_threads: list[str] = Field(default_factory=list)
 
 
 class AccessibilityReasoningRequest(BaseModel):

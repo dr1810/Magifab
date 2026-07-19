@@ -4,11 +4,12 @@ from schemas.timeline_memory import TimelinePrompt
 
 
 class PromptScheduler:
-    def schedule(self, state: StoryState, events: list[StoryEvent]) -> list[TimelinePrompt]:
-        existing = {event_id for event_id in state.prompt_history}
+    def schedule(self, _state: StoryState, events: list[StoryEvent]) -> list[TimelinePrompt]:
         prompts = []
         for event in events:
-            if not event.requires_prompt or not event.is_new or event.event_id in existing:
+            # Every semantic transition is candidate-worthy. Ranking later
+            # decides prominence; scheduler must not erase interval context.
+            if not event.is_new:
                 continue
             label, question, kind = _copy(event)
             prompts.append(TimelinePrompt(

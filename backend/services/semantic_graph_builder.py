@@ -18,6 +18,7 @@ class SemanticGraphBuilder:
         perception: UnifiedSceneRepresentation,
         matches: SemanticMatchResult,
         existing: SemanticMovieKnowledge,
+        catalog_scene_id: str | None = None,
     ) -> list[SemanticClaim]:
         # Only direct, catalog-query evidence may bind a frame entity to an
         # identity.  A Florence caption (for example, "young boy") is never a
@@ -106,15 +107,20 @@ class SemanticGraphBuilder:
         # Curated emotional context is movie knowledge, not a caption-derived
         # guess. It can therefore create an accessibility prompt without a
         # fresh visual match on every frame.
+        # A client-facing scene ID may be more granular than the catalog.  In
+        # that case ``catalog_scene_id`` carries the active catalog context;
+        # claims still retain the observed scene ID so interval ownership and
+        # playback restoration remain exact.
+        semantic_scene_id = catalog_scene_id or observation.scene_id
         for emotion in existing.emotions:
-            if emotion.scene_id not in {None, observation.scene_id}:
+            if emotion.scene_id not in {None, semantic_scene_id}:
                 continue
             claims.append(_claim(
                 observation, "emotion", emotion.character_id or emotion.id, "feels", observation.scene_id,
                 emotion.confidence, emotion.emotion,
                 evidence_origin="movie_knowledge_supported", knowledge_ids=[emotion.id],
             ))
-        state = _scene_state(perception, matches, existing, observation.scene_id)
+        state = _scene_state(perception, matches, existing, semantic_scene_id)
         if state:
             claims.append(_claim(observation, "scene_state", _stable_id("scene", observation.scene_id), "has_state", observation.scene_id, _scene_confidence(perception), state))
         return _unique(claims)

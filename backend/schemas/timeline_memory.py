@@ -1,6 +1,7 @@
-"""Timestamp-addressable semantic memory for playback and seeking.
+"""Internal semantic memory used while preprocessing interval snapshots.
 
 Intervals are created by story changes, never by fixed perception windows.
+This is not a browser playback contract.
 """
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 

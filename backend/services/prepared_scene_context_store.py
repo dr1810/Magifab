@@ -19,13 +19,13 @@ class PreparedSceneContextStore:
             raise ValueError("prepared context cache version mismatch")
         with self._lock:
             self._root.mkdir(parents=True, exist_ok=True)
-            path = self._path(context.movie_id, context.scene_id, context.timestamp_seconds)
+            path = self._path(context.movie_id, context.interval_id, context.timestamp_seconds)
             temporary = path.with_suffix(".tmp")
             temporary.write_text(context.model_dump_json(indent=2), encoding="utf-8")
             temporary.replace(path)
         return context
 
-    def load(self, *, movie_id: str, scene_id: str | None, timestamp_seconds: float, max_delta_seconds: float) -> PreparedSceneContext | None:
+    def load(self, *, movie_id: str, interval_id: str | None, timestamp_seconds: float, max_delta_seconds: float) -> PreparedSceneContext | None:
         if not self._root.is_dir():
             return None
         candidates: list[PreparedSceneContext] = []
@@ -41,9 +41,9 @@ class PreparedSceneContextStore:
             return None
         # Prefer the caller's exact canonical scene ID, otherwise timestamp is
         # authoritative for callers that use a UI alias rather than catalog ID.
-        candidates.sort(key=lambda item: (item.scene_id != scene_id, abs(item.timestamp_seconds - timestamp_seconds)))
+        candidates.sort(key=lambda item: (item.interval_id != interval_id, abs(item.timestamp_seconds - timestamp_seconds)))
         return candidates[0]
 
-    def _path(self, movie_id: str, scene_id: str, timestamp_seconds: float) -> Path:
-        token = f"{movie_id}:{scene_id}:{timestamp_seconds:.3f}"
+    def _path(self, movie_id: str, interval_id: str, timestamp_seconds: float) -> Path:
+        token = f"{movie_id}:{interval_id}:{timestamp_seconds:.3f}"
         return self._root / f"{sha256(token.encode('utf-8')).hexdigest()}.json"

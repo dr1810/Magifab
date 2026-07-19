@@ -1,0 +1,228 @@
+{
+  "movie_id": "bigBuckBunny",
+  "scene_id": "bbb-03",
+  "timestamp_seconds": 391.0,
+  "preparation_cache_key": "bigBuckBunny:v21:scene:bbb-03",
+  "semantic_cache_version": 21,
+  "knowledge_revision": 4,
+  "knowledge_source": "retrieved",
+  "semantic_map_cached": true,
+  "reasoning_cached": false,
+  "frame_hash": "d89586704fe43846b968c47b0d74287fe38720702b8a0f2f5dc647661577191b",
+  "reasoning_context": {
+    "movie_id": "bigBuckBunny",
+    "scene_id": "bbb-03",
+    "timestamp_seconds": 391.0,
+    "accessibility_profile": {
+      "accessibility_needs": [
+        "Remembering characters",
+        "Understanding relationships",
+        "Remembering previous events",
+        "Understanding sarcasm",
+        "Understanding difficult words",
+        "Understanding scenes without dialogue"
+      ],
+      "detail_level": "A little more context",
+      "preferred_prompt_types": [
+        "character introduction",
+        "relationship update",
+        "callback reminder",
+        "sarcasm cue",
+        "word explanation",
+        "visual scene explanation"
+      ],
+      "conversation_simplification": true,
+      "vocabulary_assistance": true
+    },
+    "semantic_scene": [
+      {
+        "id": "claim-17350cdb6fde1d38",
+        "kind": "timeline_change",
+        "scene_id": "bbb-03",
+        "timestamp_seconds": 341.491298,
+        "timestamp_start": 341.491298,
+        "timestamp_end": 341.491298,
+        "subject_id": "timeline-conflict",
+        "predicate": "active_at",
+        "object_id": "bbb-03",
+        "value": "The rodents' pranks lead Big Buck Bunny to respond.",
+        "confidence": 0.9,
+        "observation_ids": [
+          "observation-2f7782e6e7cc6c4065fc"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "timeline-conflict"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-410a2d0aa60c8d51",
+        "kind": "scene_state",
+        "scene_id": "bbb-03",
+        "timestamp_seconds": 341.491298,
+        "timestamp_start": 341.491298,
+        "timestamp_end": 341.491298,
+        "subject_id": "scene-615ef51e7b969a2a",
+        "predicate": "has_state",
+        "object_id": "bbb-03",
+        "value": "No story-relevant entity has been confirmed in this frame.",
+        "confidence": 0.5474647879600525,
+        "observation_ids": [
+          "observation-2f7782e6e7cc6c4065fc"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [],
+        "supporting_claim_ids": []
+      }
+    ],
+    "active_characters": [],
+    "active_objects": [],
+    "timeline": {
+      "id": "timeline-conflict",
+      "start_seconds": 160.0,
+      "end_seconds": 600.0,
+      "description": "The rodents' pranks lead Big Buck Bunny to respond."
+    },
+    "timeline_claim_ids": [
+      "claim-17350cdb6fde1d38"
+    ],
+    "relationships": [],
+    "previous_events": [
+      {
+        "id": "claim-dcdbb2fa3a55d442",
+        "kind": "event",
+        "scene_id": "bbb-02",
+        "timestamp_seconds": 160.406806,
+        "timestamp_start": 160.406806,
+        "timestamp_end": 160.406806,
+        "subject_id": "event-rodent-prank",
+        "predicate": "occurs_in",
+        "object_id": "bbb-02",
+        "value": "The rodents disrupt Big Buck Bunny's peaceful day.",
+        "confidence": 0.86,
+        "observation_ids": [
+          "observation-4c72c23c217f51afb4f1"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "event-rodent-prank"
+        ],
+        "supporting_claim_ids": []
+      }
+    ],
+    "previous_character_presence": [
+      {
+        "id": "claim-60f7a2d95ae0d74d",
+        "kind": "character_present",
+        "scene_id": "bbb-01",
+        "timestamp_seconds": 1.0,
+        "timestamp_start": 1.0,
+        "timestamp_end": 1.0,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "present_in",
+        "object_id": "bbb-01",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-95f8d9a4b2a926b0a19a"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [
+          "character-big-buck-bunny"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-b3c60f6c95072648",
+        "kind": "character_present",
+        "scene_id": "bbb-02",
+        "timestamp_seconds": 160.406806,
+        "timestamp_start": 160.406806,
+        "timestamp_end": 160.406806,
+        "subject_id": "character-big-buck-bunny",
+        "predicate": "present_in",
+        "object_id": "bbb-02",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-4c72c23c217f51afb4f1"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [
+          "character-big-buck-bunny"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-923b66081db83f76",
+        "kind": "character_present",
+        "scene_id": "bbb-02",
+        "timestamp_seconds": 160.406806,
+        "timestamp_start": 160.406806,
+        "timestamp_end": 160.406806,
+        "subject_id": "character-frank",
+        "predicate": "present_in",
+        "object_id": "bbb-02",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-4c72c23c217f51afb4f1"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-frank"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-7385d8e93ca41271",
+        "kind": "character_present",
+        "scene_id": "bbb-02",
+        "timestamp_seconds": 160.406806,
+        "timestamp_start": 160.406806,
+        "timestamp_end": 160.406806,
+        "subject_id": "character-rinky",
+        "predicate": "present_in",
+        "object_id": "bbb-02",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-4c72c23c217f51afb4f1"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-rinky"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-762f28c5a8f3e6cf",
+        "kind": "character_present",
+        "scene_id": "bbb-02",
+        "timestamp_seconds": 160.406806,
+        "timestamp_start": 160.406806,
+        "timestamp_end": 160.406806,
+        "subject_id": "character-gimera",
+        "predicate": "present_in",
+        "object_id": "bbb-02",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-4c72c23c217f51afb4f1"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-gimera"
+        ],
+        "supporting_claim_ids": []
+      }
+    ],
+    "emotion_claims": [],
+    "vocabulary_claims": [],
+    "conversation_claims": [],
+    "previous_explanations": [],
+    "unresolved_questions": [],
+    "live_story": {}
+  }
+}

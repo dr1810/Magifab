@@ -1,0 +1,187 @@
+{
+  "metadata": {
+    "interval_id": "bigBuckBunny:interval:12",
+    "scene_id": "bbb-03",
+    "movie_id": "bigBuckBunny",
+    "start_time": 360.0,
+    "end_time": 390.0,
+    "interval_number": 12,
+    "knowledge_revision": 4
+  },
+  "prompts": {
+    "prompt_bubbles": [
+      {
+        "id": "timeline-prompt:bigBuckBunny:timeline_changed:claim-17350cdb6fde1d38:361.000",
+        "kind": "timeline",
+        "label": "Where are we in the story?",
+        "question": "What has led to this point?",
+        "priority": 3,
+        "claim_ids": [],
+        "timestamp_start": 361.0,
+        "timestamp_end": null,
+        "semantic_event": "timeline_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "timeline-prompt:bigBuckBunny:location_changed:claim-410a2d0aa60c8d51:361.000",
+        "kind": "scene",
+        "label": "What changed?",
+        "question": "No story-relevant entity has been confirmed in this frame.",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 361.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "timeline-prompt:bigBuckBunny:scene_transition:bbb-03:361.000",
+        "kind": "scene",
+        "label": "What changed?",
+        "question": "Story moves to bbb-03",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 361.0,
+        "timestamp_end": null,
+        "semantic_event": "scene_transition",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "state-prompt:emotion:361.000",
+        "kind": "emotion",
+        "label": "Why did the mood change?",
+        "question": "Why is everyone feeling this way now?",
+        "priority": 1,
+        "claim_ids": [],
+        "timestamp_start": 361.0,
+        "timestamp_end": null,
+        "semantic_event": "emotion",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "state-prompt:cause-effect:361.000",
+        "kind": "scene",
+        "label": "What caused this?",
+        "question": "What happened earlier to cause this moment?",
+        "priority": 2,
+        "claim_ids": [],
+        "timestamp_start": 361.0,
+        "timestamp_end": null,
+        "semantic_event": "cause_effect",
+        "screen_location": "bottom-right"
+      }
+    ],
+    "prompt_answers": [],
+    "suggested_questions": [
+      "What has led to this point?",
+      "No story-relevant entity has been confirmed in this frame.",
+      "Story moves to bbb-03",
+      "Why is everyone feeling this way now?",
+      "What happened earlier to cause this moment?"
+    ]
+  },
+  "visualDrawer": {
+    "story_now": [
+      "No story-relevant entity has been confirmed in this frame.",
+      "Big Buck Bunny, Frank, Rinky, Gimera are focused on what happens next.",
+      "Their current goal is to follow the next important change in the story: Story develops"
+    ],
+    "relationships": [
+      "Big Buck Bunny, Frank, Rinky, Gimera are sharing this moment together."
+    ],
+    "timeline": [
+      "The rodents' pranks lead Big Buck Bunny to respond.",
+      "No story-relevant entity has been confirmed in this frame."
+    ],
+    "emotion": "Big Buck Bunny, Frank, Rinky, Gimera feel big buck bunny becomes frustrated by the rodents' pranks. because no story-relevant entity has been confirmed in this frame.",
+    "cause_effect": [
+      {
+        "cause": "The rodents' pranks lead Big Buck Bunny to respond.",
+        "effect": "No story-relevant entity has been confirmed in this frame."
+      }
+    ],
+    "objects": [
+      "The characters' actions matter most in this moment."
+    ],
+    "memory": [
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine."
+    ]
+  },
+  "storyState": {
+    "scene_summary": "No story-relevant entity has been confirmed in this frame.",
+    "current_goal": "Follow the next important change in the story: Story develops",
+    "current_scene": "bbb-03",
+    "timeline_position": "Story develops",
+    "story_so_far": [
+      "Big Buck Bunny is introduced",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates. Visible now: Big Buck Bunny.",
+      "Story moves to bbb-02"
+    ],
+    "unresolved_threads": []
+  },
+  "characters": [
+    {
+      "character_id": "character-0",
+      "name": "Big Buck Bunny",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-1",
+      "name": "Frank",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-2",
+      "name": "Rinky",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-3",
+      "name": "Gimera",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    }
+  ],
+  "relationships": [],
+  "memory": [
+    {
+      "summary": "Rinky is introduced",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "summary": "Gimera is introduced",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "conversationContext": {
+    "scene_explanation": "No story-relevant entity has been confirmed in this frame.",
+    "simplifications": []
+  },
+  "accessibilityHints": {
+    "vocabulary": [],
+    "emotions": [
+      {
+        "emotion_id": "emotion-0",
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "confidence": 1.0,
+        "claim_ids": []
+      }
+    ]
+  }
+}

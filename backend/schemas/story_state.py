@@ -1,4 +1,7 @@
-"""Canonical, persistent story model used by all accessibility features."""
+"""Preprocessing narrative model and presentation eligibility helpers."""
+from __future__ import annotations
+
+import re
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -55,14 +58,14 @@ class RelationshipState(BaseModel):
 
 
 class StoryState(BaseModel):
-    """Single source of truth for one movie's evolving narrative state."""
+    """Temporary cumulative narrative context used during preprocessing only."""
     model_config = ConfigDict(extra="forbid")
     movie_id: str
     known_characters: dict[str, CharacterState] = Field(default_factory=dict)
     known_relationships: dict[str, RelationshipState] = Field(default_factory=dict)
     known_locations: dict[str, StoryEntity] = Field(default_factory=dict)
     known_objects: dict[str, StoryEntity] = Field(default_factory=dict)
-    current_scene: str | None = None
+    current_interval_id: str | None = None
     current_timestamp: float = Field(default=0, ge=0)
     current_location: str | None = None
     current_goal: str | None = None
@@ -75,10 +78,28 @@ class StoryState(BaseModel):
     character_history: dict[str, list[StoryEvent]] = Field(default_factory=dict)
     relationship_history: dict[str, list[StoryEvent]] = Field(default_factory=dict)
     timeline_history: list[StoryEvent] = Field(default_factory=list)
-    prompt_history: dict[str, float] = Field(default_factory=dict)
 
 
 class StoryStateUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     state: StoryState
     events: list[StoryEvent] = Field(default_factory=list)
+
+
+_INTERNAL_EVENT_TYPES = frozenset({
+    "semantic_observation", "semantic_state_reused", "cache_replayed",
+    "semantic_graph_reused",
+})
+_INTERNAL_EVENT_TEXT = re.compile(
+    r"\b(existing semantic state remains active|semantic state reused|cache replayed|previous semantic graph reused)\b",
+    re.IGNORECASE,
+)
+
+
+def is_user_facing_story_event(event: StoryEvent) -> bool:
+    """Internal semantic/cache bookkeeping must never reach IntervalState."""
+    return event.event_type not in _INTERNAL_EVENT_TYPES and not _INTERNAL_EVENT_TEXT.search(event.summary)
+
+
+def is_user_facing_story_text(value: str) -> bool:
+    return bool(value and not _INTERNAL_EVENT_TEXT.search(value))

@@ -15,7 +15,7 @@ from services.semantic_graph_builder import SemanticGraphBuilder
 from services.semantic_matching import SemanticMatchingService
 from services.sliding_window_memory import SlidingWindowMemoryManager
 from services.story_event_extractor import StoryEventExtractor
-from services.story_state_manager import StoryStateManager
+from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 
 
@@ -32,8 +32,8 @@ def _context(movie_id: str, scene_id: str, timestamp: float):
     ("bigBuckBunny", [("bbb-01", 5.0), ("bbb-02", 165.0), ("bbb-02", 175.0)]),
     ("spriteFright", [("sf-01", 5.0), ("sf-02", 185.0), ("sf-02", 195.0)]),
 ])
-def test_supported_movie_pipeline_continuously_advances_one_story_state(tmp_path: Path, movie_id, windows):
-    manager = StoryStateManager(tmp_path, 1)
+def test_supported_movie_preprocessing_builds_interval_states_in_order(tmp_path: Path, movie_id, windows):
+    manager = PreprocessingStoryBuilder(tmp_path, 1)
     timeline_memory = TimelineMemoryService(tmp_path, 1)
     extractor = StoryEventExtractor()
     sliding = SlidingWindowMemoryManager()
@@ -47,37 +47,39 @@ def test_supported_movie_pipeline_continuously_advances_one_story_state(tmp_path
         window = sliding.update(context)
         state_before = manager.get(movie_id)
         events = extractor.extract(context, state_before, window_start=window.window.start_timestamp, window_end=window.window.end_timestamp)
-        assert events, "semantic windows must always produce StoryEvents"
+        # Reused semantic evidence is not a user-facing story event and does
+        # not create a presentation snapshot of its own.
+        assert all(event.event_type != "semantic_observation" for event in events)
         assert all(event.timestamp_start <= event.timestamp_end for event in events)
         assert all(event.timestamp_end <= window.window.end_timestamp for event in events)
         state_changes = [event for event in events if event.requires_memory]
         if state_changes:
-            state = manager.update(movie_id, scene_id, timestamp, state_changes).state
+            state = manager.advance(movie_id, scene_id, timestamp, state_changes).state
             timeline_memory.write_change(state_before, state, state_changes)
         else:
             state = state_before
         timeline_state = timeline_memory.at(movie_id, timestamp)
         assert timeline_state is not None
-        presentation = reasoner.reason(AccessibilityReasoningRequest(story_state=timeline_state.story_state, timeline_state=timeline_state, accessibility_profile=context.accessibility_profile, companion_profile=CompanionProfile()))
+        interval = reasoner.reason(AccessibilityReasoningRequest(story_state=timeline_state.story_state, timeline_state=timeline_state, accessibility_profile=context.accessibility_profile, companion_profile=CompanionProfile()))
 
         assert state.current_timestamp <= timestamp
         assert len(state.story_so_far) >= previous_count
         assert len({event.event_id for event in state.story_so_far}) == len(state.story_so_far)
-        assert presentation.story_state == timeline_state.story_state
-        assert presentation.live_story is not None
-        assert presentation.live_story.current_scene == scene_id
-        assert all(prompt.id.removeprefix("timeline-prompt:") in {event.event_id for event in state.story_so_far} for prompt in presentation.prompt_bubbles if prompt.id.startswith("timeline-prompt:"))
-        assert not any(prompt.id.startswith("fallback:") for prompt in presentation.prompt_bubbles)
+        assert interval.metadata.start_time == timestamp
+        assert not hasattr(interval.storyState, "known_characters")
+        assert interval.storyState.current_interval_id == scene_id
+        assert all(prompt.id.removeprefix("timeline-prompt:") in {event.event_id for event in state.story_so_far} for prompt in interval.prompts.prompt_bubbles if prompt.id.startswith("timeline-prompt:"))
+        assert not any(prompt.id.startswith("fallback:") for prompt in interval.prompts.prompt_bubbles)
         assert all(relationship.supporting_claim_ids for relationship in state.known_relationships.values())
         assert all(character.last_seen_timestamp >= character.first_seen_timestamp and character.total_screen_time >= 0 for character in state.known_characters.values())
         prompt_candidates = [event for event in state.recent_events if event.requires_prompt and event.is_new]
         if len(prompt_candidates) >= 3:
-            assert 3 <= len(presentation.prompt_bubbles) <= 5
+            assert 3 <= len(interval.prompts.prompt_bubbles) <= 5
         memory = timeline_memory.get(movie_id)
         assert any(interval.start_timestamp <= timestamp and (interval.end_timestamp is None or timestamp < interval.end_timestamp) for interval in memory.intervals)
 
         total_events.extend(events)
-        prompt_kinds.update(prompt.kind for prompt in presentation.prompt_bubbles if prompt.id.startswith("timeline-prompt:"))
+        prompt_kinds.update(prompt.kind for prompt in interval.prompts.prompt_bubbles if prompt.id.startswith("timeline-prompt:"))
         previous_count = len(state.story_so_far)
 
     assert len(total_events) >= len(windows)
@@ -90,6 +92,6 @@ def test_supported_movie_pipeline_continuously_advances_one_story_state(tmp_path
     rewind = timeline_memory.at(movie_id, windows[0][1])
     jump = timeline_memory.at(movie_id, windows[-1][1])
     assert rewind is not None and jump is not None
-    assert rewind.story_state.current_scene == windows[0][0]
-    assert jump.story_state.current_scene == windows[-1][0]
+    assert rewind.story_state.current_interval_id == windows[0][0]
+    assert jump.story_state.current_interval_id == windows[-1][0]
     assert jump.timestamp == windows[-1][1]

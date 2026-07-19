@@ -185,7 +185,18 @@ def _catalog_scene(knowledge, scene_id, timestamp_seconds) -> MovieSceneKnowledg
         if item is not None:
             return item
     if timestamp_seconds is not None:
-        return next((scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds <= scene.end_seconds), None)
+        exact = next((scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds <= scene.end_seconds), None)
+        if exact is not None:
+            return exact
+        # Catalogs sometimes describe a broad timeline phase more completely
+        # than they split its individual scene windows. Continue from the last
+        # authoritative scene only while that movie has an active timeline
+        # phase; this is a generic continuity rule, not a movie-specific map.
+        timeline_active = any(item.start_seconds <= timestamp_seconds <= item.end_seconds for item in knowledge.timeline_positions)
+        if timeline_active:
+            prior = [scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds]
+            if prior:
+                return max(prior, key=lambda scene: scene.start_seconds)
     return None
 
 

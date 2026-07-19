@@ -1,4 +1,9 @@
-"""Persistent single-source-of-truth story state."""
+"""Preprocessing-only builder for cumulative narrative context.
+
+This module is deliberately not part of the playback runtime.  It advances a
+temporary chronological story view while IntervalStates are generated; the
+immutable IntervalStateRepository owns all runtime retrieval.
+"""
 from __future__ import annotations
 
 from hashlib import sha256
@@ -11,38 +16,45 @@ from schemas.story_state import CharacterState, RelationshipState, StoryEntity, 
 logger = logging.getLogger(__name__)
 
 
-class StoryStateManager:
-    """Only this class owns durable narrative state; all consumers read it."""
+class PreprocessingStoryBuilder:
+    """Build cumulative StoryState in preprocessing order only.
+
+    This is not a playback state manager.  It is reset at the beginning of a
+    preprocessing run and is never consulted by seek, rewind, or prompt
+    response paths.
+    """
 
     def __init__(self, root: Path, semantic_cache_version: int):
         self._root = root / f"v{semantic_cache_version}" / "story-states"
         self._lock = Lock()
 
-    def update(self, movie_id: str, scene_id: str, timestamp: float, events: list[StoryEvent]) -> StoryStateUpdate:
+    def advance(self, movie_id: str, interval_id: str, timestamp: float, events: list[StoryEvent]) -> StoryStateUpdate:
         with self._lock:
             state = self._load(movie_id)
-            self._assert_transition(state, scene_id, timestamp, events)
+            self._assert_transition(state, interval_id, timestamp, events)
             existing_event_ids = {event.event_id for event in state.story_so_far}
             self._advance_character_lifetimes(state, timestamp)
-            state.current_scene = scene_id
+            state.current_interval_id = interval_id
             state.current_timestamp = timestamp
             known = {event.event_id for event in state.story_so_far}
             for event in events:
                 self._apply(state, event, event.event_id not in known)
             state.recent_events = [event for event in events if event.event_id not in existing_event_ids][-8:]
             self._save(state)
-        logger.info("[STORY STATE UPDATE] movie=%s scene=%s events=%d total=%d timestamp=%.2f", movie_id, scene_id, len(events), len(state.story_so_far), timestamp)
+        logger.info("[PREPROCESSING STORY ADVANCE] movie=%s interval=%s events=%d total=%d timestamp=%.2f", movie_id, interval_id, len(events), len(state.story_so_far), timestamp)
         return StoryStateUpdate(state=state, events=events)
 
     def get(self, movie_id: str) -> StoryState:
         with self._lock:
             return self._load(movie_id)
 
-    def record_prompts(self, movie_id: str, timestamp: float, event_ids: list[str]) -> None:
+    def reset(self, movie_id: str) -> StoryState:
+        """Start a fresh chronological preprocessing pass for one movie."""
         with self._lock:
-            state = self._load(movie_id)
-            state.prompt_history.update({event_id: timestamp for event_id in event_ids})
+            state = StoryState(movie_id=movie_id)
             self._save(state)
+        logger.info("[PREPROCESSING STORY RESET] movie=%s", movie_id)
+        return state
 
     def _apply(self, state: StoryState, event: StoryEvent, is_new: bool) -> None:
         if is_new:
@@ -107,9 +119,11 @@ class StoryStateManager:
             state.memory_reminders = state.memory_reminders[-12:]
 
     @staticmethod
-    def _assert_transition(state: StoryState, scene_id: str, timestamp: float, events: list[StoryEvent]) -> None:
+    def _assert_transition(state: StoryState, interval_id: str, timestamp: float, events: list[StoryEvent]) -> None:
+        # Chronological order belongs exclusively to the preprocessing writer.
+        # Playback never calls this builder; it retrieves immutable snapshots.
         if timestamp < state.current_timestamp:
-            raise AssertionError("StoryState timestamp regressed")
+            raise AssertionError("preprocessing intervals must be generated in chronological order")
         event_ids = [event.event_id for event in events]
         if len(event_ids) != len(set(event_ids)):
             raise AssertionError("duplicate StoryEvent IDs in one sliding window")

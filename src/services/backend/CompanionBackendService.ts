@@ -13,71 +13,36 @@ export type BackendCharacterCard = {
 }
 
 export type BackendRelationshipSummary = { relationship_id: string; summary: string; confidence: number }
-export type BackendTimelineSummary = { summary: string; confidence: number }
 export type BackendEmotionSummary = { emotion_id: string; summary: string; confidence: number }
 export type BackendMemoryReminder = { summary: string; confidence: number }
 export type BackendVocabularyAssistance = { term: string; simple_definition: string; confidence: number }
 export type BackendConversationSimplification = { dialogue_id: string; simple_text: string; confidence: number }
 
-export type AccessibilityPresentation = {
-  scene_explanation: string
-  prompt_bubbles: Array<{ id: string; kind: string; label: string; question: string; priority: number; claim_ids?: string[]; timestamp_start?: number; timestamp_end?: number; semantic_event?: string; screen_location?: string }>
-  character_cards: BackendCharacterCard[]
-  relationship_summaries: BackendRelationshipSummary[]
-  timeline_summary: BackendTimelineSummary | null
-  emotion_summaries: BackendEmotionSummary[]
-  memory_reminders: BackendMemoryReminder[]
-  vocabulary_assistance: BackendVocabularyAssistance[]
-  conversation_simplifications: BackendConversationSimplification[]
-  live_story?: {
-    current_scene: string
-    current_timestamp: number
-    current_goal?: string | null
-    current_characters: string[]
-    current_emotions: string[]
-    current_relationships: string[]
-    recent_events: string[]
-    timeline_position: string | null
-    story_so_far: string[]
-    important_objects: string[]
-    memory_reminders: string[]
-    unresolved_story_threads: string[]
-  } | null
-  story_state?: {
-    movie_id: string
-    current_scene: string | null
-    current_timestamp: number
-    current_location: string | null
-    current_goal: string | null
-    active_emotions: Record<string, string>
-    known_characters: Record<string, { id: string; name: string; first_seen_timestamp: number; last_seen_timestamp: number; total_screen_time: number; current_visibility: boolean; associated_events: string[]; relationships: string[] }>
-    known_relationships: Record<string, { id: string; summary: string; supporting_claim_ids: string[]; first_seen_timestamp: number; last_seen_timestamp: number; associated_events: string[] }>
-    known_objects: Record<string, { id: string; name: string; entity_type: string }>
-    recent_events: Array<{ event_id: string; summary: string; event_type: string; timestamp_start: number; timestamp_end: number }>
-    story_so_far: Array<{ event_id: string; summary: string }>
-    open_story_threads: Array<{ event_id: string; summary: string }>
-    memory_reminders: Array<{ event_id: string; summary: string }>
-  } | null
+export type IntervalState = {
+  metadata: { interval_id: string; catalog_scene_id: string | null; movie_id: string; start_time: number; end_time: number | null; interval_number: number; knowledge_revision: number }
+  prompts: {
+    prompt_bubbles: Array<{ id: string; kind: string; label: string; question: string; priority: number; claim_ids?: string[]; timestamp_start?: number; timestamp_end?: number; semantic_event?: string; screen_location?: string }>
+    prompt_answers: Array<{ prompt_id: string; question: string; answer: string }>
+    suggested_questions: string[]
+  }
+  visualDrawer: { story_now: string[]; relationships: string[]; timeline: string[]; emotion: string | null; cause_effect: Array<{ cause: string; effect: string }>; objects: string[]; memory: string[] }
+  storyState: { scene_summary: string | null; current_goal: string; current_interval_id: string | null; timeline_position: string | null; story_so_far: string[]; unresolved_threads: string[] }
+  characters: BackendCharacterCard[]
+  relationships: BackendRelationshipSummary[]
+  memory: BackendMemoryReminder[]
+  conversationContext: { scene_explanation: string; simplifications: BackendConversationSimplification[] }
+  accessibilityHints: { vocabulary: BackendVocabularyAssistance[]; emotions: BackendEmotionSummary[] }
+  semanticMemoryBefore: { active_characters: string[]; relationships: string[]; emotions: string[]; important_objects: string[]; unresolved_threads: string[]; story_events: string[] }
+  semanticMemoryAfter: { active_characters: string[]; relationships: string[]; emotions: string[]; important_objects: string[]; unresolved_threads: string[]; story_events: string[] }
+  cacheMetadata: { semantic_cache_key: string; knowledge_source: string; semantic_map_cached: boolean; frame_hash: string | null }
 }
 
-export type CompanionBackendResponse = {
-  knowledge_source: 'retrieved' | 'expanded'
-  response_cache_hit: boolean
-  cache_key: string
-  knowledge_revision: number
-  response: { response: string; model: string }
-  presentation: AccessibilityPresentation
-}
-
-export type ScenePreparationResponse = Omit<CompanionBackendResponse, 'response_cache_hit' | 'cache_key' | 'response'> & {
-  cache: { cache_key: string; knowledge_revision: number; knowledge_source: 'retrieved' | 'expanded'; semantic_map_cached: boolean; reasoning_cached: boolean; frame_hash?: string }
-}
+export type CompanionBackendResponse = IntervalState
+export type IntervalPreparationResponse = IntervalState
 
 type BackendRequest = {
   movie_id: string
   timestamp_seconds: number
-  scene_id: string
-  scene_summary: string
   question: string
   intent: string
   image?: string
@@ -93,15 +58,22 @@ type BackendRequest = {
   companion_profile: { name: string; personality: string; conversation_style: string }
 }
 
-/** Matches FastAPI's ScenePreparationRequest exactly; preparation does not need prompt intent. */
-type ScenePreparationRequest = Pick<
+/** Matches FastAPI's interval-preprocessing request; it never includes prompt intent. */
+type IntervalPreparationRequest = Pick<
   BackendRequest,
-  'movie_id' | 'timestamp_seconds' | 'scene_id' | 'scene_summary' | 'image' | 'accessibility_profile' | 'companion_profile'
-> & { image: string }
+  'movie_id' | 'timestamp_seconds' | 'image' | 'accessibility_profile' | 'companion_profile'
+> & {
+  image: string
+  interval_id: string
+  interval_number: number
+  interval_start: number
+  interval_end: number
+  catalog_scene_id: string | null
+}
 
 type RespondOptions = {
   movieId: string
-  scene: SceneData
+  scene: SceneData | null
   question: string
   timestamp: number
   settings: Settings
@@ -109,7 +81,13 @@ type RespondOptions = {
   signal?: AbortSignal
 }
 
-type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp' | 'signal'> & { frame: CapturedVideoFrame }
+type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp' | 'signal'> & {
+  frame: CapturedVideoFrame
+  intervalNumber: number
+  intervalStart: number
+  intervalEnd: number
+  catalogScene: SceneData | null
+}
 
 const configuredBackendUrl = import.meta.env.VITE_MAGIFAB_BACKEND_URL?.trim()
 /**
@@ -153,26 +131,21 @@ function profilePayload(settings: Settings, companion: CompanionProfile | null, 
 function isBackendResponse(value: unknown): value is CompanionBackendResponse {
   if (!value || typeof value !== 'object') return false
   const response = value as Record<string, unknown>
-  const personalized = response.response as Record<string, unknown> | undefined
-  const presentation = response.presentation as Record<string, unknown> | undefined
-  return typeof response.knowledge_source === 'string'
-    && typeof response.response_cache_hit === 'boolean'
-    && typeof personalized?.response === 'string'
-    && typeof presentation?.scene_explanation === 'string'
+  const metadata = response.metadata as Record<string, unknown> | undefined
+  const prompts = response.prompts as Record<string, unknown> | undefined
+  return typeof metadata?.interval_id === 'string' && Array.isArray(prompts?.prompt_bubbles)
 }
 
 export class CompanionBackendService {
-  private readonly activePreparationRequests = new Map<string, Promise<ScenePreparationResponse>>()
+  private readonly activePreparationRequests = new Map<string, Promise<IntervalPreparationResponse>>()
 
-  /** The React app only sends frame/context/profile data; all accessibility reasoning remains server-side. */
+  /** Prompt clicks request an answer only; they never create a new interval state. */
   async respond(options: RespondOptions): Promise<CompanionBackendResponse> {
     const savedProfile = await getAccessibilityProfile()
     const intent = promptIntent(options.question)
     const payload: BackendRequest = {
       movie_id: options.movieId,
       timestamp_seconds: options.timestamp,
-      scene_id: options.scene.sceneId,
-      scene_summary: options.scene.subtitle || options.scene.voiceNarration || 'Current movie scene.',
       question: options.question,
       intent,
       grounding_queries: [],
@@ -194,16 +167,22 @@ export class CompanionBackendService {
     return body
   }
 
-  async prepareScene(options: PrepareOptions): Promise<ScenePreparationResponse> {
+  /** Called once per chronological fixed 10-second interval before playback begins. */
+  async prepareInterval(options: PrepareOptions): Promise<IntervalPreparationResponse> {
     const savedProfile = await getAccessibilityProfile()
-    const payload: ScenePreparationRequest = {
-      movie_id: options.movieId, timestamp_seconds: options.frame.timestamp, scene_id: options.scene.sceneId,
-      scene_summary: options.scene.subtitle || options.scene.voiceNarration || 'Current movie scene.',
+    const payload: IntervalPreparationRequest = {
+      movie_id: options.movieId,
+      timestamp_seconds: options.frame.timestamp,
+      interval_id: `${options.movieId}:interval:${options.intervalNumber}`,
+      interval_number: options.intervalNumber,
+      interval_start: options.intervalStart,
+      interval_end: options.intervalEnd,
+      catalog_scene_id: options.catalogScene?.sceneId ?? null,
       image: options.frame.dataUrl, ...profilePayload(options.settings, options.companion, savedProfile),
     }
     const requestKey = JSON.stringify({
       movie_id: payload.movie_id,
-      scene_id: payload.scene_id,
+      interval_id: payload.interval_id,
       accessibility_profile: payload.accessibility_profile,
     })
     const activeRequest = this.activePreparationRequests.get(requestKey)
@@ -217,7 +196,15 @@ export class CompanionBackendService {
     return request
   }
 
-  private async sendPreparationRequest(payload: ScenePreparationRequest): Promise<ScenePreparationResponse> {
+  async completeMoviePreprocessing(movieId: string, expectedIntervals: number): Promise<void> {
+    const response = await fetch(companionEndpoint.replace('/respond', '/preprocessing/complete'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ movie_id: movieId, expected_intervals: expectedIntervals }),
+    })
+    if (!response.ok) throw new Error('Interval preprocessing validation failed.')
+  }
+
+  private async sendPreparationRequest(payload: IntervalPreparationRequest): Promise<IntervalPreparationResponse> {
     const payloadJson = JSON.stringify(payload)
     if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare payload', payloadJson)
     const response = await fetch(companionEndpoint.replace('/respond', '/prepare'), {
@@ -228,10 +215,10 @@ export class CompanionBackendService {
       const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The scene preparation service is unavailable.'
       throw new Error(detail)
     }
-    if (!body || typeof body !== 'object' || !('presentation' in body) || !('knowledge_revision' in body)) {
+    if (!isBackendResponse(body)) {
       throw new Error('The scene preparation service returned an invalid response.')
     }
-    return body as ScenePreparationResponse
+    return body as IntervalPreparationResponse
   }
 }
 

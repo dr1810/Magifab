@@ -12,5 +12,6 @@ class SemanticStateResolver:
 
     @staticmethod
     def _at_timestamp(state: TimelineState, timestamp: float) -> TimelineState:
-        # Playback time is presentation state, not a semantic mutation.
+        # This selects a preprocessing snapshot for interval assembly; it does
+        # not participate in browser playback.
         return state.model_copy(update={"timestamp": timestamp, "story_state": state.story_state.model_copy(update={"current_timestamp": timestamp})})

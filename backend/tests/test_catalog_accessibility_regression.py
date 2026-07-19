@@ -14,12 +14,12 @@ from services.reasoning_context_builder import ReasoningContextBuilder
 from services.semantic_graph_builder import SemanticGraphBuilder
 from services.semantic_matching import SemanticMatchingService
 from services.story_event_extractor import StoryEventExtractor
-from services.story_state_manager import StoryStateManager
+from services.story_state_manager import PreprocessingStoryBuilder
 from schemas.story_state import StoryState
 from pathlib import Path
 
 
-def _presentation(movie_id: str, scene_id: str, timestamp_seconds: float, tmp_path: Path):
+def _interval_state(movie_id: str, scene_id: str, timestamp_seconds: float, tmp_path: Path):
     knowledge = MovieKnowledgeProvider().get(movie_id)
     assert knowledge is not None
     perception = UnifiedSceneRepresentation()
@@ -40,27 +40,25 @@ def _presentation(movie_id: str, scene_id: str, timestamp_seconds: float, tmp_pa
         accessibility_profile=AccessibilityProfile(),
     )
     events = StoryEventExtractor().extract(context, StoryState(movie_id=movie_id))
-    state = StoryStateManager(tmp_path, 1).update(movie_id, scene_id, timestamp_seconds, events).state
+    state = PreprocessingStoryBuilder(tmp_path, 1).advance(movie_id, scene_id, timestamp_seconds, events).state
     return AccessibilityReasoningEngine(cooldown_seconds=0).reason(
         AccessibilityReasoningRequest(story_state=state, accessibility_profile=AccessibilityProfile(), companion_profile=CompanionProfile()),
     )
 
 
 def test_big_buck_bunny_catalog_character_card_and_timeline_survive_empty_perception(tmp_path):
-    presentation = _presentation("bigBuckBunny", "bbb-01", 5.0, tmp_path)
+    interval = _interval_state("bigBuckBunny", "bbb-01", 5.0, tmp_path)
 
-    assert [card.name for card in presentation.character_cards] == ["Big Buck Bunny"]
-    assert presentation.character_cards[0].reminder == "Seen in 3 important story moments."
-    assert presentation.timeline_summary is not None
-    assert presentation.timeline_summary.summary == "Big Buck Bunny's quiet forest routine."
-    assert presentation.prompt_bubbles
-    assert all("sky" not in prompt.question.lower() for prompt in presentation.prompt_bubbles)
+    assert [card.name for card in interval.characters] == ["Big Buck Bunny"]
+    assert interval.characters[0].reminder == "Important in the current story."
+    assert "Big Buck Bunny's quiet forest routine." in interval.visualDrawer.timeline
+    assert interval.prompts.prompt_bubbles
+    assert all("sky" not in prompt.question.lower() for prompt in interval.prompts.prompt_bubbles)
 
 
 def test_sprite_fright_scene_window_limits_cards_to_its_catalog_cast(tmp_path):
-    presentation = _presentation("spriteFright", "sf-01", 5.0, tmp_path)
+    interval = _interval_state("spriteFright", "sf-01", 5.0, tmp_path)
 
-    assert [card.name for card in presentation.character_cards] == ["Ellie", "Rex", "Jay", "Victoria", "Phil"]
-    assert presentation.timeline_summary is not None
-    assert presentation.timeline_summary.summary == "The teenagers enter the isolated forest."
-    assert presentation.prompt_bubbles
+    assert [card.name for card in interval.characters] == ["Ellie", "Rex", "Jay", "Victoria", "Phil"]
+    assert "The teenagers enter the isolated forest." in interval.visualDrawer.timeline
+    assert interval.prompts.prompt_bubbles

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from schemas.story_state import StoryEvent, StoryState
-from services.story_state_manager import StoryStateManager
+from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 
 
@@ -15,13 +15,13 @@ def _event(event_id: str, timestamp: float, event_type: str = "character_introdu
 
 
 def test_timeline_resolves_identically_for_replay_and_seeking_and_expires_prompts(tmp_path: Path):
-    states = StoryStateManager(tmp_path, 1)
+    states = PreprocessingStoryBuilder(tmp_path, 1)
     timeline = TimelineMemoryService(tmp_path, 1)
     before = states.get("movie")
-    first = states.update("movie", "opening", 5, [_event("introduce-rex", 5)]).state
+    first = states.advance("movie", "opening", 5, [_event("introduce-rex", 5)]).state
     timeline.write_change(before, first, [_event("introduce-rex", 5)])
     before = first
-    second = states.update("movie", "middle", 40, [_event("group-splits", 40, "conflict_begins")]).state
+    second = states.advance("movie", "middle", 40, [_event("group-splits", 40, "conflict_begins")]).state
     timeline.write_change(before, second, [_event("group-splits", 40, "conflict_begins")])
 
     replay = timeline.at("movie", 10)
@@ -29,8 +29,8 @@ def test_timeline_resolves_identically_for_replay_and_seeking_and_expires_prompt
     rewind = timeline.at("movie", 10)
     assert replay is not None and rapid_forward is not None and rewind is not None
     assert replay.model_dump() == rewind.model_dump()
-    assert replay.story_state.current_scene == "opening"
-    assert rapid_forward.story_state.current_scene == "middle"
+    assert replay.story_state.current_interval_id == "opening"
+    assert rapid_forward.story_state.current_interval_id == "middle"
     assert len({prompt.prompt_id for prompt in rapid_forward.prompts}) == len(rapid_forward.prompts)
     assert all(prompt.end_timestamp is None or prompt.start_timestamp <= prompt.end_timestamp for prompt in rapid_forward.prompts)
     # The introduction prompt is superseded by the next semantic transition.

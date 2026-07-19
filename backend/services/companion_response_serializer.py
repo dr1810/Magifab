@@ -1,6 +1,6 @@
-"""Presentation-only serialization for companion API responses."""
-from schemas.accessibility_presentation import AccessibilityPresentation
-from schemas.companion_pipeline import PreparationCacheMetadata, ScenePreparationResponse
+"""Public serialization of the one immutable IntervalState contract."""
+from schemas.companion_pipeline import IntervalPreparationResponse
+from schemas.interval_state import IntervalState
 
 
 class CompanionResponseSerializer:
@@ -9,14 +9,6 @@ class CompanionResponseSerializer:
     def prepare(
         self,
         *,
-        presentation: AccessibilityPresentation,
-        knowledge_source: str,
-        knowledge_revision: int,
-        cache: PreparationCacheMetadata,
-    ) -> ScenePreparationResponse:
-        return ScenePreparationResponse(
-            knowledge_source=knowledge_source,
-            knowledge_revision=knowledge_revision,
-            presentation=presentation,
-            cache=cache,
-        )
+        interval_state: IntervalState,
+    ) -> IntervalPreparationResponse:
+        return IntervalPreparationResponse.model_validate(interval_state.model_dump(mode="json"))

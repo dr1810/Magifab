@@ -11,9 +11,10 @@ import { useCompanionProfile } from './hooks/useCompanionProfile'
 import { useExperiencePreparation } from './hooks/useExperiencePreparation'
 import { ExperiencePreparationScreen } from './components/ExperiencePreparationScreen'
 import type { CapturedVideoFrame } from './services/ai/VideoFrameCaptureService'
-import { companionBackendService, type AccessibilityPresentation, type ScenePreparationResponse } from './services/backend/CompanionBackendService'
+import { companionBackendService, type IntervalState } from './services/backend/CompanionBackendService'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
+import { getScene } from './services/movieService'
 import type { MovieId, PromptQuestion, SceneData } from './types/movie'
 
 type MovieViewerProps = {
@@ -38,21 +39,22 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [widgetOpen, setWidgetOpen] = useState(false)
   const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
-  const currentSceneIdRef = useRef<string>('')
   const explanationRequestIdRef = useRef(0)
   const promptAbortControllerRef = useRef<AbortController | null>(null)
-  const frameCaptureRef = useRef<(() => Promise<CapturedVideoFrame>) | null>(null)
-  const preparedFrameRef = useRef<CapturedVideoFrame | null>(null)
-  // Preparation is progressive: each canonical movie scene is prepared at
-  // most once. The backend merges these scene windows into one movie graph.
-  const preparedSceneIdsRef = useRef<Set<string>>(new Set())
+  const frameCaptureRef = useRef<((timestamp: number) => Promise<CapturedVideoFrame>) | null>(null)
+  // These snapshots are the playback source of truth. They are populated in
+  // chronological order before the video is allowed to play.
+  const intervalStatesRef = useRef<Map<number, IntervalState>>(new Map())
+  const activeIntervalRef = useRef<number | null>(null)
+  const restoredIntervalIdsRef = useRef<Set<string>>(new Set())
+  const currentPlaybackTimeRef = useRef(0)
+  const preprocessingStartedRef = useRef(false)
   const preparationEffectCountRef = useRef(0)
   const latestPreparationInputsRef = useRef({ settings, profile })
   const [frameCaptureAvailable, setFrameCaptureAvailable] = useState(false)
   const isSeekingRef = useRef(false)
   const [assistantText, setAssistantText] = useState('Select a prompt to get a simple explanation for this scene.')
-  const [accessibilityPresentation, setAccessibilityPresentation] = useState<AccessibilityPresentation | null>(null)
-  const [preparedScene, setPreparedScene] = useState<ScenePreparationResponse | null>(null)
+  const [intervalState, setIntervalState] = useState<IntervalState | null>(null)
   latestPreparationInputsRef.current = { settings, profile }
 
   useEffect(() => {
@@ -61,90 +63,140 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [movie])
 
   const backendPrompts = useMemo<PromptQuestion[]>(() => {
-    if (preparedScene?.presentation.prompt_bubbles) {
-      return preparedScene.presentation.prompt_bubbles.map((prompt) => ({
-        id: `backend:${prompt.id}`,
-        label: prompt.label,
-        question: prompt.question,
-        explanation: '',
-      }))
-    }
-    return accessibilityPresentation?.prompt_bubbles.map((prompt) => ({
+    return intervalState?.prompts.prompt_bubbles.map((prompt) => ({
       id: `backend:${prompt.id}`,
       label: prompt.label,
       question: prompt.question,
       explanation: '',
     })) ?? []
-  }, [preparedScene, accessibilityPresentation])
+  }, [intervalState])
   const prompts = backendPrompts
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
   useEffect(() => {
-    if (prompts.length > 0) {
-      setSelectedPromptId((current) => current || prompts[0].id)
+    // PromptSet ownership is interval-scoped. Selecting an item in a new
+    // interval must not carry an id from the previous PromptSet.
+    setSelectedPromptId(prompts[0]?.id ?? '')
+  }, [intervalState?.metadata.interval_id])
+
+  const traceInterval = useCallback((event: 'INTERVAL_LOADED' | 'INTERVAL_UNLOADED' | 'INTERVAL_RESTORED' | 'SEEK_TO_INTERVAL' | 'PROMPTSET_RESTORED' | 'VISUALDRAWER_RESTORED', details: Record<string, unknown>) => {
+    console.info(`[MagiFab] ${event}`, { movieId: movie, ...details })
+  }, [movie])
+
+  /**
+   * The complete playback runtime: resolve timestamp -> retrieve snapshot ->
+   * render that exact object. This function intentionally has no backend or
+   * reasoning dependency.
+   */
+  const loadIntervalState = useCallback((timestamp: number, mode: 'playback' | 'seek' | 'restore' = 'playback', force = false) => {
+    const interval = Math.floor(timestamp / 10)
+    const previousInterval = activeIntervalRef.current
+    if (mode === 'seek') traceInterval('SEEK_TO_INTERVAL', { timestamp, intervalNumber: interval })
+    if (!force && previousInterval === interval) return
+
+    if (previousInterval !== null) {
+      const previous = intervalStatesRef.current.get(previousInterval)
+      traceInterval('INTERVAL_UNLOADED', {
+        intervalNumber: previousInterval,
+        intervalId: previous?.metadata.interval_id ?? null,
+      })
     }
-  }, [prompts])
+
+    const next = intervalStatesRef.current.get(interval)
+    activeIntervalRef.current = interval
+    setIntervalState(next ?? null)
+    if (!next) {
+      // Playback never fills a cache miss: preprocessing is the only writer.
+      console.warn('[MagiFab] INTERVAL_MISSING', { movieId: movie, timestamp, intervalNumber: interval })
+      return
+    }
+
+    const restored = restoredIntervalIdsRef.current.has(next.metadata.interval_id)
+    restoredIntervalIdsRef.current.add(next.metadata.interval_id)
+    traceInterval(restored || mode === 'restore' ? 'INTERVAL_RESTORED' : 'INTERVAL_LOADED', {
+      intervalNumber: interval,
+      intervalId: next.metadata.interval_id,
+      startTime: next.metadata.start_time,
+      endTime: next.metadata.end_time,
+    })
+    traceInterval('PROMPTSET_RESTORED', {
+      intervalId: next.metadata.interval_id,
+      promptIds: next.prompts.prompt_bubbles.map((prompt) => prompt.id),
+    })
+    traceInterval('VISUALDRAWER_RESTORED', { intervalId: next.metadata.interval_id })
+  }, [movie, traceInterval])
 
   useEffect(() => {
-    const sceneId = scene?.sceneId ?? ''
-    currentSceneIdRef.current = sceneId
-    setActiveBubble((bubble) => bubble?.id.startsWith(`${sceneId}:`) ? bubble : null)
+    setIntervalState(null)
+    intervalStatesRef.current.clear()
+    activeIntervalRef.current = null
+    restoredIntervalIdsRef.current.clear()
+    preprocessingStartedRef.current = false
     setCompanionReady(false)
-  }, [scene?.sceneId])
-
-  useEffect(() => {
-    // The Loading Experience owns the opening-scene result for the selected
-    // movie. Scene updates from the mounted video must not erase its prompts.
-    setAccessibilityPresentation(null)
-    setPreparedScene(null)
-    preparedSceneIdsRef.current.clear()
   }, [movie])
 
   useEffect(() => {
     const effectCount = ++preparationEffectCountRef.current
-    if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare effect', { effectCount, movieId: movieData?.id, sceneId: scene?.sceneId, frameCaptureAvailable })
-    // The opening scene gates playback; subsequent canonical scenes are
-    // prepared progressively as the viewer reaches their knowledge window.
-    const preparationKey = movieData && scene ? `${movieData.id}:${scene.sceneId}` : ''
-    if (!['preparing', 'ready'].includes(preparation.phase) || !movieData || !scene || !frameCaptureAvailable || preparedSceneIdsRef.current.has(preparationKey)) return
+    if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare effect', { effectCount, movieId: movieData?.id, frameCaptureAvailable })
+    if (preprocessingStartedRef.current || !movieData || !frameCaptureAvailable || !duration) return
     const capture = frameCaptureRef.current
     if (!capture) return
-    preparedSceneIdsRef.current.add(preparationKey)
-    let requestStarted = false
+    preprocessingStartedRef.current = true
+    let cancelled = false
     const startTimer = window.setTimeout(() => {
-      requestStarted = true
-      console.info('[MagiFab] Preparation started', { movieId: movieData.id, sceneId: scene.sceneId })
-      void capture().then((frame) => {
-      preparedFrameRef.current = frame
-      const inputs = latestPreparationInputsRef.current
-      return companionBackendService.prepareScene({ movieId: movieData.id, scene, frame, settings: inputs.settings, companion: inputs.profile })
-    }).then((result) => {
-      if (!result) return
-      setPreparedScene(result)
-      setAccessibilityPresentation(result.presentation)
-      setCompanionReady(true)
-      console.info('[MagiFab] Preparation complete', { movieId: movieData.id, sceneId: scene.sceneId })
-      console.info('[MagiFab] Prompt bubbles received:', result.presentation.prompt_bubbles.length)
-    }).catch((error: unknown) => {
-      if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare() failed', { movieId: movieData.id, sceneId: scene.sceneId, error })
-      preparedSceneIdsRef.current.delete(preparationKey)
-    })
+      void (async () => {
+        const intervalCount = Math.ceil(duration / 10)
+        console.info('[MagiFab] Interval preprocessing started', { movieId: movieData.id, intervalCount })
+        for (let interval = 0; interval < intervalCount; interval += 1) {
+          if (cancelled) return
+          const start = interval * 10
+          // The final chapter keeps the same fixed range; its sample remains
+          // clamped to the available video frame above.
+          const end = start + 10
+          const sampleTime = Math.min(Math.max(start + 1, 1), Math.max(1, duration - .2))
+          const frame = await capture(sampleTime)
+          // Catalog scene data is optional enrichment only. Intervals remain
+          // valid and continue preprocessing even when it is absent.
+          const intervalScene = await getScene(movieData.id, start)
+          const inputs = latestPreparationInputsRef.current
+          const result = await companionBackendService.prepareInterval({
+            movieId: movieData.id,
+            scene: intervalScene ?? scene,
+            catalogScene: intervalScene,
+            intervalNumber: interval,
+            intervalStart: start,
+            intervalEnd: end,
+            frame,
+            settings: inputs.settings,
+            companion: inputs.profile,
+          })
+          intervalStatesRef.current.set(interval, result)
+        }
+        if (cancelled) return
+        await companionBackendService.completeMoviePreprocessing(movieData.id, intervalCount)
+        loadIntervalState(
+          currentPlaybackTimeRef.current,
+          currentPlaybackTimeRef.current > 0 ? 'restore' : 'playback',
+          true,
+        )
+        setCompanionReady(true)
+        console.info('[MagiFab] Interval preprocessing complete', { movieId: movieData.id, intervalCount })
+      })().catch((error: unknown) => {
+        preprocessingStartedRef.current = false
+        if (import.meta.env.DEV) console.debug('[MagiFab companion] interval preprocessing failed', error)
+      })
     }, 0)
     return () => {
       window.clearTimeout(startTimer)
-      // React Strict Mode deliberately runs an effect cleanup before its second
-      // development mount. That cleanup happens before the deferred request
-      // begins, so it must not consume this movie's one preparation slot.
-      if (!requestStarted) preparedSceneIdsRef.current.delete(preparationKey)
-      // Rerenders, overlays, and Strict Mode cleanup must not cancel a running
-      // prepare request. It is owned by the Loading Experience until it settles.
+      cancelled = true
     }
-  }, [movieData?.id, scene?.sceneId, frameCaptureAvailable, preparation.phase])
+  }, [movieData?.id, duration, frameCaptureAvailable, loadIntervalState])
 
   useEffect(() => {
     const savedTimestamp = getPlaybackTimestamp(movie)
     if (import.meta.env.DEV) console.debug('[MagiFab playback] viewer resume request', { movieId: movie, currentTimeBeforeResume: currentTime, savedTimestamp })
     setCurrentTime(savedTimestamp)
+    currentPlaybackTimeRef.current = savedTimestamp
     if (savedTimestamp > 0) void updateScene(savedTimestamp)
     setActiveBubble(null)
     setWidgetOpen(false)
@@ -165,22 +217,23 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     [prompts, selectedPromptId],
   )
 
-  const buildPromptBubble = useCallback((sceneData: SceneData, prompt: PromptQuestion, result: Awaited<ReturnType<typeof companionBackendService.respond>>): PromptBubbleContent => {
-    const card = result.presentation.character_cards[0]
-    const emotion = result.presentation.emotion_summaries[0]?.summary
+  const buildPromptBubble = useCallback((sceneData: SceneData | null, prompt: PromptQuestion, result: Awaited<ReturnType<typeof companionBackendService.respond>>): PromptBubbleContent => {
+    const card = result.characters[0]
+    const emotion = result.accessibilityHints.emotions[0]?.summary
     return {
-      id: `${sceneData.sceneId}:${prompt.id}:${result.knowledge_revision}`,
+      id: `${result.metadata.interval_id}:${prompt.id}:${result.metadata.knowledge_revision}`,
       question: prompt.question,
       title: card?.name ?? prompt.label,
-      relationship: emotion ?? result.presentation.scene_explanation,
-      explanation: result.response.response,
-      anchor: sceneData.companionPosition,
+      relationship: emotion ?? result.conversationContext.scene_explanation,
+      explanation: result.prompts.prompt_answers[0]?.answer ?? result.conversationContext.scene_explanation,
+      anchor: sceneData?.companionPosition ?? { x: 84, y: 74 },
       highlightTarget: false,
     }
   }, [])
 
   const selectPrompt = async (prompt: PromptQuestion) => {
-    if (!scene || !movieData || isSeekingRef.current) return
+    if (!movieData || isSeekingRef.current) return
+    const promptIntervalId = intervalState?.metadata.interval_id
     setSelectedPromptId(prompt.id)
     setPromptOpen(false)
     setDrawerOpen(false)
@@ -191,25 +244,29 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const abortController = new AbortController()
     promptAbortControllerRef.current = abortController
     const requestId = ++explanationRequestIdRef.current
-    const loadingAnchor = { x: scene.companionPosition.x, y: scene.companionPosition.y }
-    setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:loading`, question: prompt.question, title: 'Preparing help', relationship: '', explanation: '', anchor: loadingAnchor, highlightTarget: false, loading: true })
-    const frame = preparedFrameRef.current
-    if (!frame || !accessibilityPresentation) {
-      setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:not-prepared`, question: prompt.question, title: 'Preparing this scene', relationship: '', explanation: 'Please wait a moment while this scene is prepared.', anchor: loadingAnchor, highlightTarget: false, loading: true })
+    const loadingAnchor = scene?.companionPosition ?? { x: 84, y: 74 }
+    setActiveBubble({ id: `${intervalState?.metadata.interval_id ?? 'interval'}:${prompt.id}:loading`, question: prompt.question, title: 'Preparing help', relationship: '', explanation: '', anchor: loadingAnchor, highlightTarget: false, loading: true })
+    if (!intervalState) {
+      setActiveBubble({ id: `interval:${prompt.id}:not-prepared`, question: prompt.question, title: 'Preparing this interval', relationship: '', explanation: 'Please wait a moment while this interval is prepared.', anchor: loadingAnchor, highlightTarget: false, loading: true })
       return
     }
     try {
-      const result = await companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, timestamp: frame.timestamp, settings, companion: profile, signal: abortController.signal })
-      if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
-      setAccessibilityPresentation(result.presentation)
+      const result = await companionBackendService.respond({ movieId: movieData.id, scene, question: prompt.question, timestamp: currentTime, settings, companion: profile, signal: abortController.signal })
+      if (
+        requestId !== explanationRequestIdRef.current
+        || isSeekingRef.current
+        || activeIntervalRef.current !== intervalState?.metadata.interval_number
+        || result.metadata.interval_id !== promptIntervalId
+      ) return
       setActiveBubble(buildPromptBubble(scene, prompt, result))
-      setAssistantText(result.response.response)
-      if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: result.response.response, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
+      const answer = result.prompts.prompt_answers[0]?.answer ?? result.conversationContext.scene_explanation
+      setAssistantText(answer)
+      if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: answer, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
     } catch (error: unknown) {
       if (error instanceof DOMException && error.name === 'AbortError') return
-      if (requestId !== explanationRequestIdRef.current || currentSceneIdRef.current !== scene.sceneId || isSeekingRef.current) return
+      if (requestId !== explanationRequestIdRef.current || isSeekingRef.current) return
       const message = error instanceof Error ? error.message : 'The companion is unavailable. Please try again.'
-      setActiveBubble({ id: `${scene.sceneId}:${prompt.id}:request-error`, question: prompt.question, title: 'Companion unavailable', relationship: '', explanation: message, anchor: loadingAnchor, highlightTarget: false })
+      setActiveBubble({ id: `interval:${prompt.id}:request-error`, question: prompt.question, title: 'Companion unavailable', relationship: '', explanation: message, anchor: loadingAnchor, highlightTarget: false })
       setAssistantText(message)
     }
   }
@@ -243,7 +300,23 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     void stopSpeech()
   }, [])
 
-  const handleFrameCaptureReady = useCallback((capture: (() => Promise<CapturedVideoFrame>) | null) => {
+  const applyPlaybackTime = useCallback((timestamp: number) => {
+    currentPlaybackTimeRef.current = timestamp
+    setCurrentTime(timestamp)
+    // Scene metadata only drives native captions and the bubble anchor. It is
+    // not companion reasoning; every companion surface reads IntervalState.
+    void updateScene(timestamp)
+    loadIntervalState(timestamp)
+  }, [loadIntervalState, updateScene])
+
+  const seekToPlaybackTime = useCallback((timestamp: number) => {
+    currentPlaybackTimeRef.current = timestamp
+    setCurrentTime(timestamp)
+    void updateScene(timestamp, true)
+    loadIntervalState(timestamp, 'seek', true)
+  }, [loadIntervalState, updateScene])
+
+  const handleFrameCaptureReady = useCallback((capture: ((timestamp: number) => Promise<CapturedVideoFrame>) | null) => {
     frameCaptureRef.current = capture
     setFrameCaptureAvailable(Boolean(capture))
   }, [])
@@ -258,7 +331,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     setActiveBubble(null)
   }, [])
 
-  if (loading || !movieData || !scene) return <ExperiencePreparationScreen milestones={preparation.milestones} phase={preparation.phase === 'ready' ? 'transitioning' : preparation.phase} reduceMotion={settings.reduceMotion || settings.disableAnimations} />
+  if (loading || !movieData) return <ExperiencePreparationScreen milestones={preparation.milestones} phase={preparation.phase === 'ready' ? 'transitioning' : preparation.phase} reduceMotion={settings.reduceMotion || settings.disableAnimations} />
 
   return (
     <main className={`movie-experience viewer-page ${preparation.phase === 'ready' ? 'playback-ready' : ''}`}>
@@ -282,19 +355,19 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           onMuteToggle={() => setMuted((value) => !value)}
           onVolumeChange={setVolume}
           onSeek={(next) => {
-            setCurrentTime(next)
-            void updateScene(next)
+            seekToPlaybackTime(next)
           }}
           onTimeChange={(next) => {
-            setCurrentTime(next)
-            void updateScene(next)
+            applyPlaybackTime(next)
           }}
           onDurationChange={setDuration}
           onSeeking={handleSeeking}
           onSeekComplete={(timestamp) => {
             isSeekingRef.current = false
+            currentPlaybackTimeRef.current = timestamp
             setCurrentTime(timestamp)
             updateScene(timestamp, true)
+            loadIntervalState(timestamp, 'seek')
           }}
           onVideoFrameCaptureReady={handleFrameCaptureReady}
           promptOpen={promptOpen}
@@ -340,8 +413,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           drawerOverlay={
             <VisualDrawer
               open={drawerOpen}
-              scene={scene}
-              presentation={accessibilityPresentation}
+              intervalState={intervalState}
               onClose={() => setDrawerOpen(false)}
               onMouseEnter={() => setDrawerOpen(true)}
               onMouseLeave={() => setDrawerOpen(false)}

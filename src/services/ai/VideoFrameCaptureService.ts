@@ -92,7 +92,7 @@ async function seekTo(video: HTMLVideoElement, target: number): Promise<void> {
 }
 
 /** Captures one compact still from the active player; it never observes playback continuously. */
-export async function captureVideoFrame(video: HTMLVideoElement | null): Promise<CapturedVideoFrame> {
+export async function captureVideoFrame(video: HTMLVideoElement | null, requestedTimestamp?: number): Promise<CapturedVideoFrame> {
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error('The current movie frame is not ready yet.')
   }
@@ -108,7 +108,9 @@ export async function captureVideoFrame(video: HTMLVideoElement | null): Promise
   if (!context) throw new Error('Frame capture is not available in this browser.')
   const originalTimestamp = video.currentTime
   const duration = Number.isFinite(video.duration) ? video.duration : 0
-  const candidates = [...new Set([Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, originalTimestamp), ...INITIAL_ANALYSIS_CANDIDATES])]
+  const candidates = [...new Set(requestedTimestamp === undefined
+    ? [Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, originalTimestamp), ...INITIAL_ANALYSIS_CANDIDATES]
+    : [Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, requestedTimestamp)])]
     .filter((timestamp) => timestamp >= MIN_ANALYSIS_TIMESTAMP_SECONDS && timestamp < duration - 0.1)
   let lastInvalidFrame: Error | null = null
   try {

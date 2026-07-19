@@ -24,7 +24,7 @@ class SlidingWindowMemoryManager:
     """Builds bounded perception windows and attention signals.
 
     It retains only the short comparison state necessary to score a change.
-    ``StoryStateManager`` owns durable movie knowledge. Replaying the same
+    ``PreprocessingStoryBuilder`` owns cumulative preprocessing knowledge. Replaying the same
     prepared window is idempotent, which lets /prepare and /respond share it.
     """
 
@@ -69,7 +69,7 @@ class SlidingWindowMemoryManager:
             )
             update = TemporalMemoryUpdate(
                 # Kept empty for the private compatibility DTO. Durable state
-                # belongs exclusively to StoryStateManager.
+                # belongs exclusively to PreprocessingStoryBuilder.
                 window=window, short_term=short, long_term=LongTermMemory(),
                 new_characters=new_characters, new_events=new_events,
                 attention_events=attention, selected_claim_ids=selected,

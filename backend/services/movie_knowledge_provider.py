@@ -53,6 +53,16 @@ class MovieKnowledgeProvider:
             log_claims("MovieKnowledgeProvider", result.semantic_claims, movie_id=result.movie_id)
         return result
 
+    @staticmethod
+    def scene_coverage(knowledge: SemanticMovieKnowledge | None, scene_id: str | None, timestamp_seconds: float) -> tuple[bool, str | None]:
+        """Check an optional catalog annotation without defining interval validity."""
+        if knowledge is None:
+            return False, None
+        exact = next((scene for scene in knowledge.movie_scenes if scene.scene_id == scene_id), None)
+        timed = next((scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds <= scene.end_seconds), None)
+        resolved = exact or timed
+        return resolved is not None, resolved.scene_id if resolved else None
+
 
 def _normalize_movie_id(movie_id: str) -> str:
     return "".join(character.lower() for character in movie_id if character.isalnum())

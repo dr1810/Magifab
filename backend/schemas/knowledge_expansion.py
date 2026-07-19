@@ -12,7 +12,10 @@ class KnowledgeExpansionRequest(BaseModel):
     """Image is required only on a knowledge miss; a cache hit returns without decoding it."""
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
-    scene_id: str | None = None
+    # Interval identity keys all runtime observations and semantic claims.
+    interval_id: str = Field(min_length=1)
+    # Catalog scene IDs are optional, read-only enrichment annotations.
+    catalog_scene_id: str | None = None
     timestamp_seconds: float = Field(ge=0)
     frame_hash: str | None = Field(default=None, min_length=16, max_length=128)
     image: str | None = Field(default=None, min_length=8)

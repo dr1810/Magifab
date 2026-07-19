@@ -1,20 +1,16 @@
 """End-to-end retrieval-first runtime request and response contracts."""
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from schemas.accessibility_reasoning import AccessibilityProfile, CompanionProfile
-from schemas.accessibility_presentation import AccessibilityPresentation
-from schemas.personalization import GPTPersonalizationResponse
+from schemas.interval_state import IntervalState
 
 
 class CompanionPipelineRequest(BaseModel):
-    """Interaction requests retrieve prepared scene knowledge; they never carry an image."""
+    """Interaction requests retrieve a prepared interval; they never carry an image."""
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
     timestamp_seconds: float = Field(ge=0)
-    scene_id: str | None = None
-    scene_summary: str = Field(min_length=1)
     question: str = Field(min_length=1, max_length=2_000)
     intent: str = Field(default="general", min_length=1, max_length=100)
     image: str | None = Field(default=None, min_length=8)
@@ -29,24 +25,22 @@ class CompanionPipelineRequest(BaseModel):
         return value.strip() if value else None
 
 
-class CompanionPipelineResponse(BaseModel):
-    """A personalized response plus the verified structured facts that produced it."""
-    model_config = ConfigDict(extra="forbid")
-    knowledge_source: Literal["retrieved", "expanded"]
-    response_cache_hit: bool
-    cache_key: str
-    knowledge_revision: int = Field(ge=1)
-    response: GPTPersonalizationResponse
-    presentation: AccessibilityPresentation
+class CompanionPipelineResponse(IntervalState):
+    """Prompt interaction returns the complete updated interval snapshot."""
 
 
-class ScenePreparationRequest(BaseModel):
-    """One representative frame for a scene, supplied before prompts are exposed."""
+class IntervalPreparationRequest(BaseModel):
+    """One representative frame for a fixed interval, supplied during preprocessing."""
     model_config = ConfigDict(extra="forbid")
     movie_id: str = Field(min_length=1)
-    scene_id: str = Field(min_length=1)
+    interval_id: str = Field(min_length=1)
+    interval_number: int = Field(ge=0)
+    interval_start: float = Field(ge=0)
+    interval_end: float = Field(gt=0)
+    # Optional catalog annotation. It may enrich matching but can never own
+    # memory or playback identity.
+    catalog_scene_id: str | None = None
     timestamp_seconds: float = Field(ge=0)
-    scene_summary: str = Field(min_length=1)
     image: str = Field(min_length=8)
     # Optional caller hints supplement (never replace) the labels discovered by
     # YOLO. Keeping this on the preparation contract makes grounding extensible
@@ -57,19 +51,12 @@ class ScenePreparationRequest(BaseModel):
     companion_profile: CompanionProfile
 
 
-class PreparationCacheMetadata(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    cache_key: str
-    frame_hash: str | None = None
-    knowledge_revision: int = Field(ge=1)
-    knowledge_source: Literal["retrieved", "expanded"]
-    semantic_map_cached: bool
-    reasoning_cached: bool = True
+class IntervalPreparationResponse(IntervalState):
+    """Preparation returns the complete interval snapshot, with no envelope."""
 
 
-class ScenePreparationResponse(BaseModel):
+class PreprocessingCompletionRequest(BaseModel):
+    """Signals that all fixed intervals for a movie have been generated."""
     model_config = ConfigDict(extra="forbid")
-    knowledge_source: Literal["retrieved", "expanded"]
-    knowledge_revision: int = Field(ge=1)
-    presentation: AccessibilityPresentation
-    cache: PreparationCacheMetadata
+    movie_id: str = Field(min_length=1)
+    expected_intervals: int = Field(ge=1)

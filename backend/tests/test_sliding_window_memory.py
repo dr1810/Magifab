@@ -33,7 +33,7 @@ def test_recurrent_memory_merges_characters_and_selects_plot_changes():
     assert first.window.end_timestamp == 10
     assert second.window.captured_frames[0].timestamp_seconds == 15
     assert second.new_characters == ["Rex"]
-    # Long-term character knowledge is owned by StoryStateManager; the
+    # Long-term character knowledge is owned by PreprocessingStoryBuilder; the
     # sliding manager only reports this window's change signal.
     assert second.long_term.known_characters == []
     assert "rex-enters" in second.selected_claim_ids

@@ -80,21 +80,26 @@ class KnowledgeExpansionEngine:
                 catalog.movie_id, len(catalog.characters), len(catalog.relationships), len(catalog.events),
                 len(catalog.timeline_positions), len(catalog.emotions), len(catalog.movie_scenes),
             )
+        covered, catalog_scene_id = self._movie_knowledge_provider.scene_coverage(catalog, request.catalog_scene_id, request.timestamp_seconds)
+        logger.info(
+            "[INTERVAL_CATALOG_COVERAGE] status=%s movie=%s requested_scene=%s timestamp=%.3f catalog_scene=%s",
+            "PASS" if covered else "ANNOTATION_MISSING", request.movie_id, request.catalog_scene_id, request.timestamp_seconds, catalog_scene_id,
+        )
         retrieval_started = perf_counter()
         retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
             movie_id=request.movie_id,
-            scene_id=request.scene_id,
+            scene_id=request.interval_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
-        cache_key = _cache_key(request.movie_id, self._cache_version, request.scene_id, request.timestamp_seconds, request.frame_hash)
+        cache_key = _cache_key(request.movie_id, self._cache_version, request.interval_id, request.timestamp_seconds, request.frame_hash)
         logger.info(
             "[TRACE][KNOWLEDGE_RETRIEVAL] executed=yes movie=%s scene=%s timestamp=%.3f frame_hash=%s cache_key=%s found=%s scene_prepared=%s duration_ms=%.1f",
-            request.movie_id, request.scene_id, request.timestamp_seconds,
+            request.movie_id, request.interval_id, request.timestamp_seconds,
             request.frame_hash, cache_key, retrieval.found,
             bool(retrieval.scene_summary and retrieval.scene_summary.prepared), (perf_counter() - retrieval_started) * 1000,
         )
         if _cache_matches(retrieval, request, self._cache_version, catalog.movie_knowledge_version if catalog else None):
-            logger.info("[TRACE][CACHE] semantic_map_replayed=yes movie=%s scene=%s frame_hash=%s key=%s", request.movie_id, request.scene_id, request.frame_hash, cache_key)
+            logger.info("[TRACE][CACHE] semantic_map_replayed=yes movie=%s interval=%s frame_hash=%s key=%s", request.movie_id, request.interval_id, request.frame_hash, cache_key)
             return KnowledgeExpansionResult(
                 source="retrieved",
                 cache_key=cache_key,
@@ -115,12 +120,12 @@ class KnowledgeExpansionEngine:
         if image is None:
             raise ValueError("image is required when movie knowledge or the requested scene is missing")
 
-        logger.info("[TRACE][CACHE] semantic_map_replayed=no movie=%s scene=%s frame_hash=%s key=%s perception_rebuilt=yes semantic_rebuilt=yes retrieval_rebuilt=yes", request.movie_id, request.scene_id, request.frame_hash, cache_key)
+        logger.info("[TRACE][CACHE] semantic_map_replayed=no movie=%s interval=%s frame_hash=%s key=%s perception_rebuilt=yes semantic_rebuilt=yes retrieval_rebuilt=yes", request.movie_id, request.interval_id, request.frame_hash, cache_key)
         # Movie knowledge is the perception plan.  Establish it before any
         # image model runs so a generic detector/caption can never decide what
         # this frame is "about".
         base_knowledge = _runtime_knowledge(catalog, retrieval.record.knowledge if retrieval.record else None, request.movie_id, self._cache_version)
-        expected = _expected_scene_entities(base_knowledge, request.scene_id, request.timestamp_seconds)
+        expected = _expected_scene_entities(base_knowledge, request.catalog_scene_id, request.timestamp_seconds)
         catalog_window = next((item for item in base_knowledge.movie_scenes if item.scene_id == expected["scene_id"]), None)
         logger.info(
             "[TRACE][KNOWLEDGE_WINDOW] movie=%s knowledge_key=%s scene=%s start=%s end=%s overlap_seconds=%d",
@@ -155,23 +160,23 @@ class KnowledgeExpansionEngine:
         logger.info("[TRACE][SEMANTIC_GRAPH_CONSTRUCTION] executed=yes fused_entities=%d duration_ms=%.1f", len(perception.entities), (perf_counter() - fusion_started) * 1000)
         # Matching returns semantic references, not claims. Claims first exist
         # only after SemanticGraphBuilder, so make that boundary explicit.
-        log_claims("SemanticMatcher.input", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.scene_id)
+        log_claims("SemanticMatcher.input", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.interval_id)
         semantic_matches = self._matcher.match(
-            perception, base_knowledge, scene_id=request.scene_id, timestamp_seconds=request.timestamp_seconds,
+            perception, base_knowledge, scene_id=request.catalog_scene_id, timestamp_seconds=request.timestamp_seconds,
         )
-        log_claims("SemanticMatcher.output", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.scene_id)
+        log_claims("SemanticMatcher.output", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.interval_id)
         logger.info(
             "[TRACE][SEMANTIC_MATCHING] executed=yes catalog_queried=yes movie_scenes=%d scene_id=%s timestamp=%.3f "
             "input_entities=%d matched_characters=%d matched_locations=%d matched_objects=%d matched_events=%d matched_relationships=%d",
-            len(base_knowledge.movie_scenes), request.scene_id, request.timestamp_seconds, len(perception.entities),
+            len(base_knowledge.movie_scenes), request.interval_id, request.timestamp_seconds, len(perception.entities),
             len(semantic_matches.characters), len(semantic_matches.locations), len(semantic_matches.objects),
             len(semantic_matches.events), len(semantic_matches.relationships),
         )
         observation = self._observation_factory.create(
             movie_id=request.movie_id,
-            scene_id=request.scene_id or _stable_id("scene", f"{request.movie_id}:{request.timestamp_seconds}"),
+            scene_id=request.interval_id,
             frame_hash=request.frame_hash or sha256(
-                f"{request.movie_id}:{request.scene_id}:{request.timestamp_seconds}".encode("utf-8")
+                f"{request.movie_id}:{request.interval_id}:{request.timestamp_seconds}".encode("utf-8")
             ).hexdigest(),
             timestamp_seconds=request.timestamp_seconds,
             detection=detection,
@@ -179,7 +184,11 @@ class KnowledgeExpansionEngine:
             grounding=grounding,
         )
         claims = self._graph_builder.build(
-            observation=observation, perception=perception, matches=semantic_matches, existing=base_knowledge,
+            observation=observation,
+            perception=perception,
+            matches=semantic_matches,
+            existing=base_knowledge,
+            catalog_scene_id=expected["scene_id"],
         )
         log_claims("SemanticGraphBuilder.output", claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         logger.info(
@@ -191,8 +200,8 @@ class KnowledgeExpansionEngine:
         save_started = perf_counter()
         record = self._store.save(knowledge)
         log_claims("KnowledgePersistence.output", record.knowledge.semantic_claims, movie_id=record.movie_id, scene_id=observation.scene_id)
-        logger.info("[TRACE][KNOWLEDGE_PERSISTENCE] executed=yes revision=%d scene_visible_entities=%d duration_ms=%.1f", record.revision, len(next((scene.visible_entities for scene in knowledge.scene_summaries if scene.scene_id == request.scene_id), [])), (perf_counter() - save_started) * 1000)
-        scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == (request.scene_id or "")), None)
+        logger.info("[TRACE][KNOWLEDGE_PERSISTENCE] executed=yes revision=%d interval_visible_entities=%d duration_ms=%.1f", record.revision, len(next((scene.visible_entities for scene in knowledge.scene_summaries if scene.scene_id == request.interval_id), [])), (perf_counter() - save_started) * 1000)
+        scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == request.interval_id), None)
         scene_summary = scene_summary or (knowledge.scene_summaries[-1] if knowledge.scene_summaries else None)
         return KnowledgeExpansionResult(
             source="expanded",
@@ -208,10 +217,10 @@ class KnowledgeExpansionEngine:
         return self._store.exists(movie_id)
 
     def needs_expansion(self, request: KnowledgeExpansionRequest) -> bool:
-        """Avoid image decoding and model work when the requested scene is already represented."""
+        """Avoid image decoding and model work when the requested interval is already represented."""
         retrieval = self._retriever.retrieve(KnowledgeRetrievalRequest(
             movie_id=request.movie_id,
-            scene_id=request.scene_id,
+            scene_id=request.interval_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
         catalog = self._movie_knowledge_provider.get(request.movie_id)
@@ -257,7 +266,7 @@ class KnowledgeExpansionEngine:
             VisualAnchor(
                 id=str(uuid4()),
                 semantic_id=verified_character_ids.get(entity.label.lower()) or _stable_id("object", entity.label),
-                scene_id=request.scene_id,
+                scene_id=request.interval_id,
                 timestamp_seconds=request.timestamp_seconds,
                 bbox=entity.bounding_box,
                 confidence=entity.confidence or 0.0,
@@ -282,7 +291,7 @@ class KnowledgeExpansionEngine:
         # A Florence environment phrase is raw perception evidence. It remains
         # in the observation layer and is not promoted to a semantic location.
         locations: list[SemanticLocation] = []
-        scene_id = request.scene_id or _stable_id("scene", f"{request.movie_id}:{request.timestamp_seconds}")
+        scene_id = request.interval_id
         scene_confidence = _scene_confidence(object_entities)
         semantic_scene_state = next((claim.value for claim in claims if claim.kind == "scene_state"), "")
         new_scene = SceneSummary(
@@ -316,10 +325,9 @@ class KnowledgeExpansionEngine:
         })
 
 
-def _cache_key(movie_id: str, cache_version: int, scene_id: str | None, timestamp_seconds: float, frame_hash: str | None) -> str:
-    """Scene knowledge is movie-level; a frame fingerprint only validates input."""
-    scene_key = scene_id or f"t{int(timestamp_seconds)}"
-    return f"{movie_id}:v{cache_version}:scene:{scene_key}"
+def _cache_key(movie_id: str, cache_version: int, interval_id: str, timestamp_seconds: float, frame_hash: str | None) -> str:
+    """Interval identity, never catalog-scene identity, owns runtime caching."""
+    return f"{movie_id}:v{cache_version}:interval:{interval_id}"
 
 
 def _movie_knowledge_key(movie_id: str, cache_version: int) -> str:
@@ -328,7 +336,7 @@ def _movie_knowledge_key(movie_id: str, cache_version: int) -> str:
 
 
 def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version: int, catalog_version: int | None = None) -> bool:
-    """A preparation replay is valid only for the identical movie, scene, time and frame."""
+    """A preparation replay is valid only for the identical movie interval."""
     summary = retrieval.scene_summary
     if not (retrieval.found and retrieval.record and summary and summary.prepared):
         return False
@@ -339,12 +347,11 @@ def _cache_matches(retrieval, request: KnowledgeExpansionRequest, cache_version:
         return False
     if catalog_version is not None and retrieval.record.knowledge.movie_knowledge_version != catalog_version:
         return False
-    # A frame validates initial perception but is not knowledge identity. Once
-    # a catalog scene has a prepared graph, later frames in that scene reuse
-    # the persistent movie context rather than overwriting it.
+    # A frame validates initial perception but interval identity owns a
+    # prepared graph; catalog annotations cannot coalesce distinct intervals.
     if request.frame_hash is None:
         return True
-    return summary.scene_id == (request.scene_id or summary.scene_id)
+    return summary.scene_id == request.interval_id
 
 
 def _stable_id(kind: str, label: str) -> str:
@@ -370,6 +377,10 @@ def _expected_scene_entities(knowledge: SemanticMovieKnowledge, scene_id: str | 
     """
     scene = next((item for item in knowledge.movie_scenes if item.scene_id == scene_id), None)
     scene = scene or next((item for item in knowledge.movie_scenes if item.start_seconds <= timestamp_seconds <= item.end_seconds), None)
+    timeline_active = any(item.start_seconds <= timestamp_seconds <= item.end_seconds for item in knowledge.timeline_positions)
+    if scene is None and timeline_active:
+        prior = [item for item in knowledge.movie_scenes if item.start_seconds <= timestamp_seconds]
+        scene = max(prior, key=lambda item: item.start_seconds) if prior else None
     character_ids = set(scene.character_ids) if scene else set()
     object_ids = set(scene.object_ids) if scene else set()
     event_ids = set(scene.event_ids) if scene else set()
