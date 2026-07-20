@@ -23,6 +23,12 @@ export type PromptBubbleContent = {
   visualAidType?: 'magnifier' | 'highlight'
   highlightTarget: boolean
   loading?: boolean
+  lifecycle?: 'idle' | 'loading' | 'streaming' | 'completed' | 'expired' | 'dismissed' | 'failed' | 'fallback'
+  contextVersion?: number
+  storyBeatId?: string
+  timestampCreated?: number
+  validFrom?: number
+  validUntil?: number
   absolutePosition?: { left: number; top: number }
 }
 
@@ -78,7 +84,7 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
             </button>
             <p className="eyebrow">{content.question}</p>
             <h4>{content.title}</h4>
-            {content.loading ? (
+            {content.loading || content.lifecycle === 'streaming' ? (
               <p className="bubble-explanation" aria-label="Preparing explanation">
                 <Loader2 className="spin" size={15} aria-hidden="true" /> Finding the character…
               </p>

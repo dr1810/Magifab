@@ -8,6 +8,8 @@ const server = await createServer({ customLogger: logger, server: { middlewareMo
 try {
   const { StoryResolver } = await server.ssrLoadModule('/src/services/narrative/StoryResolver.ts')
   const { getMovieNarrativeGraph } = await server.ssrLoadModule('/src/services/narrative/NarrativeRepository.ts')
+  const { StoryContextObserver } = await server.ssrLoadModule('/src/services/narrative/StoryContextObserver.ts')
+  const { isPromptValid, resolvePromptRequest } = await server.ssrLoadModule('/src/services/narrative/usePromptLifecycle.ts')
   const graph = getMovieNarrativeGraph('spriteFright')
   assert.ok(graph, 'Sprite Fright graph must be available')
   const resolver = new StoryResolver(graph)
@@ -22,6 +24,25 @@ try {
   assert.equal(conversation?.phase, 'setup')
   assert.deepEqual(conversation?.characters.map((character) => character.name), ['Rex', 'Victoria'])
   assert.ok(conversation?.promptBubbles.some((prompt) => prompt.question === 'Why is Rex annoyed with Ellie?'))
+
+  const observing = resolver.resolveTime(238, null)
+  const attack = resolver.resolveTime(260, null)
+  assert.equal(observing?.sceneId, 'sf:sprites-observing')
+  assert.equal(attack?.sceneId, 'sf:first-attack')
+
+  const observer = new StoryContextObserver()
+  const observingContext = observer.observe(observing, 238)
+  const attackContext = observer.observe(attack, 260)
+  assert.ok(attackContext.contextVersion > observingContext.contextVersion)
+  assert.equal(isPromptValid({ id: 'stale', question: 'Old prompt', explanation: '', lifecycle: 'completed', contextVersion: observingContext.contextVersion, storyBeatId: observingContext.storyBeatId ?? '', timestampCreated: 238, validFrom: observingContext.validFrom, validUntil: observingContext.validUntil }, attackContext), false)
+
+  const timeoutResult = await resolvePromptRequest(
+    () => new Promise(() => undefined),
+    new AbortController(),
+    'Cached explanation is unavailable right now.',
+    10,
+  )
+  assert.deepEqual(timeoutResult, { lifecycle: 'fallback', explanation: 'Cached explanation is unavailable right now.' })
 
   const climax = resolver.resolveTime(452, null)
   assert.equal(climax?.phase, 'climax')
