@@ -719,6 +719,12 @@
   box-shadow: 0 14px 34px rgba(2, 13, 34, 0.42);
 }
 
+/* Prompt cards stay in the upper video safe area, away from subtitles and controls. */
+.movie-experience .player-canvas > .floating-prompt-card {
+  top: clamp(16px, 8%, 68px) !important;
+  left: min(76%, calc(100% - 190px)) !important;
+}
+
 .movie-experience .bubble-callout::after {
   content: '';
   position: absolute;

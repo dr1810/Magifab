@@ -3,6 +3,7 @@ import { BookOpen, ChevronLeft, ChevronRight, FileText, Loader2, Sparkles, Uploa
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { CompanionWidget } from './components/CompanionWidget'
+import { CompanionAvatar } from './components/CompanionAvatar'
 import { BookPromptBubbles } from './components/BookPromptBubbles'
 import { FloatingBubble, type PromptBubbleContent } from './components/FloatingBubble'
 import { PromptPanel } from './components/PromptPanel'
@@ -14,6 +15,7 @@ import { getContentNarrativeGraph } from './services/narrative/NarrativeReposito
 import { StoryResolver } from './services/narrative/StoryResolver'
 import type { SceneState } from './services/scene/SceneState'
 import type { PromptQuestion } from './types/movie'
+import { useOverlayManager } from './hooks/useOverlayManager'
 
 GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -88,10 +90,12 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const [pages, setPages] = useState<RenderedPage[]>([])
   const [loading, setLoading] = useState(false)
   const [sceneState, setSceneState] = useState<SceneState | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [widgetOpen, setWidgetOpen] = useState(false)
-  const [promptOpen, setPromptOpen] = useState(false)
   const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
+  const overlays = useOverlayManager()
+  const drawerOpen = overlays.isOpen('story-companion')
+  const promptOpen = overlays.isOpen('prompt-guide')
+  const widgetOpen = overlays.isOpen('aster')
+  const promptCardOpen = overlays.isOpen('prompt-card')
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
   const prompts: Array<PromptQuestion & { priority?: number }> = useMemo(() => sceneState?.promptBubbles.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '', priority: prompt.priority })) ?? [], [sceneState])
 
@@ -161,11 +165,14 @@ export function BookViewer({ onBack }: BookViewerProps) {
   }
   const turn = (direction: -1 | 1) => setSpreadStart((current) => direction === 1 ? Math.min(Math.max(1, pageCount - 1), current + 2) : Math.max(1, current - 2))
   const activePrompt = prompts[0]
-  const showBubble = (prompt: PromptQuestion, position?: { left: number; top: number }) => setActiveBubble({ id: prompt.id, question: prompt.question, title: prompt.label, relationship: 'Reading companion', explanation: sceneState?.sceneSummary ?? '', anchor: { x: 50, y: 42 }, highlightTarget: false, absolutePosition: position })
+  const showBubble = (prompt: PromptQuestion, position?: { left: number; top: number }) => {
+    setActiveBubble({ id: prompt.id, question: prompt.question, title: prompt.label, relationship: 'Reading companion', explanation: sceneState?.sceneSummary ?? '', anchor: { x: 50, y: 42 }, highlightTarget: false, absolutePosition: position })
+    overlays.open('prompt-card')
+  }
 
   return <main className="movie-experience viewer-page book-viewer-page">
     <input ref={inputRef} type="file" accept="application/pdf" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void loadFile(file) }}/>
-    <header className="top-bar"><div className="left-cluster"><button className="ghost-btn" onClick={onBack}><ChevronLeft size={16}/>Back</button><div><p className="eyebrow">Reading Mode</p><h2>{title}</h2></div></div><div className="right-cluster"><button className="ghost-btn" onClick={() => inputRef.current?.click()}><Upload size={16}/>Open PDF</button><button className="ghost-btn" onClick={() => setPromptOpen(true)}><Sparkles size={16}/>Prompts</button><button className="ghost-btn" onClick={() => setDrawerOpen(true)}><BookOpen size={16}/>Visual Drawer</button></div></header>
+    <header className="top-bar"><div className="left-cluster"><button className="ghost-btn" onClick={onBack}><ChevronLeft size={16}/>Back</button><div><p className="eyebrow">Reading Mode</p><h2>{title}</h2></div></div><div className="right-cluster"><button className="ghost-btn" onClick={() => inputRef.current?.click()}><Upload size={16}/>Open PDF</button><button className="ghost-btn" onClick={() => overlays.open('prompt-guide')}><Sparkles size={16}/>Prompts</button><button className="ghost-btn" onClick={() => overlays.open('story-companion')}><BookOpen size={16}/>Visual Drawer</button></div></header>
     {!document ? <section className="book-upload"><FileText size={42}/><h1>Open a storybook PDF</h1><p>The original PDF stays the source of truth. MagiFab renders each page and its selectable text layer directly in the reader.</p><button className="primary-btn" onClick={() => inputRef.current?.click()}><Upload size={16}/>Choose PDF</button></section> : <section ref={stageRef} className="book-stage">
       <div className="book-toolbar"><span>Pages {pageRange(spreadStart, pageCount).pageStart}–{pageRange(spreadStart, pageCount).pageEnd} of {pageCount}</span>{loading ? <span><Loader2 className="spin" size={15}/> Loading pages</span> : <span>Help is ready when you are</span>}</div>
       <div ref={readingSurfaceRef} className="book-reading-surface">
@@ -175,13 +182,14 @@ export function BookViewer({ onBack }: BookViewerProps) {
         <div key={spreadStart} className="book-spread page-turn"><PdfPage page={pages[0] ?? null} side="left"/><span className="book-spine"/><PdfPage page={pages[1] ?? null} side="right"/></div>
         <button ref={rightTurnRef} className="book-turn right" onClick={() => turn(1)} disabled={spreadStart + 1 >= pageCount} aria-label="Next pages"><ChevronRight/></button>
       </div>
-      <BookPromptBubbles prompts={prompts} stageRef={stageRef} surfaceRef={readingSurfaceRef} bookRef={bookRef} leftTurnRef={leftTurnRef} rightTurnRef={rightTurnRef} drawerOpen={drawerOpen} onSelect={showBubble} onOverflow={() => setPromptOpen(true)}/>
+      <BookPromptBubbles prompts={prompts} stageRef={stageRef} surfaceRef={readingSurfaceRef} bookRef={bookRef} leftTurnRef={leftTurnRef} rightTurnRef={rightTurnRef} drawerOpen={drawerOpen || promptOpen} onSelect={showBubble} onOverflow={() => overlays.open('prompt-guide')}/>
       </div>
-      <div className="book-actions"><button className="ghost-btn" onClick={() => turn(-1)} disabled={spreadStart <= 1}><ChevronLeft size={16}/>Previous</button><button className="ghost-btn" onClick={() => setDrawerOpen(true)}><BookOpen size={16}/>Explore this page</button><button className="ghost-btn" onClick={() => turn(1)} disabled={spreadStart + 1 >= pageCount}>Next<ChevronRight size={16}/></button></div>
-      <FloatingBubble content={activeBubble} theme="sun" reduceMotion={reduceMotion} visible={Boolean(activeBubble)} onOpenCompanion={() => setWidgetOpen(true)} onClose={() => setActiveBubble(null)}/>
-      <CompanionWidget open={widgetOpen} name={profile?.name ?? 'Lumi'} message={sceneState?.conversation.sceneExplanation ?? 'Choose a prompt to explore this part of the story.'} theme="sun" onClose={() => setWidgetOpen(false)} reduceMotion={reduceMotion}/>
-      <PromptPanel open={promptOpen} prompts={prompts} selectedPromptId={activePrompt?.id ?? ''} onSelectPrompt={(prompt) => showBubble(prompt)} onClose={() => setPromptOpen(false)}/>
-      <VisualDrawer open={drawerOpen} sceneState={sceneState} onClose={() => setDrawerOpen(false)} presentation="book-sheet"/>
+      <div className="book-actions"><button className="ghost-btn" onClick={() => turn(-1)} disabled={spreadStart <= 1}><ChevronLeft size={16}/>Previous</button><button className="ghost-btn" onClick={() => overlays.open('story-companion')}><BookOpen size={16}/>Explore this page</button><button className="ghost-btn" onClick={() => turn(1)} disabled={spreadStart + 1 >= pageCount}>Next<ChevronRight size={16}/></button></div>
+      <FloatingBubble content={activeBubble} theme="sun" reduceMotion={reduceMotion} visible={promptCardOpen} onOpenCompanion={() => { setActiveBubble(null); overlays.open('aster') }} onClose={() => { setActiveBubble(null); overlays.close('prompt-card') }}/>
+      {!drawerOpen && !promptOpen && <button type="button" className="companion-launcher" onClick={() => overlays.open('aster')} aria-label={`Open ${profile?.name ?? 'Lumi'} companion`}><CompanionAvatar appearance={accessibilityProfile?.companionProfile?.appearance} name={profile?.name ?? 'Lumi'} /><span>{profile?.name ?? 'Lumi'}</span></button>}
+      <CompanionWidget open={widgetOpen} name={profile?.name ?? 'Lumi'} message={sceneState?.conversation.sceneExplanation ?? 'Choose a prompt to explore this part of the story.'} theme="sun" onClose={() => overlays.close('aster')} reduceMotion={reduceMotion}/>
+      <PromptPanel open={promptOpen} prompts={prompts} selectedPromptId={activePrompt?.id ?? ''} onSelectPrompt={showBubble} onClose={() => overlays.close('prompt-guide')}/>
+      <VisualDrawer open={drawerOpen} sceneState={sceneState} onClose={() => overlays.close('story-companion')} presentation="book-sheet"/>
     </section>}
   </main>
 }

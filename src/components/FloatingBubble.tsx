@@ -70,7 +70,7 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
 
           <motion.aside
             key={content.id}
-            className={calloutClass}
+            className={`${calloutClass} floating-prompt-card`}
             style={content.absolutePosition ? { left: content.absolutePosition.left, top: content.absolutePosition.top } : { left: `${cardLeft}%`, top: `${bubbleTop}%` }}
             initial={reduceMotion ? false : { opacity: 0, scale: 0.92, y: 10 }}
             animate={stableAnimation}
