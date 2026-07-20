@@ -37,6 +37,8 @@ from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 from services.interval_state_store import IntervalStateRepository
 from services.book_scene_pipeline import BookScenePipeline
+from services.companion_answer_service import CompanionAnswerService
+from services.conversation_memory import ConversationMemory, FileConversationMemory
 
 
 def configure_logging(settings: Settings) -> None:
@@ -200,12 +202,29 @@ def get_book_scene_pipeline() -> BookScenePipeline:
 
 
 @lru_cache
+def get_conversation_memory() -> ConversationMemory:
+    """Durable bounded history; callers may supply a conversation_id for isolation."""
+    settings = get_settings()
+    return FileConversationMemory(settings.knowledge_store_dir / f"v{settings.semantic_cache_version}" / "conversation-memory")
+
+
+@lru_cache
+def get_companion_answer_service() -> CompanionAnswerService:
+    """LLM answer boundary receives bounded whole-work retrieval, never a raw frame."""
+    from adapters.openai_answer_generator import OpenAIGroundedAnswerGenerator
+    return CompanionAnswerService(
+        states=get_interval_state_repository(),
+        generator=OpenAIGroundedAnswerGenerator(get_settings()),
+        memory=get_conversation_memory(),
+    )
+
+
+@lru_cache
 def get_companion_pipeline_service() -> CompanionPipelineService:
     """Full retrieval-first runtime composition; heavy providers stay lazy behind dependencies."""
     return CompanionPipelineService(
         expansion=get_knowledge_expansion_engine(),
         accessibility=get_accessibility_reasoning_engine(),
-        response_cache=get_response_cache(),
         settings=get_settings(),
         context_builder=get_reasoning_context_builder(),
         serializer=get_companion_response_serializer(),
@@ -215,6 +234,7 @@ def get_companion_pipeline_service() -> CompanionPipelineService:
         story_events=get_story_event_extractor(),
         timeline_memory=get_timeline_memory_service(),
         interval_states=get_interval_state_repository(),
+        answer_service=get_companion_answer_service(),
     )
 
 

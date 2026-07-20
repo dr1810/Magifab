@@ -1,6 +1,4 @@
 """Preparation-first runtime composition; interaction only reads prepared semantic knowledge."""
-import hashlib
-import json
 import logging
 from time import perf_counter
 
@@ -16,11 +14,9 @@ from schemas.companion_pipeline import (
     PreprocessingCompletionRequest,
 )
 from schemas.knowledge_expansion import KnowledgeExpansionRequest
-from schemas.personalization import GPTPersonalizationResponse
 from schemas.prepared_scene_context import PreparedSceneContext
 from services.accessibility_reasoning import AccessibilityReasoningEngine
 from services.knowledge_expansion import KnowledgeExpansionEngine
-from services.response_cache import ResponseCache
 from services.reasoning_context_builder import ReasoningContextBuilder
 from services.companion_response_serializer import CompanionResponseSerializer
 from services.prepared_scene_context_store import PreparedSceneContextStore
@@ -30,18 +26,17 @@ from services.story_event_extractor import StoryEventExtractor
 from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 from schemas.story_state import StoryState
-from schemas.interval_state import IntervalCacheMetadata, IntervalMetadata, IntervalSemanticMemory, PromptAnswer
+from schemas.interval_state import IntervalCacheMetadata, IntervalMetadata, IntervalSemanticMemory
 from services.interval_state_store import IntervalStateRepository
+from services.companion_answer_service import CompanionAnswerService
 
 
 class CompanionPipelineService:
     """Build interval snapshots during preprocessing; prompt clicks only read one."""
 
-    def __init__(self, expansion: KnowledgeExpansionEngine, accessibility: AccessibilityReasoningEngine, response_cache: ResponseCache, settings: Settings, context_builder: ReasoningContextBuilder | None = None, serializer: CompanionResponseSerializer | None = None, prepared_contexts: PreparedSceneContextStore | None = None, memory: SlidingWindowMemoryManager | None = None, preprocessing_story: PreprocessingStoryBuilder | None = None, story_events: StoryEventExtractor | None = None, timeline_memory: TimelineMemoryService | None = None, interval_states: IntervalStateRepository | None = None):
+    def __init__(self, expansion: KnowledgeExpansionEngine, accessibility: AccessibilityReasoningEngine, settings: Settings, context_builder: ReasoningContextBuilder | None = None, serializer: CompanionResponseSerializer | None = None, prepared_contexts: PreparedSceneContextStore | None = None, memory: SlidingWindowMemoryManager | None = None, preprocessing_story: PreprocessingStoryBuilder | None = None, story_events: StoryEventExtractor | None = None, timeline_memory: TimelineMemoryService | None = None, interval_states: IntervalStateRepository | None = None, answer_service: CompanionAnswerService | None = None):
         self._expansion = expansion
         self._accessibility = accessibility
-        self._response_cache = response_cache
-        self._timestamp_bucket_seconds = settings.response_cache_timestamp_bucket_seconds
         self._semantic_cache_version = settings.semantic_cache_version
         self._logger = logging.getLogger(__name__)
         self._context_builder = context_builder or ReasoningContextBuilder()
@@ -52,6 +47,7 @@ class CompanionPipelineService:
         self._story_events = story_events or StoryEventExtractor()
         self._timeline_memory = timeline_memory or TimelineMemoryService(settings.knowledge_store_dir, self._semantic_cache_version)
         self._interval_states = interval_states or IntervalStateRepository(settings.knowledge_store_dir, self._semantic_cache_version)
+        self._answer_service = answer_service
 
     def prepare(self, request: IntervalPreparationRequest, image: Image.Image, frame_hash: str) -> IntervalPreparationResponse:
         """Analyze one interval and persist its complete immutable playback snapshot."""
@@ -76,7 +72,6 @@ class CompanionPipelineService:
             self._expansion.reset_movie(request.movie_id)
             self._preprocessing_story.reset(request.movie_id)
             self._timeline_memory.reset(request.movie_id)
-            self._response_cache.clear()
             self._logger.info("[PREPROCESSING CACHE RESET] movie=%s interval=0 complete=yes", request.movie_id)
         expansion = self._expansion.retrieve_or_expand(KnowledgeExpansionRequest(
             movie_id=request.movie_id, interval_id=request.interval_id, catalog_scene_id=request.catalog_scene_id,
@@ -156,13 +151,9 @@ class CompanionPipelineService:
         interval_state = self._interval_states.load(request.movie_id, request.timestamp_seconds)
         if interval_state is None:
             raise ValueError("interval_not_preprocessed")
-        response, _ = self._response_cache.get_or_create(
-            self._cache_key(request, self._semantic_cache_version, interval_state.metadata.interval_id, self._timestamp_bucket_seconds),
-            lambda: GPTPersonalizationResponse(response=self._answer_from_interval(request.question, interval_state), model="semantic-retrieval"),
-        )
-        answered = interval_state.model_copy(update={"prompts": interval_state.prompts.model_copy(update={
-            "prompt_answers": (PromptAnswer(prompt_id=request.question, question=request.question, answer=response.response),),
-        })})
+        if self._answer_service is None:
+            raise RuntimeError("grounded_answer_service_not_configured")
+        answered = self._answer_service.answer(request, interval_state)
         return CompanionPipelineResponse.model_validate(answered.model_dump(mode="json"))
 
     def complete_preprocessing(self, request: PreprocessingCompletionRequest) -> dict[str, int | str | bool]:
@@ -175,26 +166,6 @@ class CompanionPipelineService:
         ):
             raise ValueError("movie_interval_preprocessing_incomplete")
         return summary
-
-    @staticmethod
-    def _answer_from_interval(question: str, interval_state) -> str:
-        """Interaction answers are selected from the interval snapshot only."""
-        cards = interval_state.characters
-        if "who" in question.lower() and cards:
-            return f"This is {cards[0].name}. {cards[0].reminder}"
-        return interval_state.conversationContext.scene_explanation
-
-    @staticmethod
-    def _cache_key(request: CompanionPipelineRequest, cache_version: int, interval_id: str, bucket_seconds: int) -> str:
-        payload = {
-            "movie_id": request.movie_id, "cache_version": cache_version, "interval_id": interval_id,
-            "timestamp_bucket": int(request.timestamp_seconds // bucket_seconds), "intent": request.intent.strip().lower(),
-            "question": request.question.strip().lower(),
-            "accessibility_profile": request.accessibility_profile.model_dump(mode="json"),
-            "companion_profile": request.companion_profile.model_dump(mode="json"),
-        }
-        digest = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()[:24]
-        return f"{request.movie_id}:v{cache_version}:{interval_id}:{digest}"
 
     def _log_timeline_resolution(self, movie_id, timestamp, timeline_state, interval_state) -> None:
         memory = self._timeline_memory.get(movie_id)

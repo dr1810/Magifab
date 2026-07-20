@@ -41,3 +41,7 @@ Model integrations are adapter inputs, not request-time assumptions. A productio
 6. source spans for every relation.
 
 The LLM must receive this `RetrievalContext`, source-cite claims from it, and say it cannot verify information absent from the context. It must not receive raw current-frame state as its sole factual input.
+
+## Companion answer runtime
+
+`services/companion_answer_service.py` is the compatibility answer layer for the current API. It retrieves a bounded set of completed interval snapshots: the current interval, earlier timeline events, vector-ranked semantic matches, entity/relationship evidence, conversation summaries, and durable per-conversation turns. `adapters/openai_answer_generator.py` then asks the LLM to return a structured result: answer, inferred intent, visual-aid type, entities, relationships, timeline references, and follow-up prompts. The API keeps these as additive fields so the existing UI contract is not changed.

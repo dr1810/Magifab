@@ -35,6 +35,17 @@ class PromptAnswer(ImmutableModel):
     answer: str
 
 
+class CompanionAnswer(ImmutableModel):
+    """Grounded, structured result from the whole-work companion."""
+    answer: str
+    intent: str
+    visual_aid_type: str
+    entities: tuple[str, ...] = ()
+    relationships: tuple[str, ...] = ()
+    timeline_references: tuple[str, ...] = ()
+    suggested_follow_up_prompts: tuple[str, ...] = ()
+
+
 class IntervalPrompts(ImmutableModel):
     prompt_bubbles: tuple[PromptBubbleSuggestion, ...] = ()
     prompt_answers: tuple[PromptAnswer, ...] = ()
@@ -121,6 +132,7 @@ class SceneState(ImmutableModel):
     semanticMemoryAfter: IntervalSemanticMemory
     timelineMemory: IntervalTimelineMemory
     cacheMetadata: IntervalCacheMetadata
+    companionAnswer: CompanionAnswer | None = None
 
 
 IntervalState = SceneState

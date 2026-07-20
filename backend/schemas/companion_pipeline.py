@@ -57,6 +57,7 @@ class CompanionPipelineRequest(BaseModel):
     image: str | None = Field(default=None, min_length=8)
     grounding_queries: list[str] = Field(default_factory=list, max_length=20)
     verify_faces: bool = False
+    conversation_id: str = Field(default="default", min_length=1, max_length=200)
     accessibility_profile: AccessibilityProfile
     companion_profile: CompanionProfile
 

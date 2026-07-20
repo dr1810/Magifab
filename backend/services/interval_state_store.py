@@ -66,6 +66,10 @@ class IntervalStateRepository:
         self._validate(state)
         return state if state.metadata.movie_id == movie_id else None
 
+    def list_movie_states(self, movie_id: str) -> list[IntervalState]:
+        """Return the completed work's immutable timeline for answer retrieval."""
+        return self._movie_states(movie_id)
+
     def reset_movie(self, movie_id: str) -> None:
         """Discard old snapshots by path, never by schema deserialization."""
         removed = 0
