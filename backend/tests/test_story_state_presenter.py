@@ -28,12 +28,14 @@ def test_presenter_removes_internal_placeholders_deduplicates_and_infers_goal():
     assert "appears in" not in presented.model_dump_json().lower()
 
 
-def test_prompt_ranking_keeps_two_contextual_prompts_for_meaningful_state():
+def test_prompt_ranking_returns_four_diverse_contextual_prompts():
     state = StoryState(
         movie_id="movie", current_timestamp=12,
         known_characters={"rex": CharacterState(id="rex", name="Rex", first_seen_timestamp=1, last_seen_timestamp=12)},
     )
     prompts = PromptRankingEngine().rank(state, AccessibilityProfile(), limit=4)
-    assert 2 <= len(prompts) <= 5
+    assert len(prompts) == 4
+    assert [prompt.kind for prompt in prompts] == ["critical", "memory", "emotion", "prediction"]
     assert all(prompt.timestamp_start == 12 for prompt in prompts)
     assert len({prompt.id for prompt in prompts}) == len(prompts)
+    assert not {"Who is this?", "What happened?", "What is this?"} & {prompt.question for prompt in prompts}

@@ -80,19 +80,15 @@ def _clean(value) -> str | None:
     return text[0].upper() + text[1:]
 
 
-def _goal(state, recent_events, story_summary, threads, timeline_position) -> str:
+def _goal(state, recent_events, story_summary, threads, timeline_position) -> str | None:
     explicit = _clean(state.current_goal)
     if explicit:
         return explicit
+    # An unresolved semantic thread is an actual active story objective, not
+    # display filler. Do not synthesize a goal when no thread exists.
     if threads:
-        return f"Understand how the current situation develops: {threads[0]}"
-    if any(event.event_type == "conflict_begins" for event in recent_events):
-        return "Understand the current conflict and what changes next."
-    if timeline_position:
-        return f"Follow the next important change in the story: {timeline_position}"
-    if story_summary:
-        return f"Follow the scene as it develops: {story_summary[-1]}"
-    return "Follow the story as the scene develops."
+        return threads[0]
+    return None
 
 
 def _scene_number(scene_id: str | None) -> int | None:
@@ -161,7 +157,7 @@ def _scene_mood(state: StoryState) -> str | None:
     return None
 
 
-def _tabs(state: StoryState, story_events, recent_events, scene_summary: str | None, goal: str, objects: list[str]) -> PresentedStoryTabs:
+def _tabs(state: StoryState, story_events, recent_events, scene_summary: str | None, goal: str | None, objects: list[str]) -> PresentedStoryTabs:
     """Compose each fixed UI tab solely from resolved StoryState events.
 
     StoryEvent claim ids are used only for traceability in logs below; they
@@ -170,39 +166,26 @@ def _tabs(state: StoryState, story_events, recent_events, scene_summary: str | N
     current = recent_events[-1] if recent_events else (story_events[-1] if story_events else None)
     previous = next((event for event in reversed(story_events) if (not current or event.event_id != current.event_id) and _clean(event.summary)), None)
     active_names = _clean_unique([item.name for item in state.known_characters.values() if item.current_visibility], limit=4)
-    subject = ", ".join(active_names) if active_names else "The group"
     current_text = _clean(current.summary) if current else scene_summary
-    story_now = _clean_unique(
-        [current_text, f"{subject} are focused on what happens next.", f"Their current goal is to {goal[0].lower() + goal[1:]}"] if current_text else [],
-        limit=4,
-    )
+    story_now = _clean_unique([current_text] if current_text else [], limit=4)
+    if goal:
+        story_now = _clean_unique([*story_now, goal], limit=4)
     relationships = _clean_unique([item.summary for item in state.known_relationships.values()], limit=4)
-    if not relationships and current_text:
-        relationships = [f"{subject} are sharing this moment together."]
     mood = _scene_mood(state)
     emotion = None
     if mood and current_text:
-        emotion = f"{subject} feel {mood.lower()} because {current_text[0].lower() + current_text[1:]}"
-    elif current_text:
-        emotion = f"{subject} are reacting to {current_text[0].lower() + current_text[1:]}"
+        names = ", ".join(active_names)
+        emotion = f"{names} feel {mood.lower()} because {current_text[0].lower() + current_text[1:]}" if names else None
     causes: list[PresentedCauseEffect] = []
     if previous and current_text:
         cause = _clean(previous.summary)
         if cause and cause.casefold() != current_text.casefold():
             causes.append(PresentedCauseEffect(cause=cause, effect=current_text))
-    elif current_text:
-        # First beats still need a simple causal explanation even when no
-        # earlier stored beat exists in the movie memory.
-        causes.append(PresentedCauseEffect(cause="The story reaches this moment.", effect=current_text))
     object_explanations: list[str] = []
     for name in objects:
         explanation = current_text if current_text and name.casefold() in current_text.casefold() else None
         object_explanations.append(f"{name} matters because {explanation[0].lower() + explanation[1:]}" if explanation else f"{name} is important in the current moment.")
-    if not object_explanations and current_text:
-        object_explanations = ["The characters' actions matter most in this moment."]
-    memories = _clean_unique([event.summary for event in state.memory_reminders if is_user_facing_story_event(event) and (not current or event.event_id != current.event_id)], limit=2)
-    if not memories and current_text:
-        memories = ["No earlier event is needed to understand this moment."]
+    memories = _clean_unique([event.summary for event in state.memory_reminders if is_user_facing_story_event(event)], limit=2)
     tab_events = {
         "story_now": [current] if current else [],
         "relationships": [event for event in recent_events if event.event_type == "relationship_changes"],

@@ -9,6 +9,7 @@ import { captureVideoFrame, type CapturedVideoFrame } from '../services/ai/Video
 type MoviePlayerProps = {
   movie: MovieData
   scene: SceneData | null
+  subtitle: string
   playing: boolean
   muted: boolean
   volume: number
@@ -22,7 +23,7 @@ type MoviePlayerProps = {
   onDurationChange: (value: number) => void
   onSeeking?: () => void
   onSeekComplete?: (timestamp: number) => void
-  onVideoFrameCaptureReady?: (capture: ((timestamp: number) => Promise<CapturedVideoFrame>) | null) => void
+  onVideoFrameCaptureReady?: (capture: ((intervalStart: number, intervalEnd: number) => Promise<CapturedVideoFrame>) | null) => void
   promptOpen: boolean
   onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
@@ -38,6 +39,7 @@ type MoviePlayerProps = {
 export function MoviePlayer({
   movie,
   scene,
+  subtitle,
   playing,
   muted,
   volume,
@@ -180,10 +182,38 @@ export function MoviePlayer({
     }
     const handleCanPlay = () => {
       applyPendingResume(video, 'canplay')
-      frameCaptureReadyRef.current?.(async (timestamp: number) => {
+      frameCaptureReadyRef.current?.(async (intervalStart: number, intervalEnd: number) => {
         frameCaptureInProgressRef.current = true
         try {
-          return await captureVideoFrame(videoRef.current, timestamp)
+          console.info('[MagiFab] INTERVAL_DISPATCH', {
+            movieId: movie.id,
+            stage: 'video_frame_capture',
+            intervalStart,
+            intervalEnd,
+            currentTime: videoRef.current?.currentTime ?? null,
+            duration: videoRef.current?.duration ?? null,
+            readyState: videoRef.current?.readyState ?? null,
+          })
+          const frame = await captureVideoFrame(videoRef.current, intervalStart, intervalEnd)
+          console.info('[MagiFab] INTERVAL_RESPONSE', {
+            movieId: movie.id,
+            stage: 'video_frame_capture',
+            intervalStart,
+            intervalEnd,
+            capturedTimestamp: frame.timestamp,
+            width: frame.width,
+            height: frame.height,
+          })
+          return frame
+        } catch (error) {
+          console.error('[MagiFab] INTERVAL_FAILED', {
+            movieId: movie.id,
+            stage: 'video_frame_capture',
+            intervalStart,
+            intervalEnd,
+            error: error instanceof Error ? error.message : String(error),
+          })
+          throw error
         } finally {
           frameCaptureInProgressRef.current = false
         }
@@ -349,7 +379,7 @@ export function MoviePlayer({
         {videoFailed && <div className="video-notice" role="status">This browser cannot play this video format. Try Sprite Fright, or open Big Buck Bunny in a browser that supports its MOV codec.</div>}
         {overlays}
         {drawerOverlay}
-        <SubtitleOverlay subtitle={scene?.subtitle ?? ''} />
+        <SubtitleOverlay subtitle={subtitle} />
         <button
           type="button"
           className="prompt-sidebar-toggle"

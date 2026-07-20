@@ -7,7 +7,7 @@ from time import perf_counter
 from models.accessibility_reasoner import AccessibilityReasoner
 from schemas.interval_state import (
     AccessibilityHints, ConversationContext, IntervalMetadata, IntervalPrompts,
-    IntervalCacheMetadata, IntervalSemanticMemory, IntervalState, IntervalStoryState, VisualDrawerState,
+    IntervalCacheMetadata, IntervalSemanticMemory, IntervalState, IntervalStoryState, IntervalTimelineMemory, VisualDrawerState,
 )
 from schemas.accessibility_reasoning import (
     AccessibilityReasoningRequest, CharacterCard, ConversationSimplification,
@@ -31,7 +31,9 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         started = perf_counter()
         state = request.story_state
         presented_state = StoryStatePresenter().present(state, request.timeline_state)
-        limit = 6 if "more" in request.accessibility_profile.detail_level.lower() else 4
+        # The prompt panel is intentionally a fixed cognitive load: exactly
+        # one ranked prompt for each comprehension need in every interval.
+        limit = 4
         timeline_prompts = _timeline_prompts(request.timeline_state)
         prompts = PromptRankingEngine().rank(state, request.accessibility_profile, limit, existing=timeline_prompts)
         cards = [CharacterCard(character_id=f"character-{index}", name=character.name, reminder="Important in the current story.", confidence=1.0, claim_ids=[]) for index, character in enumerate(presented_state.active_characters)]
@@ -42,6 +44,7 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
         reminders = [MemoryReminder(summary=value, confidence=1.0, claim_ids=[]) for value in presented_state.memory_reminders[:limit]]
         interval = request.timeline_state
         drawer = presented_state.tabs
+        accessibility_card = _accessibility_card(presented_state, drawer)
         result = IntervalState(
             metadata=IntervalMetadata(
                 interval_id=_interval_id(state, interval), catalog_scene_id=None,
@@ -51,6 +54,9 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             ),
             prompts=IntervalPrompts(prompt_bubbles=tuple(prompts), suggested_questions=tuple(prompt.question for prompt in prompts)),
             visualDrawer=VisualDrawerState(
+                now=accessibility_card["now"], who=accessibility_card["who"],
+                important=accessibility_card["important"], remember=accessibility_card["remember"],
+                why=accessibility_card["why"], next=accessibility_card["next"], word_count=accessibility_card["word_count"],
                 story_now=tuple(drawer.story_now), relationships=tuple(drawer.relationships),
                 timeline=tuple(_unique_presentation_text(item for item in (drawer.previous_event, drawer.current_event, drawer.next_event) if item)),
                 emotion=drawer.emotion, cause_effect=tuple(drawer.cause_effect), objects=tuple(drawer.objects), memory=tuple(drawer.memories),
@@ -71,6 +77,12 @@ class AccessibilityReasoningEngine(AccessibilityReasoner):
             # persists an IntervalState.
             semanticMemoryBefore=_memory_checkpoint(state),
             semanticMemoryAfter=_memory_checkpoint(state),
+            timelineMemory=IntervalTimelineMemory(
+                timeline_position=presented_state.timeline_position,
+                previous_event=drawer.previous_event,
+                current_event=drawer.current_event,
+                next_event=drawer.next_event,
+            ),
             cacheMetadata=IntervalCacheMetadata(semantic_cache_key="pending", knowledge_source="preprocessing", semantic_map_cached=False),
         )
         logger.info("[ACCESSIBILITY REASONING] movie=%s state_events=%d prompts=%d duration_ms=%.1f", state.movie_id, len(state.story_so_far), len(prompts), (perf_counter() - started) * 1000)
@@ -100,72 +112,208 @@ def _interval_number(state, timeline_state) -> int:
     return len(state.story_so_far)
 
 
-class PromptRankingEngine:
-    """Builds and ranks prompts from one StoryState snapshot for an interval."""
+def _accessibility_card(presented_state, drawer) -> dict[str, object]:
+    """Build the one compact drawer card from already-resolved story facts.
 
-    def rank(self, state, profile, limit: int, existing: list[PromptBubbleSuggestion] | None = None) -> list[PromptBubbleSuggestion]:
-        candidates = list(existing or [])
-        candidates.extend(self._candidates(state))
-        meaningful = _has_meaningful_state(state)
-        unique: dict[str, PromptBubbleSuggestion] = {}
-        for candidate in candidates:
-            key = f"{candidate.kind}:{candidate.question.casefold()}"
-            if key in unique:
-                logger.info("[PROMPT REJECTION] id=%s reason=duplicate", candidate.id)
+    This is intentionally presentation-only: no inference or new plot claims
+    are made here.  A strict word budget keeps the whole card scannable in
+    roughly ten seconds.
+    """
+    now = _card_text(presented_state.scene_summary, "The story continues in this moment.")
+    who = _card_unique([f"{character.name}: {character.emotion or character.role}" for character in presented_state.active_characters], limit=2)
+    important = _card_unique([*presented_state.important_objects, presented_state.timeline_position or ""], limit=2)
+    remember = _card_unique(presented_state.memory_reminders, limit=1)
+    cause = drawer.cause_effect[0] if drawer.cause_effect else None
+    why = _card_text(
+        f"Because {cause.cause[0].lower() + cause.cause[1:]}, {cause.effect[0].lower() + cause.effect[1:]}" if cause else drawer.current_event,
+        "This moment follows the story change already described.",
+    )
+    next_source = drawer.next_event or (presented_state.unresolved_threads[0] if presented_state.unresolved_threads else None)
+    next_item = _card_text(next_source, "Watch for the next change in the situation.")
+    card: dict[str, object] = {
+        "now": _short_card_text(now, 18), "who": tuple(_short_card_text(item, 12) for item in who),
+        "important": tuple(_short_card_text(item, 12) for item in important),
+        "remember": tuple(_short_card_text(item, 12) for item in remember),
+        "why": _short_card_text(why, 18), "next": _short_card_text(next_item, 18),
+    }
+    _trim_card_to_budget(card, maximum_words=120)
+    card["word_count"] = _card_word_count(card)
+    logger.info("[DRAWER_CARD_GENERATED] now=%d who=%d important=%d remember=%d why=%d next=%d words=%d", bool(card["now"]), len(card["who"]), len(card["important"]), len(card["remember"]), bool(card["why"]), bool(card["next"]), card["word_count"])
+    return card
+
+
+def _card_text(value: str | None, fallback: str) -> str:
+    cleaned = " ".join(value.split()) if isinstance(value, str) else ""
+    return cleaned or fallback
+
+
+def _short_card_text(value: str, maximum_words: int) -> str:
+    words = value.split()
+    return " ".join(words[:maximum_words]).rstrip(" ,;:") + ("…" if len(words) > maximum_words else "")
+
+
+def _card_unique(values, *, limit: int) -> tuple[str, ...]:
+    output: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = " ".join(value.split()) if isinstance(value, str) else ""
+        key = cleaned.casefold()
+        if not cleaned or key in seen:
+            continue
+        seen.add(key)
+        output.append(cleaned)
+        if len(output) == limit:
+            break
+    return tuple(output)
+
+
+def _trim_card_to_budget(card: dict[str, object], *, maximum_words: int) -> None:
+    """Keep the most useful sections intact and trim lower-priority detail."""
+    for field in ("remember", "important", "who"):
+        values = list(card[field])
+        while len(values) > 1 and _card_word_count(card) > maximum_words:
+            values.pop()
+            card[field] = tuple(values)
+    for field in ("next", "why", "now"):
+        while _card_word_count(card) > maximum_words:
+            words = str(card[field]).split()
+            if len(words) <= 8:
+                break
+            card[field] = " ".join(words[:-1]).rstrip(" ,;:") + "…"
+
+
+def _card_word_count(card: dict[str, object]) -> int:
+    values = [card.get("now"), *card.get("who", ()), *card.get("important", ()), *card.get("remember", ()), card.get("why"), card.get("next")]
+    return sum(len(str(value).split()) for value in values if value)
+
+
+class PromptRankingEngine:
+    """Produces a fixed, diverse comprehension set from one StoryState snapshot."""
+
+    _CATEGORY_ORDER = ("critical", "memory", "emotion", "prediction")
+
+    def rank(self, state, profile, limit: int = 4, existing: list[PromptBubbleSuggestion] | None = None) -> list[PromptBubbleSuggestion]:
+        # Timeline prompts are useful audit artifacts, but they are not allowed
+        # to displace one of the four interval comprehension categories.
+        for prompt in existing or []:
+            logger.info("[PROMPT_REJECTED] id=%s reason=outside_fixed_interval_categories", prompt.id)
+
+        context = _PromptContext.from_state(state)
+        generated = self._generate(context, profile)
+        usefulness_by_id = {prompt.id: usefulness for _, usefulness, prompt in generated}
+        selected: list[PromptBubbleSuggestion] = []
+        seen: set[str] = set()
+        for category, usefulness, prompt in generated:
+            key = prompt.question.casefold()
+            if key in seen or _is_generic_prompt(prompt.question):
+                logger.info("[PROMPT_REJECTED] id=%s category=%s reason=%s", prompt.id, category, "duplicate" if key in seen else "generic")
                 continue
-            unique[key] = candidate
-            logger.info("[PROMPT CANDIDATE] id=%s tier=%s source=%s question=%s", candidate.id, _tier(candidate.priority), candidate.semantic_event, candidate.question)
-        # Persisted interval prompts represent the triggering StoryEvents, so
-        # keep them visible before supporting state-derived questions.
-        ranked = sorted(unique.values(), key=lambda item: (0 if item.id.startswith("timeline-prompt:") else 1, item.priority, item.id))[:min(5, max(2, limit))]
-        if meaningful and len(ranked) < 2:
-            for fallback in self._fallbacks(state):
-                if len(ranked) >= 2:
-                    break
-                if all(item.question.casefold() != fallback.question.casefold() for item in ranked):
-                    ranked.append(fallback)
-                    logger.info("[PROMPT FALLBACK] id=%s reason=insufficient_survivors", fallback.id)
-        if meaningful and not ranked:
-            logger.error("[PROMPT FALLBACK] movie=%s reason=zero_candidates_with_meaningful_state", state.movie_id)
-            ranked = self._fallbacks(state)[:2]
-        logger.info("[PROMPT RANKING] movie=%s generated=%d rejected=%d final=%d meaningful=%s", state.movie_id, len(candidates), len(candidates) - len(unique), len(ranked), meaningful)
+            seen.add(key)
+            selected.append(prompt)
+            logger.info("[PROMPT_RANKED] id=%s category=%s usefulness=%d question=%s", prompt.id, category, usefulness, prompt.question)
+
+        # The generator has one deterministic, grounded candidate per category;
+        # this guards the interval API contract if that implementation changes.
+        if len(selected) != 4 or {item.kind for item in selected} != set(self._CATEGORY_ORDER):
+            raise ValueError("prompt_generation_did_not_produce_four_diverse_prompts")
+        selected.sort(key=lambda item: (item.priority, self._CATEGORY_ORDER.index(item.kind)))
+        logger.info("[PROMPT_RANKING] movie=%s generated=%d rejected=%d final=%d categories=%s", state.movie_id, len(generated), len(generated) - len(selected), len(selected), [item.kind for item in selected])
+        for rank, prompt in enumerate(selected, start=1):
+            logger.info("[PROMPT_SELECTED] movie=%s rank=%d id=%s category=%s usefulness=%d", state.movie_id, rank, prompt.id, prompt.kind, usefulness_by_id[prompt.id])
+        return selected
+
+    def _generate(self, context: "_PromptContext", profile) -> list[tuple[str, int, PromptBubbleSuggestion]]:
+        detail = profile.detail_level.casefold()
+        concise = "brief" in detail or profile.conversation_simplification
+        subject = context.subject
+        current = context.current
+        earlier = context.earlier
+        emotion = context.emotion
+        next_focus = context.next_focus
+        prompts = [
+            ("critical", 100, _interval_prompt("critical", "Critical", f"Why is this important now: {current}?" if concise else f"Why is this important now: {current}? What does it change for {subject}?", 1, context)),
+            ("memory", 90, _interval_prompt("memory", "Memory", f"Remember when {earlier}? That helps explain {current}." if concise else f"Remember when {earlier}? How does that earlier moment explain {current}?", 2, context)),
+            ("emotion", 80, _interval_prompt("emotion", "Emotion", f"Why is {subject} feeling {emotion} after {current}?" if concise else f"Why is {subject} feeling {emotion} here, and which earlier change led to it?", 3, context)),
+            ("prediction", 70, _interval_prompt("prediction", "Watch next", f"Watch {next_focus} carefully—it may become important next." if concise else f"Watch {next_focus} carefully. What could it change in the next part of the story?", 4, context)),
+        ]
+        preferred = {value.casefold() for value in profile.preferred_prompt_types}
+        ranked: list[tuple[str, int, PromptBubbleSuggestion]] = []
+        for category, usefulness, prompt in prompts:
+            # Preferences tune order only; users still receive the whole,
+            # diverse comprehension set instead of four prompts of one type.
+            usefulness += 25 if category in preferred else 0
+            ranked.append((category, usefulness, prompt))
+        ranked.sort(key=lambda item: (-item[1], self._CATEGORY_ORDER.index(item[0])))
+        ranked = [
+            (category, usefulness, prompt.model_copy(update={"priority": rank}))
+            for rank, (category, usefulness, prompt) in enumerate(ranked, start=1)
+        ]
+        for category, usefulness, prompt in ranked:
+            logger.info("[PROMPT_GENERATED] id=%s category=%s usefulness=%d source=%s question=%s", prompt.id, category, usefulness, prompt.semantic_event, prompt.question)
         return ranked
 
-    def _candidates(self, state) -> list[PromptBubbleSuggestion]:
-        timestamp = state.current_timestamp
-        result: list[PromptBubbleSuggestion] = []
-        for event in state.recent_events:
-            if not is_user_facing_story_event(event):
-                continue
-            label, question, kind = _prompt_copy(event)
-            priority = 1 if event.event_type in {"conflict_begins", "conflict_resolved", "relationship_changed", "emotion_changed"} else 2
-            result.append(_state_prompt(f"event:{event.event_id}", kind, label, question, priority, timestamp, event.event_type))
-        for character in state.known_characters.values():
-            if character.current_visibility:
-                result.append(_state_prompt(f"character:{character.id}", "character", f"About {character.name}", f"Who is {character.name}, and why are they important here?", 2, timestamp, "character"))
-        for relationship in state.known_relationships.values():
-            result.append(_state_prompt(f"relationship:{relationship.id}", "relationship", "Why does this connection matter?", f"What does this relationship mean right now?", 1, timestamp, "relationship"))
-        if state.active_emotions:
-            result.append(_state_prompt("emotion", "emotion", "Why did the mood change?", "Why is everyone feeling this way now?", 1, timestamp, "emotion"))
-        if state.timeline_history:
-            result.append(_state_prompt("timeline", "timeline", "Where are we in the story?", "What changed to bring the story to this point?", 2, timestamp, "timeline"))
-        if state.known_objects:
-            result.append(_state_prompt("object", "object", "Why does this matter?", "Why is this object important in this moment?", 2, timestamp, "object"))
-        if len(state.story_so_far) >= 2:
-            result.append(_state_prompt("cause-effect", "scene", "What caused this?", "What happened earlier to cause this moment?", 2, timestamp, "cause_effect"))
-        if state.memory_reminders:
-            result.append(_state_prompt("memory", "memory", "What should I remember?", "What earlier moment helps explain this scene?", 2, timestamp, "memory"))
-        return result
 
-    def _fallbacks(self, state) -> list[PromptBubbleSuggestion]:
-        timestamp = state.current_timestamp
-        fallbacks = [
-            _state_prompt("fallback:change", "scene", "What changed?", "What changed in this scene?", 2, timestamp, "fallback"),
-            _state_prompt("fallback:importance", "scene", "Why does this matter?", "Why is this moment important?", 3, timestamp, "fallback"),
-        ]
-        if state.known_characters:
-            fallbacks.insert(0, _state_prompt("fallback:characters", "character", "Who are these characters?", "Who are these characters?", 2, timestamp, "fallback"))
-        return fallbacks
+class _PromptContext:
+    """Small, display-safe narrative facts used by all four prompt categories."""
+
+    def __init__(self, *, timestamp: float, current: str, earlier: str, subject: str, emotion: str, next_focus: str, source: str):
+        self.timestamp = timestamp
+        self.current = current
+        self.earlier = earlier
+        self.subject = subject
+        self.emotion = emotion
+        self.next_focus = next_focus
+        self.source = source
+
+    @classmethod
+    def from_state(cls, state) -> "_PromptContext":
+        events = [item for item in state.story_so_far if is_user_facing_story_event(item)]
+        recent = [item for item in state.recent_events if is_user_facing_story_event(item)]
+        current_event = recent[-1] if recent else (events[-1] if events else None)
+        earlier_event = next((item for item in reversed(events) if not current_event or item.event_id != current_event.event_id), None)
+        characters = [item.name for item in state.known_characters.values() if item.current_visibility]
+        subject = characters[0] if characters else "the character in this moment"
+        current = _prompt_fact(current_event.summary if current_event else state.current_goal, "the story is setting up a new situation")
+        earlier = _prompt_fact(
+            (state.memory_reminders[-1].summary if state.memory_reminders else None)
+            or (earlier_event.summary if earlier_event else None),
+            current,
+        )
+        emotion = _prompt_fact(next(iter(state.active_emotions.values()), None), "alert")
+        next_focus = _prompt_fact(
+            (state.open_story_threads[-1].summary if state.open_story_threads else None)
+            or (current_event.summary if current_event else None)
+            or (next(iter(state.known_objects.values())).name if state.known_objects else None),
+            subject,
+        )
+        return cls(
+            timestamp=state.current_timestamp, current=current, earlier=earlier,
+            subject=subject, emotion=emotion, next_focus=next_focus,
+            source=current_event.event_type if current_event else "story_state",
+        )
+
+
+def _prompt_fact(value: str | None, fallback: str) -> str:
+    """Keep prompts grounded in a readable fact and never expose placeholders."""
+    cleaned = " ".join(value.split()) if isinstance(value, str) else ""
+    return cleaned.rstrip(".?!") if cleaned else fallback
+
+
+def _interval_prompt(category: str, label: str, question: str, priority: int, context: _PromptContext) -> PromptBubbleSuggestion:
+    return PromptBubbleSuggestion(
+        id=f"interval-prompt:{category}:{context.timestamp:.3f}", kind=category, label=label,
+        question=question, priority=priority, claim_ids=[], timestamp_start=context.timestamp,
+        timestamp_end=None, semantic_event=context.source, screen_location="bottom-right",
+    )
+
+
+def _is_generic_prompt(question: str) -> bool:
+    normalized = " ".join(question.casefold().replace("?", "").split())
+    banned = {
+        "who is this", "what happened", "what is this", "what changed",
+        "why does this matter", "what should i remember",
+    }
+    return normalized in banned
 
 
 def _state_prompt(source: str, kind: str, label: str, question: str, priority: int, timestamp: float, semantic_event: str) -> PromptBubbleSuggestion:

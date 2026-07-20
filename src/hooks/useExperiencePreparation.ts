@@ -16,6 +16,7 @@ const milestoneIds: PreparationMilestoneId[] = [
 
 const initialMilestones = () => Object.fromEntries(milestoneIds.map((id) => [id, id === 'accessibility-needs' ? 'active' : 'pending'])) as Record<PreparationMilestoneId, PreparationMilestoneState>
 const presentationPause = () => new Promise<void>((resolve) => window.setTimeout(resolve, 140))
+const READINESS_TIMEOUT_MS = 5 * 60_000
 
 /** Connect this hook to backend SSE/WebSocket events by passing them to reportProgress. */
 export function useExperiencePreparation(movie: MovieData | null, companionProfileLoading: boolean, companionReady: boolean) {
@@ -39,6 +40,11 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
     let cancelled = false
     let completionTimer: number | undefined
     let transitionTimer: number | undefined
+    const readinessTimer = window.setTimeout(() => {
+      if (cancelled || companionReadyRef.current) return
+      console.warn('[MagiFab] PREPARATION_READINESS_TIMEOUT', { movieId: movie?.id ?? null, timeoutMs: READINESS_TIMEOUT_MS })
+      setPhase('ready')
+    }, READINESS_TIMEOUT_MS)
     setMilestones(initialMilestones())
     setPhase('preparing')
 
@@ -56,10 +62,11 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
         await initialMoviePreparationService.prepare((event) => {
           if (!cancelled) reportProgress(event)
         })
-        // Semantic baseline and backend scene preparation are distinct gates. The
-        // viewer keeps the movie paused until both are ready.
+        // The viewer opens once its bounded opening-snapshot gate resolves;
+        // remaining interval snapshots are prepared in the background.
         while (!cancelled && !companionReadyRef.current) await presentationPause()
         if (cancelled) return
+        window.clearTimeout(readinessTimer)
         setPhase('complete-message')
         completionTimer = window.setTimeout(() => {
           if (cancelled) return
@@ -76,6 +83,7 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
 
     return () => {
       cancelled = true
+      window.clearTimeout(readinessTimer)
       if (completionTimer) window.clearTimeout(completionTimer)
       if (transitionTimer) window.clearTimeout(transitionTimer)
     }

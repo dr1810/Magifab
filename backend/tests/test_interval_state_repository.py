@@ -5,6 +5,7 @@ from schemas.interval_state import (
     IntervalCacheMetadata,
     IntervalMetadata,
     IntervalSemanticMemory,
+    IntervalTimelineMemory,
     IntervalState,
     IntervalStoryState,
 )
@@ -12,17 +13,18 @@ from services.interval_state_store import IntervalStateRepository
 
 
 def _state(interval_number: int) -> IntervalState:
-    start = interval_number * 10.0
+    start = interval_number * 30.0
     return IntervalState(
         metadata=IntervalMetadata(
             interval_id=f"movie:interval:{interval_number}", catalog_scene_id=None,
-            movie_id="movie", start_time=start, end_time=start + 10,
+            movie_id="movie", start_time=start, end_time=start + 30,
             interval_number=interval_number, knowledge_revision=1,
         ),
         storyState=IntervalStoryState(current_goal="Understand the interval", current_interval_id=f"movie:interval:{interval_number}"),
         conversationContext=ConversationContext(scene_explanation="Prepared context."),
         semanticMemoryBefore=IntervalSemanticMemory(),
         semanticMemoryAfter=IntervalSemanticMemory(),
+        timelineMemory=IntervalTimelineMemory(),
         cacheMetadata=IntervalCacheMetadata(semantic_cache_key="test", knowledge_source="test", semantic_map_cached=False),
     )
 

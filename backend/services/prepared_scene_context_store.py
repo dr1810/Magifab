@@ -1,9 +1,12 @@
 """Durable lookup for the semantic context produced during /prepare."""
 from hashlib import sha256
+import logging
 from pathlib import Path
 from threading import Lock
 
 from schemas.prepared_scene_context import PreparedSceneContext
+
+logger = logging.getLogger(__name__)
 
 
 class PreparedSceneContextStore:
@@ -18,19 +21,20 @@ class PreparedSceneContextStore:
         if context.semantic_cache_version != self._version:
             raise ValueError("prepared context cache version mismatch")
         with self._lock:
-            self._root.mkdir(parents=True, exist_ok=True)
             path = self._path(context.movie_id, context.interval_id, context.timestamp_seconds)
+            path.parent.mkdir(parents=True, exist_ok=True)
             temporary = path.with_suffix(".tmp")
             temporary.write_text(context.model_dump_json(indent=2), encoding="utf-8")
             temporary.replace(path)
         return context
 
     def load(self, *, movie_id: str, interval_id: str | None, timestamp_seconds: float, max_delta_seconds: float) -> PreparedSceneContext | None:
-        if not self._root.is_dir():
+        movie_root = self._movie_root(movie_id)
+        if not movie_root.is_dir():
             return None
         candidates: list[PreparedSceneContext] = []
         with self._lock:
-            for path in self._root.glob("*.json"):
+            for path in movie_root.glob("*.json"):
                 item = PreparedSceneContext.model_validate_json(path.read_text(encoding="utf-8"))
                 if item.movie_id != movie_id or item.semantic_cache_version != self._version:
                     continue
@@ -44,6 +48,27 @@ class PreparedSceneContextStore:
         candidates.sort(key=lambda item: (item.interval_id != interval_id, abs(item.timestamp_seconds - timestamp_seconds)))
         return candidates[0]
 
+    def reset_movie(self, movie_id: str) -> None:
+        """Delete prepared-context cache files without parsing old schemas."""
+        removed = 0
+        with self._lock:
+            movie_root = self._movie_root(movie_id)
+            if movie_root.is_dir():
+                for path in movie_root.glob("*.json"):
+                    path.unlink()
+                    removed += 1
+                movie_root.rmdir()
+            # Legacy prepared-context files were opaque flat hashes. They are
+            # preprocessing-only, so discard them rather than deserialize.
+            if self._root.is_dir():
+                for path in self._root.glob("*.json"):
+                    path.unlink()
+                    removed += 1
+        logger.info("[PREPARED CONTEXT RESET] movie=%s removed=%d schema_deserialization=no", movie_id, removed)
+
     def _path(self, movie_id: str, interval_id: str, timestamp_seconds: float) -> Path:
         token = f"{movie_id}:{interval_id}:{timestamp_seconds:.3f}"
-        return self._root / f"{sha256(token.encode('utf-8')).hexdigest()}.json"
+        return self._movie_root(movie_id) / f"{sha256(token.encode('utf-8')).hexdigest()}.json"
+
+    def _movie_root(self, movie_id: str) -> Path:
+        return self._root / sha256(movie_id.encode("utf-8")).hexdigest()

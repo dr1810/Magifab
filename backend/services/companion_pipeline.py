@@ -69,14 +69,21 @@ class CompanionPipelineService:
         # the only forward-ordered writer; the playback endpoint never touches
         # either of these mutable construction aids.
         if interval_number == 0:
+            # Reset is intentionally schema-blind. No stale cache file is
+            # parsed before this new preprocessing run writes interval zero.
+            self._interval_states.reset_movie(request.movie_id)
+            self._prepared_contexts.reset_movie(request.movie_id)
+            self._expansion.reset_movie(request.movie_id)
             self._preprocessing_story.reset(request.movie_id)
             self._timeline_memory.reset(request.movie_id)
-            self._interval_states.reset_movie(request.movie_id)
+            self._response_cache.clear()
+            self._logger.info("[PREPROCESSING CACHE RESET] movie=%s interval=0 complete=yes", request.movie_id)
         expansion = self._expansion.retrieve_or_expand(KnowledgeExpansionRequest(
             movie_id=request.movie_id, interval_id=request.interval_id, catalog_scene_id=request.catalog_scene_id,
             timestamp_seconds=request.timestamp_seconds, frame_hash=frame_hash, preparation=True,
             grounding_queries=request.grounding_queries, verify_faces=request.verify_faces,
         ), image)
+        self._logger.info("[SEMANTIC_UPDATED] movie=%s interval=%d revision=%d source=%s", request.movie_id, interval_number, expansion.record.revision, expansion.source)
         context = self._context_builder.build(
             knowledge=expansion.record.knowledge,
             scene_id=request.interval_id,
@@ -92,6 +99,7 @@ class CompanionPipelineService:
         state_changes = [event for event in story_events if event.requires_memory]
         state_update = self._preprocessing_story.advance(request.movie_id, request.interval_id, request.timestamp_seconds, state_changes)
         active_story_state = state_update.state
+        self._logger.info("[MEMORY_UPDATED] movie=%s interval=%d active_characters=%d events=%d", request.movie_id, interval_number, len(active_story_state.known_characters), len(active_story_state.story_so_far))
         timeline_state = self._timeline_memory.write_interval(
             previous_state, active_story_state, state_changes,
             interval_id=request.interval_id, interval_start=start_time, interval_end=end_time,
@@ -124,9 +132,11 @@ class CompanionPipelineService:
                 semantic_map_cached=expansion.source == "retrieved", frame_hash=frame_hash,
             )})
         self._interval_states.save(interval_state)
-        self._logger.info("[PROMPT] generated=%d", len(interval_state.prompts.prompt_bubbles))
-        self._logger.info("[PROMPT GENERATION] timestamp=%.2f generated=%d", context.timestamp_seconds, len(interval_state.prompts.prompt_bubbles))
-        self._logger.info("[VISUAL DRAWER] interval=%s story_events=%d unresolved_threads=%d", request.interval_id, len(interval_state.visualDrawer.story_now), len(interval_state.storyState.unresolved_threads))
+        self._logger.info("[INTERVAL_CACHE_UPDATED] movie=%s interval=%d", request.movie_id, interval_number)
+        self._logger.info("[PROMPTS_GENERATED] movie=%s interval=%d count=%d", request.movie_id, interval_number, len(interval_state.prompts.prompt_bubbles))
+        self._logger.info("[PROMPTS_UPDATED] movie=%s interval=%d count=%d", request.movie_id, interval_number, len(interval_state.prompts.prompt_bubbles))
+        self._logger.info("[DRAWER_GENERATED] movie=%s interval=%d story_now=%d relationships=%d timeline=%d objects=%d memory=%d", request.movie_id, interval_number, len(interval_state.visualDrawer.story_now), len(interval_state.visualDrawer.relationships), len(interval_state.visualDrawer.timeline), len(interval_state.visualDrawer.objects), len(interval_state.visualDrawer.memory))
+        self._logger.info("[DRAWER_UPDATED] movie=%s interval=%d", request.movie_id, interval_number)
         self._log_timeline_resolution(request.movie_id, context.timestamp_seconds, timeline_state, interval_state)
         self._logger.info("[TRACE][REASONING_ENGINE] executed=yes movie=%s interval=%s frame_hash=%s reasoning_rebuilt=yes output_prompts=%d character_cards=%d duration_ms=%.1f", request.movie_id, request.interval_id, frame_hash, len(interval_state.prompts.prompt_bubbles), len(interval_state.characters), (perf_counter() - reasoning_started) * 1000)
         response = self._serializer.prepare(
@@ -138,6 +148,7 @@ class CompanionPipelineService:
             len(response.prompts.prompt_bubbles), id(response.prompts.prompt_bubbles), response.prompts.prompt_bubbles[0].label if response.prompts.prompt_bubbles else None,
         )
         self._logger.info("[TRACE][PREPARE_SERVICE] complete source=%s duration_ms=%.1f", expansion.source, (perf_counter() - started) * 1000)
+        self._logger.info("[INTERVAL_COMPLETED] movie=%s interval=%d duration_ms=%.1f", request.movie_id, interval_number, (perf_counter() - started) * 1000)
         return response
 
     def respond(self, request: CompanionPipelineRequest) -> CompanionPipelineResponse:
@@ -147,15 +158,16 @@ class CompanionPipelineService:
             raise ValueError("interval_not_preprocessed")
         response, _ = self._response_cache.get_or_create(
             self._cache_key(request, self._semantic_cache_version, interval_state.metadata.interval_id, self._timestamp_bucket_seconds),
-            lambda: GPTPersonalizationResponse(response=self._answer_from_scene(request.question, interval_state), model="semantic-retrieval"),
+            lambda: GPTPersonalizationResponse(response=self._answer_from_interval(request.question, interval_state), model="semantic-retrieval"),
         )
         answered = interval_state.model_copy(update={"prompts": interval_state.prompts.model_copy(update={
             "prompt_answers": (PromptAnswer(prompt_id=request.question, question=request.question, answer=response.response),),
         })})
         return CompanionPipelineResponse.model_validate(answered.model_dump(mode="json"))
 
-    def complete_preprocessing(self, request: PreprocessingCompletionRequest) -> dict[str, int | str]:
+    def complete_preprocessing(self, request: PreprocessingCompletionRequest) -> dict[str, int | str | bool]:
         """Validate the complete cache before it becomes available to playback."""
+        self._interval_states.finalize_movie(request.movie_id)
         summary = self._interval_states.summarize(request.movie_id, request.expected_intervals)
         if (
             summary["intervals_generated"] != request.expected_intervals
@@ -165,7 +177,7 @@ class CompanionPipelineService:
         return summary
 
     @staticmethod
-    def _answer_from_scene(question: str, interval_state) -> str:
+    def _answer_from_interval(question: str, interval_state) -> str:
         """Interaction answers are selected from the interval snapshot only."""
         cards = interval_state.characters
         if "who" in question.lower() and cards:
@@ -173,16 +185,16 @@ class CompanionPipelineService:
         return interval_state.conversationContext.scene_explanation
 
     @staticmethod
-    def _cache_key(request: CompanionPipelineRequest, cache_version: int, scene_id: str, bucket_seconds: int) -> str:
+    def _cache_key(request: CompanionPipelineRequest, cache_version: int, interval_id: str, bucket_seconds: int) -> str:
         payload = {
-            "movie_id": request.movie_id, "cache_version": cache_version, "scene_id": scene_id,
+            "movie_id": request.movie_id, "cache_version": cache_version, "interval_id": interval_id,
             "timestamp_bucket": int(request.timestamp_seconds // bucket_seconds), "intent": request.intent.strip().lower(),
             "question": request.question.strip().lower(),
             "accessibility_profile": request.accessibility_profile.model_dump(mode="json"),
             "companion_profile": request.companion_profile.model_dump(mode="json"),
         }
         digest = hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()[:24]
-        return f"{request.movie_id}:v{cache_version}:{scene_id}:{digest}"
+        return f"{request.movie_id}:v{cache_version}:{interval_id}:{digest}"
 
     def _log_timeline_resolution(self, movie_id, timestamp, timeline_state, interval_state) -> None:
         memory = self._timeline_memory.get(movie_id)
@@ -198,10 +210,22 @@ class CompanionPipelineService:
 def _memory_checkpoint(state: StoryState) -> IntervalSemanticMemory:
     """Serialize only durable story memory into an immutable interval field."""
     return IntervalSemanticMemory(
-        active_characters=tuple(item.name for item in state.known_characters.values() if item.current_visibility),
-        relationships=tuple(item.summary for item in state.known_relationships.values()),
-        emotions=tuple(state.active_emotions.values()),
-        important_objects=tuple(item.name for item in state.known_objects.values()),
-        unresolved_threads=tuple(item.summary for item in state.open_story_threads),
-        story_events=tuple(item.summary for item in state.story_so_far),
+        active_characters=_unique_text(item.name for item in state.known_characters.values() if item.current_visibility),
+        relationships=_unique_text(item.summary for item in state.known_relationships.values()),
+        emotions=_unique_text(state.active_emotions.values()),
+        important_objects=_unique_text(item.name for item in state.known_objects.values()),
+        unresolved_threads=_unique_text(item.summary for item in state.open_story_threads),
+        story_events=_unique_text(item.summary for item in state.story_so_far),
     )
+
+
+def _unique_text(values) -> tuple[str, ...]:
+    """Normalize snapshot collections once before immutable serialization."""
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = " ".join(value.split()) if isinstance(value, str) else ""
+        if cleaned and cleaned.casefold() not in seen:
+            seen.add(cleaned.casefold())
+            result.append(cleaned)
+    return tuple(result)

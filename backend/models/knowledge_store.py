@@ -22,3 +22,7 @@ class KnowledgeStore(ABC):
     @abstractmethod
     def clear(self) -> None:
         """Remove persisted semantic maps for the active cache namespace."""
+
+    @abstractmethod
+    def discard_movie(self, movie_id: str) -> None:
+        """Discard one movie's cache by key without deserializing it."""

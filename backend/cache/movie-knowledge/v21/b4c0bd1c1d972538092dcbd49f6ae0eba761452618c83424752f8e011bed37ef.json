@@ -1,11 +1,11 @@
 {
   "movie_id": "spriteFright",
-  "revision": 4,
-  "created_at": "2026-07-18T18:57:49.784269Z",
-  "updated_at": "2026-07-19T06:22:18.756245Z",
+  "revision": 3,
+  "created_at": "2026-07-20T04:37:26.307892Z",
+  "updated_at": "2026-07-20T04:39:15.387161Z",
   "knowledge": {
     "movie_id": "spriteFright",
-    "version": 4,
+    "version": 3,
     "movie_knowledge_version": 2,
     "cache_version": 21,
     "confidence": 1.0,
@@ -146,6 +146,17 @@
         "confidence": 0.95
       },
       {
+        "id": "object-7b907a77d3b147fe",
+        "name": "isolated forest",
+        "perception_labels": [
+          "isolated forest"
+        ],
+        "aliases": [
+          "isolated forest"
+        ],
+        "confidence": 0.3631935715675354
+      },
+      {
         "id": "object-38a81e87e79631e6",
         "name": "person",
         "perception_labels": [
@@ -154,7 +165,7 @@
         "aliases": [
           "person"
         ],
-        "confidence": 0.8315305113792419
+        "confidence": 0.6665987372398376
       },
       {
         "id": "object-ef1f5e87b3e1b480",
@@ -176,62 +187,18 @@
         "aliases": [
           "rex"
         ],
-        "confidence": 0.47609418630599976
+        "confidence": 0.4537321925163269
       },
       {
-        "id": "object-ab1cb712f2dca756",
-        "name": "victoria",
+        "id": "object-4b25923a4f31b831",
+        "name": "phil",
         "perception_labels": [
-          "victoria"
+          "phil"
         ],
         "aliases": [
-          "victoria"
+          "phil"
         ],
-        "confidence": 0.3706495761871338
-      },
-      {
-        "id": "object-44c3e574dac5455e",
-        "name": "doll",
-        "perception_labels": [
-          "doll"
-        ],
-        "aliases": [
-          "doll"
-        ],
-        "confidence": 0.0
-      },
-      {
-        "id": "object-48b676e2b107da67",
-        "name": "man",
-        "perception_labels": [
-          "man"
-        ],
-        "aliases": [
-          "man"
-        ],
-        "confidence": 0.0
-      },
-      {
-        "id": "object-cf2e5bff1ef03dcd",
-        "name": "woman",
-        "perception_labels": [
-          "woman"
-        ],
-        "aliases": [
-          "woman"
-        ],
-        "confidence": 0.0
-      },
-      {
-        "id": "object-1b3a2a482e2699db",
-        "name": "footwear",
-        "perception_labels": [
-          "footwear"
-        ],
-        "aliases": [
-          "footwear"
-        ],
-        "confidence": 0.0
+        "confidence": 0.3823663890361786
       }
     ],
     "relationships": [],
@@ -263,268 +230,168 @@
     "dialogue": [],
     "scene_summaries": [
       {
-        "scene_id": "sf-01",
-        "frame_hash": "1acde7917fd0b531b77b64368550d3ebcfc51de5dc46648445fe5c2b89db5afa",
-        "start_seconds": 43.452879,
-        "end_seconds": 43.452879,
-        "summary": "The group enters the isolated forest. Visible now: Rex, Victoria.",
-        "confidence": 0.5594247579574585,
+        "scene_id": "spriteFright:interval:0",
+        "frame_hash": "8a0f79dd1c7379312d3af2712b6c7a0b6d1b8028232f6f9b2b6df5e9a7a394a0",
+        "start_seconds": 5.0,
+        "end_seconds": 5.0,
+        "summary": "The group enters the isolated forest.",
+        "confidence": 0.3631935715675354,
         "visible_entities": [
           {
-            "id": "60f75a77-8970-41c5-821b-31ea71975add",
-            "label": "person",
-            "category": "person",
-            "bbox": [
-              112.1685791015625,
-              16.166061401367188,
-              363.340576171875,
-              301.72923278808594
-            ],
-            "confidence": 0.8315305113792419,
-            "sources": [
-              "object_detection"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "81ed8f88-9eb5-4d98-abce-ec87e83af2a0",
-            "label": "human face",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "8f677fa9-5cf9-4d1d-a759-4c21f2dfb127",
-            "label": "rex",
+            "id": "0c43c4e4-31ef-453a-9895-785851cc446b",
+            "label": "isolated forest",
             "category": "object",
             "bbox": [
-              113.844970703125,
-              30.82560920715332,
-              365.144775390625,
-              289.53898429870605
+              2.5418472290039062,
+              168.3857879638672,
+              759.2163314819336,
+              151.46705627441406
             ],
-            "confidence": 0.47609418630599976,
+            "confidence": 0.3631935715675354,
             "sources": [
               "object_grounding"
-            ],
-            "semantic_id": "character-rex"
-          },
-          {
-            "id": "d1638841-58f7-41bf-8f4e-115fe508f765",
-            "label": "victoria",
-            "category": "object",
-            "bbox": [
-              5.634315490722656,
-              2.752885103225708,
-              756.6469345092773,
-              316.68479800224304
-            ],
-            "confidence": 0.3706495761871338,
-            "sources": [
-              "object_grounding"
-            ],
-            "semantic_id": "character-victoria"
-          }
-        ],
-        "actions": [
-          "standing",
-          "holding"
-        ],
-        "interactions": [
-          "\" It shows a young boy with red hair and a big smile on his face",
-          "The boy is standing in a wooded area with trees and bushes in the background",
-          "there is a blue car with a red roof and a white radio"
-        ],
-        "environment": "",
-        "potential_confusions": [
-          "The visible action may need a simple explanation."
-        ],
-        "prepared": true,
-        "preparation_version": 21
-      },
-      {
-        "scene_id": "sf-02",
-        "frame_hash": "3afd1dbfed443bbfac6b399ca21730656c9a0dce38eddff35a0011e244049da8",
-        "start_seconds": 182.094332,
-        "end_seconds": 182.094332,
-        "summary": "The group encounters the mushroom sprites. Visible now: Victoria, person.",
-        "confidence": 0.5535861372947692,
-        "visible_entities": [
-          {
-            "id": "cc5126e5-693b-40e0-b5bc-d81ad1466843",
-            "label": "person",
-            "category": "person",
-            "bbox": [
-              326.52166748046875,
-              27.336181640625,
-              339.27239990234375,
-              292.34759521484375
-            ],
-            "confidence": 0.8340188264846802,
-            "sources": [
-              "object_detection"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "1b0856be-43db-4a16-8274-2b501eb0d6a8",
-            "label": "person",
-            "category": "person",
-            "bbox": [
-              147.67654418945312,
-              71.77550506591797,
-              134.63311767578125,
-              246.86713409423828
-            ],
-            "confidence": 0.6366638541221619,
-            "sources": [
-              "object_detection"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "3b8a5790-e12e-428d-b665-275b436ede6e",
-            "label": "person",
-            "category": "person",
-            "bbox": [
-              62.63265609741211,
-              143.5231170654297,
-              115.00224685668945,
-              176.58290100097656
-            ],
-            "confidence": 0.46967312693595886,
-            "sources": [
-              "object_detection"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "11390891-f8d5-4fed-9710-374af6a93404",
-            "label": "person",
-            "category": "person",
-            "bbox": [
-              642.7587890625,
-              77.50260162353516,
-              124.91278076171875,
-              240.0736312866211
-            ],
-            "confidence": 0.44723784923553467,
-            "sources": [
-              "object_detection"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "6eb82964-c546-4041-a015-dcbc4d62ac20",
-            "label": "doll",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "972c2fd8-ebbc-4fee-b6ab-cc93c1ca1570",
-            "label": "human face",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "a6e5b279-e1a9-4079-9ee6-97751eb3a09c",
-            "label": "man",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "dd15f9ba-7201-4678-9edc-9f2a5c4d7a57",
-            "label": "woman",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
-            ],
-            "semantic_id": null
-          },
-          {
-            "id": "6bb5d7cb-7c67-4ac9-8c05-b95f5323719a",
-            "label": "victoria",
-            "category": "object",
-            "bbox": [
-              7.0970306396484375,
-              7.172377586364746,
-              753.1595611572266,
-              311.20420932769775
-            ],
-            "confidence": 0.38033702969551086,
-            "sources": [
-              "object_grounding"
-            ],
-            "semantic_id": "character-victoria"
-          }
-        ],
-        "actions": [
-          "standing",
-          "holding"
-        ],
-        "interactions": [
-          "\" It shows a group of five characters standing in a forest-like setting with trees and bushes in the background",
-          "there is a young girl with blonde hair and blue eyes",
-          "Next to her",
-          "there are two older girls with red hair",
-          "there appears to be a man with a big smile on his face",
-          "He is standing in front of a wooden cabinet with a radio on top"
-        ],
-        "environment": "forest",
-        "potential_confusions": [
-          "Several visible characters may be hard to tell apart.",
-          "The visible action may need a simple explanation."
-        ],
-        "prepared": true,
-        "preparation_version": 21
-      },
-      {
-        "scene_id": "sf-03",
-        "frame_hash": "ee6cc9a12ced7d8549d022a45050362bdc6da727909a61352275693ad7d1f57c",
-        "start_seconds": 390.126748,
-        "end_seconds": 390.126748,
-        "summary": "No story-relevant entity has been confirmed in this frame.",
-        "confidence": 0.0,
-        "visible_entities": [
-          {
-            "id": "c60dedb0-e2c1-44d4-a952-9faef04c34da",
-            "label": "footwear",
-            "category": "object",
-            "bbox": null,
-            "confidence": 0.5,
-            "sources": [
-              "scene_understanding"
             ],
             "semantic_id": null
           }
         ],
         "actions": [],
         "interactions": [
-          "with some overlapping each other"
+          "The sky is blue with a few white clouds scattered across it"
+        ],
+        "environment": "sky",
+        "potential_confusions": [],
+        "prepared": true,
+        "preparation_version": 21
+      },
+      {
+        "scene_id": "spriteFright:interval:1",
+        "frame_hash": "6aaea7ff8d0dcd786a50082cc81d33ff5c2a6740593cdaa61ee6c425403a56cf",
+        "start_seconds": 32.305465,
+        "end_seconds": 32.305465,
+        "summary": "The group enters the isolated forest. Visible now: Rex, Phil.",
+        "confidence": 0.47467448314030963,
+        "visible_entities": [
+          {
+            "id": "f9f13c57-d5c4-4871-8186-b3ae08d4d1e5",
+            "label": "person",
+            "category": "person",
+            "bbox": [
+              0.734417736530304,
+              95.77998352050781,
+              240.79080504179,
+              223.84095764160156
+            ],
+            "confidence": 0.6665987372398376,
+            "sources": [
+              "object_detection"
+            ],
+            "semantic_id": null
+          },
+          {
+            "id": "402b9043-d79e-478f-aa48-c40c622ac040",
+            "label": "person",
+            "category": "person",
+            "bbox": [
+              215.18692016601562,
+              79.29547119140625,
+              209.17428588867188,
+              240.31338500976562
+            ],
+            "confidence": 0.5390006303787231,
+            "sources": [
+              "object_detection"
+            ],
+            "semantic_id": null
+          },
+          {
+            "id": "64b4c3bb-9895-4796-8bce-2d4ac7778ffc",
+            "label": "human face",
+            "category": "object",
+            "bbox": null,
+            "confidence": 0.5,
+            "sources": [
+              "scene_understanding"
+            ],
+            "semantic_id": null
+          },
+          {
+            "id": "b1a2bc1c-969f-49d1-8197-79d744686845",
+            "label": "rex",
+            "category": "object",
+            "bbox": [
+              1.5674514770507812,
+              90.50807189941406,
+              241.80843353271484,
+              229.6820526123047
+            ],
+            "confidence": 0.4537321925163269,
+            "sources": [
+              "object_grounding"
+            ],
+            "semantic_id": "character-rex"
+          },
+          {
+            "id": "1088a35e-b993-413c-a2fe-c3b3f9c5565c",
+            "label": "isolated forest",
+            "category": "object",
+            "bbox": [
+              2.838775634765625,
+              2.4762415885925293,
+              760.8990173339844,
+              316.3192296028137
+            ],
+            "confidence": 0.405966192483902,
+            "sources": [
+              "object_grounding"
+            ],
+            "semantic_id": null
+          },
+          {
+            "id": "c6355f24-bef1-44f1-adc6-5e7acc1784a0",
+            "label": "rex",
+            "category": "object",
+            "bbox": [
+              212.6802520751953,
+              78.388671875,
+              358.39048767089844,
+              241.90753173828125
+            ],
+            "confidence": 0.40038275718688965,
+            "sources": [
+              "object_grounding"
+            ],
+            "semantic_id": "character-rex"
+          },
+          {
+            "id": "54c769ec-7baf-4e0c-9f8f-f0dc2554e183",
+            "label": "phil",
+            "category": "object",
+            "bbox": [
+              212.154052734375,
+              78.44337463378906,
+              358.7388916015625,
+              241.8444061279297
+            ],
+            "confidence": 0.3823663890361786,
+            "sources": [
+              "object_grounding"
+            ],
+            "semantic_id": "character-phil"
+          }
+        ],
+        "actions": [
+          "standing",
+          "holding"
+        ],
+        "interactions": [
+          "standing in a wooded area with trees and bushes in the background",
+          "The woman is standing next to him"
         ],
         "environment": "",
-        "potential_confusions": [],
+        "potential_confusions": [
+          "Several visible characters may be hard to tell apart.",
+          "The visible action may need a simple explanation."
+        ],
         "prepared": true,
         "preparation_version": 21
       }
@@ -568,10 +435,16 @@
     ],
     "known_aliases": [
       {
+        "semantic_id": "object-7b907a77d3b147fe",
+        "alias": "isolated forest",
+        "kind": "observed_entity",
+        "confidence": 0.3631935715675354
+      },
+      {
         "semantic_id": "object-38a81e87e79631e6",
         "alias": "person",
         "kind": "observed_entity",
-        "confidence": 0.8315305113792419
+        "confidence": 0.6665987372398376
       },
       {
         "semantic_id": "object-ef1f5e87b3e1b480",
@@ -583,258 +456,173 @@
         "semantic_id": "object-3227fe6bde46249b",
         "alias": "rex",
         "kind": "observed_entity",
-        "confidence": 0.47609418630599976
+        "confidence": 0.4537321925163269
       },
       {
-        "semantic_id": "object-ab1cb712f2dca756",
-        "alias": "victoria",
+        "semantic_id": "object-4b25923a4f31b831",
+        "alias": "phil",
         "kind": "observed_entity",
-        "confidence": 0.3706495761871338
-      },
-      {
-        "semantic_id": "object-44c3e574dac5455e",
-        "alias": "doll",
-        "kind": "observed_entity",
-        "confidence": 0.0
-      },
-      {
-        "semantic_id": "object-48b676e2b107da67",
-        "alias": "man",
-        "kind": "observed_entity",
-        "confidence": 0.0
-      },
-      {
-        "semantic_id": "object-cf2e5bff1ef03dcd",
-        "alias": "woman",
-        "kind": "observed_entity",
-        "confidence": 0.0
-      },
-      {
-        "semantic_id": "object-1b3a2a482e2699db",
-        "alias": "footwear",
-        "kind": "observed_entity",
-        "confidence": 0.0
+        "confidence": 0.3823663890361786
       }
     ],
     "visual_anchors": [
       {
-        "id": "96aa2d8f-6b7c-4846-8df1-e04db4f590ab",
-        "semantic_id": "object-38a81e87e79631e6",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
+        "id": "4cc1dfae-c77b-465c-81e5-62128b7e9f7b",
+        "semantic_id": "object-7b907a77d3b147fe",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
         "bbox": [
-          112.1685791015625,
-          16.166061401367188,
-          363.340576171875,
-          301.72923278808594
+          2.5418472290039062,
+          168.3857879638672,
+          759.2163314819336,
+          151.46705627441406
         ],
-        "confidence": 0.8315305113792419
+        "confidence": 0.3631935715675354
       },
       {
-        "id": "bf15e8cc-fe1b-4e62-b8c7-5fde90d44229",
+        "id": "21ffdbe0-deb8-4279-a7e2-58c921c76423",
+        "semantic_id": "object-38a81e87e79631e6",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "bbox": [
+          0.734417736530304,
+          95.77998352050781,
+          240.79080504179,
+          223.84095764160156
+        ],
+        "confidence": 0.6665987372398376
+      },
+      {
+        "id": "ef2b75f7-c048-465e-9017-a7569938133d",
+        "semantic_id": "object-38a81e87e79631e6",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "bbox": [
+          215.18692016601562,
+          79.29547119140625,
+          209.17428588867188,
+          240.31338500976562
+        ],
+        "confidence": 0.5390006303787231
+      },
+      {
+        "id": "e866d028-86c5-477c-8c9c-bfda7b9e561f",
         "semantic_id": "character-rex",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
         "bbox": [
-          113.844970703125,
-          30.82560920715332,
-          365.144775390625,
-          289.53898429870605
+          1.5674514770507812,
+          90.50807189941406,
+          241.80843353271484,
+          229.6820526123047
         ],
-        "confidence": 0.47609418630599976
+        "confidence": 0.4537321925163269
       },
       {
-        "id": "6ab50ea9-3f3d-44e1-a9a0-180ae9657b9d",
-        "semantic_id": "character-victoria",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
+        "id": "be97d56a-a2a7-4ac1-91eb-149270f0e89b",
+        "semantic_id": "object-7b907a77d3b147fe",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
         "bbox": [
-          5.634315490722656,
-          2.752885103225708,
-          756.6469345092773,
-          316.68479800224304
+          2.838775634765625,
+          2.4762415885925293,
+          760.8990173339844,
+          316.3192296028137
         ],
-        "confidence": 0.3706495761871338
+        "confidence": 0.405966192483902
       },
       {
-        "id": "1cd235ac-1247-4ffd-8533-3318268680ac",
-        "semantic_id": "object-38a81e87e79631e6",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
+        "id": "c0f009fc-2f7a-4737-9cd0-c6107f4158c2",
+        "semantic_id": "character-rex",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
         "bbox": [
-          326.52166748046875,
-          27.336181640625,
-          339.27239990234375,
-          292.34759521484375
+          212.6802520751953,
+          78.388671875,
+          358.39048767089844,
+          241.90753173828125
         ],
-        "confidence": 0.8340188264846802
+        "confidence": 0.40038275718688965
       },
       {
-        "id": "eed8e93e-267c-488f-b31e-fa791f8d17f2",
-        "semantic_id": "object-38a81e87e79631e6",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
+        "id": "646e6bed-6eff-4b59-a232-451d489343b9",
+        "semantic_id": "character-phil",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
         "bbox": [
-          147.67654418945312,
-          71.77550506591797,
-          134.63311767578125,
-          246.86713409423828
+          212.154052734375,
+          78.44337463378906,
+          358.7388916015625,
+          241.8444061279297
         ],
-        "confidence": 0.6366638541221619
-      },
-      {
-        "id": "2e657c11-e40d-46a5-9f1d-d91778730758",
-        "semantic_id": "object-38a81e87e79631e6",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "bbox": [
-          62.63265609741211,
-          143.5231170654297,
-          115.00224685668945,
-          176.58290100097656
-        ],
-        "confidence": 0.46967312693595886
-      },
-      {
-        "id": "c33bb230-97b7-4448-8fdd-1d3e96ac1673",
-        "semantic_id": "object-38a81e87e79631e6",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "bbox": [
-          642.7587890625,
-          77.50260162353516,
-          124.91278076171875,
-          240.0736312866211
-        ],
-        "confidence": 0.44723784923553467
-      },
-      {
-        "id": "39d42798-5b7e-4c70-a3aa-75444a7bef22",
-        "semantic_id": "character-victoria",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "bbox": [
-          7.0970306396484375,
-          7.172377586364746,
-          753.1595611572266,
-          311.20420932769775
-        ],
-        "confidence": 0.38033702969551086
+        "confidence": 0.3823663890361786
       }
     ],
     "face_references": [],
     "observation_history": [
       {
-        "id": "e46b7796-945a-40c1-8858-1736c4e11856",
-        "timestamp_seconds": 43.452879,
+        "id": "e118e83c-361c-4e83-abee-1b5d5fbae267",
+        "timestamp_seconds": 5.0,
+        "entity_label": "isolated forest",
+        "semantic_id": "object-7b907a77d3b147fe",
+        "confidence": 0.3631935715675354,
+        "source": "object_grounding"
+      },
+      {
+        "id": "d21be564-ab12-4745-907c-be6bbd91298a",
+        "timestamp_seconds": 32.305465,
         "entity_label": "person",
         "semantic_id": "object-38a81e87e79631e6",
-        "confidence": 0.8315305113792419,
+        "confidence": 0.6665987372398376,
         "source": "object_detection"
       },
       {
-        "id": "fadfe134-6ce2-4f54-807b-46fef5d2a2e8",
-        "timestamp_seconds": 43.452879,
+        "id": "f25a82db-1e42-4627-bab4-3c5bcf15063e",
+        "timestamp_seconds": 32.305465,
+        "entity_label": "person",
+        "semantic_id": "object-38a81e87e79631e6",
+        "confidence": 0.5390006303787231,
+        "source": "object_detection"
+      },
+      {
+        "id": "f190d7b8-de3a-41c2-916d-2755839b6bce",
+        "timestamp_seconds": 32.305465,
         "entity_label": "human face",
         "semantic_id": "object-ef1f5e87b3e1b480",
         "confidence": 0.0,
         "source": "scene_understanding"
       },
       {
-        "id": "080be5fd-c1e6-48f6-a4ea-71ba7a42c5ff",
-        "timestamp_seconds": 43.452879,
+        "id": "59d74f26-6a9f-4b69-8d5c-ed2c7dd86561",
+        "timestamp_seconds": 32.305465,
         "entity_label": "rex",
         "semantic_id": "object-3227fe6bde46249b",
-        "confidence": 0.47609418630599976,
+        "confidence": 0.4537321925163269,
         "source": "object_grounding"
       },
       {
-        "id": "7a719549-00a9-4b75-adac-5edfcedb9e46",
-        "timestamp_seconds": 43.452879,
-        "entity_label": "victoria",
-        "semantic_id": "object-ab1cb712f2dca756",
-        "confidence": 0.3706495761871338,
+        "id": "38101014-1763-4b0d-8215-bf3b582f45b0",
+        "timestamp_seconds": 32.305465,
+        "entity_label": "isolated forest",
+        "semantic_id": "object-7b907a77d3b147fe",
+        "confidence": 0.405966192483902,
         "source": "object_grounding"
       },
       {
-        "id": "f85df65a-02d5-42fc-9022-4ffd54ec3c02",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "person",
-        "semantic_id": "object-38a81e87e79631e6",
-        "confidence": 0.8340188264846802,
-        "source": "object_detection"
-      },
-      {
-        "id": "0fa2d664-4d10-4ef9-b8ac-23d324ad1d83",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "person",
-        "semantic_id": "object-38a81e87e79631e6",
-        "confidence": 0.6366638541221619,
-        "source": "object_detection"
-      },
-      {
-        "id": "2263288c-4212-4d3e-a26b-c58e6176899b",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "person",
-        "semantic_id": "object-38a81e87e79631e6",
-        "confidence": 0.46967312693595886,
-        "source": "object_detection"
-      },
-      {
-        "id": "7c610163-8b8f-418d-ab7d-fb3c5a7cdb43",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "person",
-        "semantic_id": "object-38a81e87e79631e6",
-        "confidence": 0.44723784923553467,
-        "source": "object_detection"
-      },
-      {
-        "id": "580269c1-901f-447b-95fa-12d17b005ad9",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "doll",
-        "semantic_id": "object-44c3e574dac5455e",
-        "confidence": 0.0,
-        "source": "scene_understanding"
-      },
-      {
-        "id": "c587d951-9a03-40e2-8a2e-d89e3cb04026",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "human face",
-        "semantic_id": "object-ef1f5e87b3e1b480",
-        "confidence": 0.0,
-        "source": "scene_understanding"
-      },
-      {
-        "id": "88e05211-ff7c-4c0f-bd1c-2447e7d983b8",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "man",
-        "semantic_id": "object-48b676e2b107da67",
-        "confidence": 0.0,
-        "source": "scene_understanding"
-      },
-      {
-        "id": "c3e86e3f-9a8c-4170-98ef-b990248a10f3",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "woman",
-        "semantic_id": "object-cf2e5bff1ef03dcd",
-        "confidence": 0.0,
-        "source": "scene_understanding"
-      },
-      {
-        "id": "e50d8e94-5b22-47b8-94c9-e63acad8eece",
-        "timestamp_seconds": 182.094332,
-        "entity_label": "victoria",
-        "semantic_id": "object-ab1cb712f2dca756",
-        "confidence": 0.38033702969551086,
+        "id": "fb7d73db-7c17-4121-9a70-a82b544ddc8e",
+        "timestamp_seconds": 32.305465,
+        "entity_label": "rex",
+        "semantic_id": "object-3227fe6bde46249b",
+        "confidence": 0.40038275718688965,
         "source": "object_grounding"
       },
       {
-        "id": "23a94897-d8d2-4388-84e1-e00c6fbacd17",
-        "timestamp_seconds": 390.126748,
-        "entity_label": "footwear",
-        "semantic_id": "object-1b3a2a482e2699db",
-        "confidence": 0.0,
-        "source": "scene_understanding"
+        "id": "5f99fc84-67b1-4757-ae05-5083cb841b5f",
+        "timestamp_seconds": 32.305465,
+        "entity_label": "phil",
+        "semantic_id": "object-4b25923a4f31b831",
+        "confidence": 0.3823663890361786,
+        "source": "object_grounding"
       }
     ],
     "emotions": [
@@ -858,354 +646,318 @@
     "vocabulary": [],
     "observations": [
       {
-        "id": "observation-b6ef77f36a0e9753f76d",
+        "id": "observation-88415d2e1459ad6b1505",
         "movie_id": "spriteFright",
-        "scene_id": "sf-01",
-        "frame_hash": "1acde7917fd0b531b77b64368550d3ebcfc51de5dc46648445fe5c2b89db5afa",
-        "timestamp_seconds": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "frame_hash": "8a0f79dd1c7379312d3af2712b6c7a0b6d1b8028232f6f9b2b6df5e9a7a394a0",
+        "timestamp_seconds": 5.0,
         "model_sources": [
           "yolo11n.pt",
           "microsoft/Florence-2-base",
           "IDEA-Research/grounding-dino-tiny"
         ],
-        "raw_florence_caption": "The image is a still from the animated movie \"The Secret Life of Pets.\" It shows a young boy with red hair and a big smile on his face, holding a cup of coffee in his hand. He is wearing a British flag t-shirt and has a backpack on his back. The boy is standing in a wooded area with trees and bushes in the background. On the right side of the image, there is a blue car with a red roof and a white radio. The overall mood of the scene is cheerful and playful.",
-        "yolo_detections": [
-          {
-            "id": "yolo-3fae203af236bb4403f6",
-            "label": "person",
-            "model_source": "yolo11n.pt",
-            "confidence": 0.8315305113792419,
-            "bounding_box": [
-              112.1685791015625,
-              16.166061401367188,
-              363.340576171875,
-              301.72923278808594
-            ]
-          }
-        ],
-        "grounding_detections": [
-          {
-            "id": "grounding-501440f69e032a0ccdba",
-            "label": "rex",
-            "model_source": "IDEA-Research/grounding-dino-tiny",
-            "confidence": 0.47609418630599976,
-            "bounding_box": [
-              113.844970703125,
-              30.82560920715332,
-              365.144775390625,
-              289.53898429870605
-            ]
-          },
-          {
-            "id": "grounding-991017dab0a06c22cb72",
-            "label": "victoria",
-            "model_source": "IDEA-Research/grounding-dino-tiny",
-            "confidence": 0.3706495761871338,
-            "bounding_box": [
-              5.634315490722656,
-              2.752885103225708,
-              756.6469345092773,
-              316.68479800224304
-            ]
-          }
-        ],
-        "actions": [
-          "standing",
-          "holding"
-        ],
-        "interactions": [
-          "\" It shows a young boy with red hair and a big smile on his face",
-          "The boy is standing in a wooded area with trees and bushes in the background",
-          "there is a blue car with a red roof and a white radio"
-        ]
-      },
-      {
-        "id": "observation-1b338e189bafaab55800",
-        "movie_id": "spriteFright",
-        "scene_id": "sf-02",
-        "frame_hash": "3afd1dbfed443bbfac6b399ca21730656c9a0dce38eddff35a0011e244049da8",
-        "timestamp_seconds": 182.094332,
-        "model_sources": [
-          "yolo11n.pt",
-          "microsoft/Florence-2-base",
-          "IDEA-Research/grounding-dino-tiny"
-        ],
-        "raw_florence_caption": "The image is a still from the animated movie \"The Secret Life of Pets.\" It shows a group of five characters standing in a forest-like setting with trees and bushes in the background. On the left side of the image, there is a young girl with blonde hair and blue eyes, wearing a pink dress and a gray hat. Next to her, there are two older girls with red hair, one wearing a purple dress and the other wearing a blue dress. In the center of the group, there appears to be a man with a big smile on his face, holding a green bottle of green tea. He is standing in front of a wooden cabinet with a radio on top. The overall mood of the scene is cheerful and playful.",
-        "yolo_detections": [
-          {
-            "id": "yolo-32a8427e748c51d36e02",
-            "label": "person",
-            "model_source": "yolo11n.pt",
-            "confidence": 0.8340188264846802,
-            "bounding_box": [
-              326.52166748046875,
-              27.336181640625,
-              339.27239990234375,
-              292.34759521484375
-            ]
-          },
-          {
-            "id": "yolo-795ec18036f6563fc05e",
-            "label": "person",
-            "model_source": "yolo11n.pt",
-            "confidence": 0.6366638541221619,
-            "bounding_box": [
-              147.67654418945312,
-              71.77550506591797,
-              134.63311767578125,
-              246.86713409423828
-            ]
-          },
-          {
-            "id": "yolo-84b7667306188bfc0f38",
-            "label": "person",
-            "model_source": "yolo11n.pt",
-            "confidence": 0.46967312693595886,
-            "bounding_box": [
-              62.63265609741211,
-              143.5231170654297,
-              115.00224685668945,
-              176.58290100097656
-            ]
-          },
-          {
-            "id": "yolo-5ec2f6a3772edc1a97c9",
-            "label": "person",
-            "model_source": "yolo11n.pt",
-            "confidence": 0.44723784923553467,
-            "bounding_box": [
-              642.7587890625,
-              77.50260162353516,
-              124.91278076171875,
-              240.0736312866211
-            ]
-          }
-        ],
-        "grounding_detections": [
-          {
-            "id": "grounding-080796d09ec0f0dfb5c5",
-            "label": "victoria",
-            "model_source": "IDEA-Research/grounding-dino-tiny",
-            "confidence": 0.38033702969551086,
-            "bounding_box": [
-              7.0970306396484375,
-              7.172377586364746,
-              753.1595611572266,
-              311.20420932769775
-            ]
-          }
-        ],
-        "actions": [
-          "standing",
-          "holding"
-        ],
-        "interactions": [
-          "\" It shows a group of five characters standing in a forest-like setting with trees and bushes in the background",
-          "there is a young girl with blonde hair and blue eyes",
-          "Next to her",
-          "there are two older girls with red hair",
-          "there appears to be a man with a big smile on his face",
-          "He is standing in front of a wooden cabinet with a radio on top"
-        ]
-      },
-      {
-        "id": "observation-3c0d93d0897a5f9b6337",
-        "movie_id": "spriteFright",
-        "scene_id": "sf-03",
-        "frame_hash": "ee6cc9a12ced7d8549d022a45050362bdc6da727909a61352275693ad7d1f57c",
-        "timestamp_seconds": 390.126748,
-        "model_sources": [
-          "yolo11n.pt",
-          "microsoft/Florence-2-base"
-        ],
-        "raw_florence_caption": "The image is a 3D rendering of a dark and eerie scene. The background is dark and the ground is covered in small rocks and debris. In the center of the image, there is a large pile of green objects that appear to be dead or dead. The objects are scattered across the ground, with some overlapping each other. On the left side of the pile, there are two wooden sticks, one on top of the other. The sticks are lying on the ground and the other on the right side. The overall mood of the scene is eerie and foreboding.",
+        "raw_florence_caption": "The image is a landscape photograph of a mountainous area. The sky is blue with a few white clouds scattered across it. The mountains are covered in green trees and shrubs, and the hills are also covered in greenery. The sun is shining through the clouds, creating a warm glow on the scene. The overall mood of the image is peaceful and serene.",
         "yolo_detections": [],
-        "grounding_detections": [],
+        "grounding_detections": [
+          {
+            "id": "grounding-b51ab1e8f7ca1b773814",
+            "label": "isolated forest",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.3631935715675354,
+            "bounding_box": [
+              2.5418472290039062,
+              168.3857879638672,
+              759.2163314819336,
+              151.46705627441406
+            ]
+          }
+        ],
         "actions": [],
         "interactions": [
-          "with some overlapping each other"
+          "The sky is blue with a few white clouds scattered across it"
+        ]
+      },
+      {
+        "id": "observation-0aa312fa74abc85f8bdc",
+        "movie_id": "spriteFright",
+        "scene_id": "spriteFright:interval:1",
+        "frame_hash": "6aaea7ff8d0dcd786a50082cc81d33ff5c2a6740593cdaa61ee6c425403a56cf",
+        "timestamp_seconds": 32.305465,
+        "model_sources": [
+          "yolo11n.pt",
+          "microsoft/Florence-2-base",
+          "IDEA-Research/grounding-dino-tiny"
+        ],
+        "raw_florence_caption": "The image shows a scene from the animated movie \"The Flintstones.\" It shows two characters, a man and a woman, standing in a wooded area with trees and bushes in the background. The man is wearing a blue shirt and a backpack, and is holding a baseball bat in his right hand. The woman is standing next to him, wearing a pink dress and holding a can of soda. She has blonde hair and is smiling at the man. Both characters appear to be happy and relaxed.",
+        "yolo_detections": [
+          {
+            "id": "yolo-56e158c886b3821b0a3b",
+            "label": "person",
+            "model_source": "yolo11n.pt",
+            "confidence": 0.6665987372398376,
+            "bounding_box": [
+              0.734417736530304,
+              95.77998352050781,
+              240.79080504179,
+              223.84095764160156
+            ]
+          },
+          {
+            "id": "yolo-73a5946898529a85a32e",
+            "label": "person",
+            "model_source": "yolo11n.pt",
+            "confidence": 0.5390006303787231,
+            "bounding_box": [
+              215.18692016601562,
+              79.29547119140625,
+              209.17428588867188,
+              240.31338500976562
+            ]
+          }
+        ],
+        "grounding_detections": [
+          {
+            "id": "grounding-6856a1bad2f39ede753c",
+            "label": "rex",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.4537321925163269,
+            "bounding_box": [
+              1.5674514770507812,
+              90.50807189941406,
+              241.80843353271484,
+              229.6820526123047
+            ]
+          },
+          {
+            "id": "grounding-4d400d4d2108aeabd1b8",
+            "label": "isolated forest",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.405966192483902,
+            "bounding_box": [
+              2.838775634765625,
+              2.4762415885925293,
+              760.8990173339844,
+              316.3192296028137
+            ]
+          },
+          {
+            "id": "grounding-c1d5d139513353509733",
+            "label": "rex",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.40038275718688965,
+            "bounding_box": [
+              212.6802520751953,
+              78.388671875,
+              358.39048767089844,
+              241.90753173828125
+            ]
+          },
+          {
+            "id": "grounding-331c99b4e04ccdffa213",
+            "label": "phil",
+            "model_source": "IDEA-Research/grounding-dino-tiny",
+            "confidence": 0.3823663890361786,
+            "bounding_box": [
+              212.154052734375,
+              78.44337463378906,
+              358.7388916015625,
+              241.8444061279297
+            ]
+          }
+        ],
+        "actions": [
+          "standing",
+          "holding"
+        ],
+        "interactions": [
+          "standing in a wooded area with trees and bushes in the background",
+          "The woman is standing next to him"
         ]
       }
     ],
     "semantic_claims": [
       {
-        "id": "claim-8043e0d1ae191a1b",
+        "id": "claim-c797c653ffb9fa59",
         "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-rex",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-ellie",
         "predicate": "present_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
-        "evidence_origin": "perception_verified",
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-ellie"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-e0ca51eff9591b0e",
+        "kind": "timeline_change",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-ellie",
+        "predicate": "appears_in",
+        "object_id": "spriteFright:interval:0",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-88415d2e1459ad6b1505"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-ellie"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-5545d102257563cb",
+        "kind": "character_present",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-rex",
+        "predicate": "present_in",
+        "object_id": "spriteFright:interval:0",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-88415d2e1459ad6b1505"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
           "character-rex"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-3f245252f830349c",
+        "id": "claim-6177e858ae887840",
         "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "character-rex",
         "predicate": "appears_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
-        "evidence_origin": "perception_verified",
-        "knowledge_ids": [],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-rex"
+        ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-7a11af3e4ca1d1c9",
+        "id": "claim-7bf0ed895f4e099a",
         "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-victoria",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-jay",
         "predicate": "present_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
-        "evidence_origin": "perception_verified",
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-jay"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-357407b7282642a0",
+        "kind": "timeline_change",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-jay",
+        "predicate": "appears_in",
+        "object_id": "spriteFright:interval:0",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-88415d2e1459ad6b1505"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-jay"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-bf06e52fbfa16abf",
+        "kind": "character_present",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "character-victoria",
+        "predicate": "present_in",
+        "object_id": "spriteFright:interval:0",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-88415d2e1459ad6b1505"
+        ],
+        "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
           "character-victoria"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-c82e02ace4d90fab",
+        "id": "claim-805540cde264671f",
         "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "character-victoria",
         "predicate": "appears_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
-        "evidence_origin": "perception_verified",
-        "knowledge_ids": [],
+        "evidence_origin": "movie_knowledge_supported",
+        "knowledge_ids": [
+          "character-victoria"
+        ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-e1d07467d5615f8d",
+        "id": "claim-42ee287ac05099d3",
         "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-ellie",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-ellie"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-1560035889e1f8a0",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-ellie",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-ellie"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-c329ee2d31d12bc3",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-jay",
-        "predicate": "present_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-jay"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-1c321742a6ed244d",
-        "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "character-jay",
-        "predicate": "appears_in",
-        "object_id": "sf-01",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-jay"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-07f5cd5011d05612",
-        "kind": "character_present",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "character-phil",
         "predicate": "present_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1214,19 +966,19 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-de0466bc8856a6f5",
+        "id": "claim-2b400cb5ead25f04",
         "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "character-phil",
         "predicate": "appears_in",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1235,19 +987,19 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-c22e4ba6a7be0cae",
+        "id": "claim-d5a68d1da7352053",
         "kind": "timeline_change",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "timeline-forest-arrival",
         "predicate": "active_at",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "The teenagers enter the isolated forest.",
         "confidence": 0.9,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1256,19 +1008,19 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-e533622fbdef2a8d",
+        "id": "claim-f128159ffa3dcedc",
         "kind": "emotion",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
         "subject_id": "character-ellie",
         "predicate": "feels",
-        "object_id": "sf-01",
+        "object_id": "spriteFright:interval:0",
         "value": "Ellie is alert and curious as the group enters the forest.",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1277,99 +1029,80 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-d34993a598a5afe6",
+        "id": "claim-4adeb24ae446ceb1",
         "kind": "scene_state",
-        "scene_id": "sf-01",
-        "timestamp_seconds": 43.452879,
-        "timestamp_start": 43.452879,
-        "timestamp_end": 43.452879,
-        "subject_id": "scene-7d15f19c69d45adc",
+        "scene_id": "spriteFright:interval:0",
+        "timestamp_seconds": 5.0,
+        "timestamp_start": 5.0,
+        "timestamp_end": 5.0,
+        "subject_id": "scene-698cbf555c96e574",
         "predicate": "has_state",
-        "object_id": "sf-01",
-        "value": "The group enters the isolated forest. Visible now: Rex, Victoria.",
-        "confidence": 0.5594247579574585,
+        "object_id": "spriteFright:interval:0",
+        "value": "The group enters the isolated forest.",
+        "confidence": 0.3631935715675354,
         "observation_ids": [
-          "observation-b6ef77f36a0e9753f76d"
+          "observation-88415d2e1459ad6b1505"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-4210087509cbaac7",
-        "kind": "object_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "object-38a81e87e79631e6",
-        "predicate": "present_in",
-        "object_id": "sf-02",
-        "value": "",
-        "confidence": 0.44723784923553467,
-        "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "perception_verified",
-        "knowledge_ids": [
-          "object-38a81e87e79631e6"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-19b7145715ce6520",
-        "kind": "timeline_change",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "object-38a81e87e79631e6",
-        "predicate": "appears_in",
-        "object_id": "sf-02",
-        "value": "",
-        "confidence": 0.44723784923553467,
-        "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "perception_verified",
-        "knowledge_ids": [],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-c5860b362cba553e",
+        "id": "claim-aab2a0b9ff0cbf52",
         "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "character-victoria",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "character-rex",
         "predicate": "present_in",
-        "object_id": "sf-02",
+        "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [
-          "character-victoria"
+          "character-rex"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-42680e377eccf1cb",
+        "id": "claim-26b55a86f61778b8",
         "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "character-phil",
+        "predicate": "present_in",
+        "object_id": "spriteFright:interval:1",
+        "value": "",
+        "confidence": 1.0,
+        "observation_ids": [
+          "observation-0aa312fa74abc85f8bdc"
+        ],
+        "evidence_origin": "perception_verified",
+        "knowledge_ids": [
+          "character-phil"
+        ],
+        "supporting_claim_ids": []
+      },
+      {
+        "id": "claim-9337baf2c01b1e0d",
+        "kind": "character_present",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
         "subject_id": "character-ellie",
         "predicate": "present_in",
-        "object_id": "sf-02",
+        "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1378,40 +1111,19 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-7a232d764a6cbc46",
+        "id": "claim-69a404aa3db4de27",
         "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "character-rex",
-        "predicate": "present_in",
-        "object_id": "sf-02",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-rex"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-aeb3444f0d5ccd51",
-        "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
         "subject_id": "character-jay",
         "predicate": "present_in",
-        "object_id": "sf-02",
+        "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -1420,185 +1132,103 @@
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-b900083d751864b6",
+        "id": "claim-3ae981d188cdbf30",
         "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "character-phil",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "character-victoria",
         "predicate": "present_in",
-        "object_id": "sf-02",
+        "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
-          "character-phil"
+          "character-victoria"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-820c311f99e2be59",
-        "kind": "character_present",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "character-sprite",
-        "predicate": "present_in",
-        "object_id": "sf-02",
-        "value": "",
-        "confidence": 1.0,
+        "id": "claim-b3c00d1be4a9aab3",
+        "kind": "relationship",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "co-presence:character-rex:character-phil",
+        "predicate": "active_in",
+        "object_id": "spriteFright:interval:1",
+        "value": "Rex and Phil are together in this story moment.",
+        "confidence": 0.497,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
-          "character-sprite"
+          "co-presence:character-rex:character-phil"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-f71ae902663ab22e",
+        "id": "claim-bb8b067cdfadb3e9",
         "kind": "timeline_change",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "character-sprite",
-        "predicate": "appears_in",
-        "object_id": "sf-02",
-        "value": "",
-        "confidence": 1.0,
-        "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "character-sprite"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-0db86f1104946436",
-        "kind": "event",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "event-sprites-encountered",
-        "predicate": "occurs_in",
-        "object_id": "sf-02",
-        "value": "The teenagers encounter the mushroom sprites in the forest.",
-        "confidence": 0.86,
-        "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "event-sprites-encountered"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-95f96fb7c6f9850e",
-        "kind": "timeline_change",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "timeline-sprite-encounter",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "timeline-forest-arrival",
         "predicate": "active_at",
-        "object_id": "sf-02",
-        "value": "The group encounters the mushroom sprites.",
+        "object_id": "spriteFright:interval:1",
+        "value": "The teenagers enter the isolated forest.",
         "confidence": 0.9,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
-          "timeline-sprite-encounter"
+          "timeline-forest-arrival"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-d141bc0aafe17d39",
+        "id": "claim-c7d1cff8dd1180c1",
         "kind": "emotion",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "emotion-group-wary",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "character-ellie",
         "predicate": "feels",
-        "object_id": "sf-02",
-        "value": "The group becomes wary when they encounter the mushroom sprites.",
+        "object_id": "spriteFright:interval:1",
+        "value": "Ellie is alert and curious as the group enters the forest.",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
-          "emotion-group-wary"
+          "emotion-ellie-curious"
         ],
         "supporting_claim_ids": []
       },
       {
-        "id": "claim-d8dfe5309005b8fd",
+        "id": "claim-6c19e49edcf431fe",
         "kind": "scene_state",
-        "scene_id": "sf-02",
-        "timestamp_seconds": 182.094332,
-        "timestamp_start": 182.094332,
-        "timestamp_end": 182.094332,
-        "subject_id": "scene-391c898932d58642",
+        "scene_id": "spriteFright:interval:1",
+        "timestamp_seconds": 32.305465,
+        "timestamp_start": 32.305465,
+        "timestamp_end": 32.305465,
+        "subject_id": "scene-a47beb32b55f1368",
         "predicate": "has_state",
-        "object_id": "sf-02",
-        "value": "The group encounters the mushroom sprites. Visible now: Victoria, person.",
-        "confidence": 0.5535861372947692,
+        "object_id": "spriteFright:interval:1",
+        "value": "The group enters the isolated forest. Visible now: Rex, Phil.",
+        "confidence": 0.47467448314030963,
         "observation_ids": [
-          "observation-1b338e189bafaab55800"
-        ],
-        "evidence_origin": "perception_verified",
-        "knowledge_ids": [],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-f9f4304a700d13bf",
-        "kind": "timeline_change",
-        "scene_id": "sf-03",
-        "timestamp_seconds": 390.126748,
-        "timestamp_start": 390.126748,
-        "timestamp_end": 390.126748,
-        "subject_id": "timeline-sprite-encounter",
-        "predicate": "active_at",
-        "object_id": "sf-03",
-        "value": "The group encounters the mushroom sprites.",
-        "confidence": 0.9,
-        "observation_ids": [
-          "observation-3c0d93d0897a5f9b6337"
-        ],
-        "evidence_origin": "movie_knowledge_supported",
-        "knowledge_ids": [
-          "timeline-sprite-encounter"
-        ],
-        "supporting_claim_ids": []
-      },
-      {
-        "id": "claim-6fc4e20a4f24ca75",
-        "kind": "scene_state",
-        "scene_id": "sf-03",
-        "timestamp_seconds": 390.126748,
-        "timestamp_start": 390.126748,
-        "timestamp_end": 390.126748,
-        "subject_id": "scene-50d819eaf839bd80",
-        "predicate": "has_state",
-        "object_id": "sf-03",
-        "value": "No story-relevant entity has been confirmed in this frame.",
-        "confidence": 0.5,
-        "observation_ids": [
-          "observation-3c0d93d0897a5f9b6337"
+          "observation-0aa312fa74abc85f8bdc"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [],

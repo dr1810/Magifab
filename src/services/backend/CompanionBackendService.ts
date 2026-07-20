@@ -3,6 +3,8 @@ import type { CapturedVideoFrame } from '../ai/VideoFrameCaptureService'
 import type { Settings } from '../../types/accessibility'
 import type { CompanionProfile } from '../../types/user'
 import type { SceneData } from '../../types/movie'
+import type { CompanionInterval } from '../companion/CompanionInterval'
+import { MovieProvider } from '../companion/MovieProvider'
 
 export type BackendCharacterCard = {
   character_id: string
@@ -25,8 +27,8 @@ export type IntervalState = {
     prompt_answers: Array<{ prompt_id: string; question: string; answer: string }>
     suggested_questions: string[]
   }
-  visualDrawer: { story_now: string[]; relationships: string[]; timeline: string[]; emotion: string | null; cause_effect: Array<{ cause: string; effect: string }>; objects: string[]; memory: string[] }
-  storyState: { scene_summary: string | null; current_goal: string; current_interval_id: string | null; timeline_position: string | null; story_so_far: string[]; unresolved_threads: string[] }
+  visualDrawer: { now?: string | null; who?: string[]; important?: string[]; remember?: string[]; why?: string | null; next?: string | null; word_count?: number; story_now: string[]; relationships: string[]; timeline: string[]; emotion: string | null; cause_effect: Array<{ cause: string; effect: string }>; objects: string[]; memory: string[] }
+  storyState: { scene_summary: string | null; current_goal: string | null; current_interval_id: string | null; timeline_position: string | null; story_so_far: string[]; unresolved_threads: string[] }
   characters: BackendCharacterCard[]
   relationships: BackendRelationshipSummary[]
   memory: BackendMemoryReminder[]
@@ -34,6 +36,7 @@ export type IntervalState = {
   accessibilityHints: { vocabulary: BackendVocabularyAssistance[]; emotions: BackendEmotionSummary[] }
   semanticMemoryBefore: { active_characters: string[]; relationships: string[]; emotions: string[]; important_objects: string[]; unresolved_threads: string[]; story_events: string[] }
   semanticMemoryAfter: { active_characters: string[]; relationships: string[]; emotions: string[]; important_objects: string[]; unresolved_threads: string[]; story_events: string[] }
+  timelineMemory: { timeline_position: string | null; previous_event: string | null; current_event: string | null; next_event: string | null; is_movie_start: boolean; is_movie_end: boolean }
   cacheMetadata: { semantic_cache_key: string; knowledge_source: string; semantic_map_cached: boolean; frame_hash: string | null }
 }
 
@@ -58,17 +61,16 @@ type BackendRequest = {
   companion_profile: { name: string; personality: string; conversation_style: string }
 }
 
+type CompanionPromptRequest = Omit<BackendRequest, 'movie_id' | 'timestamp_seconds'> & {
+  contentId: string
+  timestamp: number
+}
+
 /** Matches FastAPI's interval-preprocessing request; it never includes prompt intent. */
-type IntervalPreparationRequest = Pick<
-  BackendRequest,
-  'movie_id' | 'timestamp_seconds' | 'image' | 'accessibility_profile' | 'companion_profile'
-> & {
-  image: string
-  interval_id: string
-  interval_number: number
-  interval_start: number
-  interval_end: number
-  catalog_scene_id: string | null
+type CompanionIntervalPreparationRequest = {
+  interval: CompanionInterval
+  accessibility_profile: BackendRequest['accessibility_profile']
+  companion_profile: BackendRequest['companion_profile']
 }
 
 type RespondOptions = {
@@ -81,13 +83,14 @@ type RespondOptions = {
   signal?: AbortSignal
 }
 
-type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp' | 'signal'> & {
+type PrepareOptions = Omit<RespondOptions, 'question' | 'timestamp'> & {
   frame: CapturedVideoFrame
   intervalNumber: number
   intervalStart: number
   intervalEnd: number
   catalogScene: SceneData | null
 }
+
 
 const configuredBackendUrl = import.meta.env.VITE_MAGIFAB_BACKEND_URL?.trim()
 /**
@@ -138,21 +141,22 @@ function isBackendResponse(value: unknown): value is CompanionBackendResponse {
 
 export class CompanionBackendService {
   private readonly activePreparationRequests = new Map<string, Promise<IntervalPreparationResponse>>()
+  private readonly movieProvider = new MovieProvider()
 
   /** Prompt clicks request an answer only; they never create a new interval state. */
   async respond(options: RespondOptions): Promise<CompanionBackendResponse> {
     const savedProfile = await getAccessibilityProfile()
     const intent = promptIntent(options.question)
-    const payload: BackendRequest = {
-      movie_id: options.movieId,
-      timestamp_seconds: options.timestamp,
+    const payload: CompanionPromptRequest = {
+      contentId: options.movieId,
+      timestamp: options.timestamp,
       question: options.question,
       intent,
       grounding_queries: [],
       verify_faces: false,
       ...profilePayload(options.settings, options.companion, savedProfile),
     }
-    const response = await fetch(companionEndpoint, {
+    const response = await fetch(companionEndpoint.replace('/respond', '/intervals/respond'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -167,28 +171,43 @@ export class CompanionBackendService {
     return body
   }
 
-  /** Called once per chronological fixed 10-second interval before playback begins. */
+  /** Compatibility adapter for the MovieProvider. All API work uses prepare(). */
   async prepareInterval(options: PrepareOptions): Promise<IntervalPreparationResponse> {
-    const savedProfile = await getAccessibilityProfile()
-    const payload: IntervalPreparationRequest = {
-      movie_id: options.movieId,
-      timestamp_seconds: options.frame.timestamp,
-      interval_id: `${options.movieId}:interval:${options.intervalNumber}`,
-      interval_number: options.intervalNumber,
-      interval_start: options.intervalStart,
-      interval_end: options.intervalEnd,
-      catalog_scene_id: options.catalogScene?.sceneId ?? null,
-      image: options.frame.dataUrl, ...profilePayload(options.settings, options.companion, savedProfile),
+    const interval = this.movieProvider.createInterval({
+      contentId: options.movieId,
+      intervalNumber: options.intervalNumber,
+      start: options.intervalStart,
+      end: options.intervalEnd,
+      frame: options.frame,
+      scene: options.catalogScene ?? options.scene,
+    })
+    return this.prepare(interval, options.settings, options.companion, options.signal)
+  }
+
+  /** The sole preparation entry point for every content provider. */
+  async prepare(interval: CompanionInterval, settings: Settings, companion: CompanionProfile | null, signal?: AbortSignal): Promise<IntervalPreparationResponse> {
+    let savedProfile: Awaited<ReturnType<typeof getAccessibilityProfile>>
+    try {
+      console.info('[MagiFab] INTERVAL_DISPATCH', { contentId: interval.contentId, intervalId: interval.id, stage: 'accessibility_profile' })
+      savedProfile = await getAccessibilityProfile()
+      console.info('[MagiFab] INTERVAL_RESPONSE', { contentId: interval.contentId, intervalId: interval.id, stage: 'accessibility_profile' })
+    } catch (error) {
+      console.error('[MagiFab] INTERVAL_FAILED', { contentId: interval.contentId, intervalId: interval.id, stage: 'accessibility_profile', error: error instanceof Error ? error.message : String(error) })
+      throw error
+    }
+    const payload: CompanionIntervalPreparationRequest = {
+      interval,
+      ...profilePayload(settings, companion, savedProfile),
     }
     const requestKey = JSON.stringify({
-      movie_id: payload.movie_id,
-      interval_id: payload.interval_id,
+      content_id: interval.contentId,
+      interval_id: interval.id,
       accessibility_profile: payload.accessibility_profile,
     })
     const activeRequest = this.activePreparationRequests.get(requestKey)
     if (activeRequest) return activeRequest
 
-    const request = this.sendPreparationRequest(payload)
+    const request = this.sendPreparationRequest(payload, signal)
     this.activePreparationRequests.set(requestKey, request)
     void request.finally(() => {
       if (this.activePreparationRequests.get(requestKey) === request) this.activePreparationRequests.delete(requestKey)
@@ -204,21 +223,29 @@ export class CompanionBackendService {
     if (!response.ok) throw new Error('Interval preprocessing validation failed.')
   }
 
-  private async sendPreparationRequest(payload: IntervalPreparationRequest): Promise<IntervalPreparationResponse> {
+  private async sendPreparationRequest(payload: CompanionIntervalPreparationRequest, signal?: AbortSignal): Promise<IntervalPreparationResponse> {
     const payloadJson = JSON.stringify(payload)
     if (import.meta.env.DEV) console.debug('[MagiFab companion] prepare payload', payloadJson)
-    const response = await fetch(companionEndpoint.replace('/respond', '/prepare'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson,
-    })
-    const body: unknown = await response.json().catch(() => null)
-    if (!response.ok) {
-      const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The scene preparation service is unavailable.'
-      throw new Error(detail)
+    const endpoint = companionEndpoint.replace('/respond', '/intervals/prepare')
+    console.info('[MagiFab] INTERVAL_SENT', { contentId: payload.interval.contentId, intervalId: payload.interval.id, endpoint })
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payloadJson, signal,
+      })
+      const body: unknown = await response.json().catch(() => null)
+      console.info('[MagiFab] INTERVAL_RESPONSE', { contentId: payload.interval.contentId, intervalId: payload.interval.id, stage: 'http_prepare', status: response.status })
+      if (!response.ok) {
+        const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The scene preparation service is unavailable.'
+        throw new Error(detail)
+      }
+      if (!isBackendResponse(body)) {
+        throw new Error('The scene preparation service returned an invalid response.')
+      }
+      return body as IntervalPreparationResponse
+    } catch (error) {
+      console.error('[MagiFab] INTERVAL_FAILED', { contentId: payload.interval.contentId, intervalId: payload.interval.id, stage: 'http_prepare', error: error instanceof Error ? error.message : String(error) })
+      throw error
     }
-    if (!isBackendResponse(body)) {
-      throw new Error('The scene preparation service returned an invalid response.')
-    }
-    return body as IntervalPreparationResponse
   }
 }
 

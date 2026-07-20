@@ -1,0 +1,238 @@
+{
+  "metadata": {
+    "interval_id": "spriteFright:interval:0",
+    "catalog_scene_id": "sf-01",
+    "movie_id": "spriteFright",
+    "start_time": 0.0,
+    "end_time": 30.0,
+    "interval_number": 0,
+    "knowledge_revision": 2
+  },
+  "prompts": {
+    "prompt_bubbles": [
+      {
+        "id": "interval-prompt:critical:5.000",
+        "kind": "critical",
+        "label": "Critical",
+        "question": "Why is this important now: The group enters the isolated forest?",
+        "priority": 1,
+        "claim_ids": [],
+        "timestamp_start": 5.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:memory:5.000",
+        "kind": "memory",
+        "label": "Memory",
+        "question": "Remember when Ellie is alert and curious as the group enters the forest? That helps explain The group enters the isolated forest.",
+        "priority": 2,
+        "claim_ids": [],
+        "timestamp_start": 5.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:emotion:5.000",
+        "kind": "emotion",
+        "label": "Emotion",
+        "question": "Why is Ellie feeling Ellie is alert and curious as the group enters the forest after The group enters the isolated forest?",
+        "priority": 3,
+        "claim_ids": [],
+        "timestamp_start": 5.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:prediction:5.000",
+        "kind": "prediction",
+        "label": "Watch next",
+        "question": "Watch The group enters the isolated forest carefully—it may become important next.",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 5.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      }
+    ],
+    "prompt_answers": [],
+    "suggested_questions": [
+      "Why is this important now: The group enters the isolated forest?",
+      "Remember when Ellie is alert and curious as the group enters the forest? That helps explain The group enters the isolated forest.",
+      "Why is Ellie feeling Ellie is alert and curious as the group enters the forest after The group enters the isolated forest?",
+      "Watch The group enters the isolated forest carefully—it may become important next."
+    ]
+  },
+  "visualDrawer": {
+    "now": "The group enters the isolated forest.",
+    "who": [
+      "Ellie: Ellie is alert and curious as the group enters the forest.",
+      "Rex: New character"
+    ],
+    "important": [
+      "Exploration"
+    ],
+    "remember": [
+      "Phil is introduced"
+    ],
+    "why": "Because ellie is alert and curious as the group enters the forest., the group enters the isolated forest.",
+    "next": "Watch for the next change in the situation.",
+    "word_count": 51,
+    "story_now": [
+      "The group enters the isolated forest."
+    ],
+    "relationships": [],
+    "timeline": [
+      "Ellie is alert and curious as the group enters the forest.",
+      "The group enters the isolated forest."
+    ],
+    "emotion": "Ellie, Rex, Jay, Victoria feel curious because the group enters the isolated forest.",
+    "cause_effect": [
+      {
+        "cause": "Ellie is alert and curious as the group enters the forest.",
+        "effect": "The group enters the isolated forest."
+      }
+    ],
+    "objects": [],
+    "memory": [
+      "Ellie is introduced",
+      "Rex is introduced"
+    ]
+  },
+  "storyState": {
+    "scene_summary": "The group enters the isolated forest.",
+    "current_goal": null,
+    "current_interval_id": "spriteFright:interval:0",
+    "timeline_position": "Exploration",
+    "story_so_far": [
+      "Ellie is introduced",
+      "Rex is introduced",
+      "Jay is introduced",
+      "Victoria is introduced",
+      "Phil is introduced"
+    ],
+    "unresolved_threads": []
+  },
+  "characters": [
+    {
+      "character_id": "character-0",
+      "name": "Ellie",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-1",
+      "name": "Rex",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-2",
+      "name": "Jay",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-3",
+      "name": "Victoria",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-4",
+      "name": "Phil",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    }
+  ],
+  "relationships": [],
+  "memory": [
+    {
+      "summary": "Phil is introduced",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "summary": "The teenagers enter the isolated forest.",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "conversationContext": {
+    "scene_explanation": "The group enters the isolated forest.",
+    "simplifications": []
+  },
+  "accessibilityHints": {
+    "vocabulary": [],
+    "emotions": [
+      {
+        "emotion_id": "emotion-0",
+        "summary": "Curious",
+        "confidence": 1.0,
+        "claim_ids": []
+      }
+    ]
+  },
+  "semanticMemoryBefore": {
+    "active_characters": [],
+    "relationships": [],
+    "emotions": [],
+    "important_objects": [],
+    "unresolved_threads": [],
+    "story_events": []
+  },
+  "semanticMemoryAfter": {
+    "active_characters": [
+      "Ellie",
+      "Rex",
+      "Jay",
+      "Victoria",
+      "Phil"
+    ],
+    "relationships": [],
+    "emotions": [
+      "Ellie is alert and curious as the group enters the forest."
+    ],
+    "important_objects": [],
+    "unresolved_threads": [],
+    "story_events": [
+      "Ellie is introduced",
+      "Rex is introduced",
+      "Jay is introduced",
+      "Victoria is introduced",
+      "Phil is introduced",
+      "appears in",
+      "The teenagers enter the isolated forest.",
+      "Ellie is alert and curious as the group enters the forest.",
+      "The group enters the isolated forest."
+    ]
+  },
+  "timelineMemory": {
+    "timeline_position": "Exploration",
+    "previous_event": "Ellie is alert and curious as the group enters the forest.",
+    "current_event": "The group enters the isolated forest.",
+    "next_event": null,
+    "is_movie_start": false,
+    "is_movie_end": false
+  },
+  "cacheMetadata": {
+    "semantic_cache_key": "spriteFright:v21:interval:spriteFright:interval:0",
+    "knowledge_source": "expanded",
+    "semantic_map_cached": false,
+    "frame_hash": "8a0f79dd1c7379312d3af2712b6c7a0b6d1b8028232f6f9b2b6df5e9a7a394a0"
+  }
+}

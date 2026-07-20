@@ -42,6 +42,15 @@ class IntervalPrompts(ImmutableModel):
 
 
 class VisualDrawerState(ImmutableModel):
+    """A concise, interval-scoped accessibility card (maximum 120 words)."""
+    now: str | None = None
+    who: tuple[str, ...] = ()
+    important: tuple[str, ...] = ()
+    remember: tuple[str, ...] = ()
+    why: str | None = None
+    next: str | None = None
+    word_count: int = Field(default=0, ge=0, le=120)
+    # Legacy projections remain additive for existing API consumers.
     story_now: tuple[str, ...] = ()
     relationships: tuple[str, ...] = ()
     timeline: tuple[str, ...] = ()
@@ -51,9 +60,19 @@ class VisualDrawerState(ImmutableModel):
     memory: tuple[str, ...] = ()
 
 
+class IntervalTimelineMemory(ImmutableModel):
+    """The exact narrative position restored with this interval."""
+    timeline_position: str | None = None
+    previous_event: str | None = None
+    current_event: str | None = None
+    next_event: str | None = None
+    is_movie_start: bool = False
+    is_movie_end: bool = False
+
+
 class IntervalStoryState(ImmutableModel):
     scene_summary: str | None = None
-    current_goal: str
+    current_goal: str | None = None
     current_interval_id: str | None = None
     timeline_position: str | None = None
     story_so_far: tuple[str, ...] = ()
@@ -87,7 +106,7 @@ class IntervalCacheMetadata(ImmutableModel):
     frame_hash: str | None = None
 
 
-class IntervalState(ImmutableModel):
+class SceneState(ImmutableModel):
     """Single source of truth sent to the frontend for one interval."""
     metadata: IntervalMetadata
     prompts: IntervalPrompts = Field(default_factory=IntervalPrompts)
@@ -100,4 +119,8 @@ class IntervalState(ImmutableModel):
     accessibilityHints: AccessibilityHints = Field(default_factory=AccessibilityHints)
     semanticMemoryBefore: IntervalSemanticMemory
     semanticMemoryAfter: IntervalSemanticMemory
+    timelineMemory: IntervalTimelineMemory
     cacheMetadata: IntervalCacheMetadata
+
+
+IntervalState = SceneState

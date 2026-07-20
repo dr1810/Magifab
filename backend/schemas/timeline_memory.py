@@ -1,7 +1,7 @@
 """Internal semantic memory used while preprocessing interval snapshots.
 
-Intervals are created by story changes, never by fixed perception windows.
-This is not a browser playback contract.
+Every fixed preprocessing interval receives a timeline checkpoint. This is a
+construction record, not a browser playback contract.
 """
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -55,7 +55,9 @@ class TimelineInterval(BaseModel):
     interval_id: str
     start_timestamp: float = Field(ge=0)
     end_timestamp: float | None = Field(default=None, ge=0)
-    triggering_event_ids: list[str] = Field(min_length=1)
+    # A quiet interval still preserves the semantic state it inherited from
+    # the preceding interval. It therefore has a valid empty trigger set.
+    triggering_event_ids: list[str] = Field(default_factory=list)
     importance: float = Field(ge=0)
     story_state_before: StoryState
     story_state_after: StoryState

@@ -73,19 +73,19 @@ def test_supported_movie_preprocessing_builds_interval_states_in_order(tmp_path:
         assert all(relationship.supporting_claim_ids for relationship in state.known_relationships.values())
         assert all(character.last_seen_timestamp >= character.first_seen_timestamp and character.total_screen_time >= 0 for character in state.known_characters.values())
         prompt_candidates = [event for event in state.recent_events if event.requires_prompt and event.is_new]
-        if len(prompt_candidates) >= 3:
-            assert 3 <= len(interval.prompts.prompt_bubbles) <= 5
+        assert len(interval.prompts.prompt_bubbles) == 4
+        assert {prompt.kind for prompt in interval.prompts.prompt_bubbles} == {"critical", "memory", "emotion", "prediction"}
         memory = timeline_memory.get(movie_id)
         assert any(interval.start_timestamp <= timestamp and (interval.end_timestamp is None or timestamp < interval.end_timestamp) for interval in memory.intervals)
 
         total_events.extend(events)
-        prompt_kinds.update(prompt.kind for prompt in interval.prompts.prompt_bubbles if prompt.id.startswith("timeline-prompt:"))
+        prompt_kinds.update(prompt.kind for prompt in interval.prompts.prompt_bubbles)
         previous_count = len(state.story_so_far)
 
     assert len(total_events) >= len(windows)
     assert len(state.timeline_history) >= 2
     assert state.memory_reminders
-    assert prompt_kinds, "meaningful StoryEvents should create event-driven prompts"
+    assert prompt_kinds == {"critical", "memory", "emotion", "prediction"}
     assert any(character.total_screen_time > 0 for character in state.known_characters.values())
     assert any(len(character.associated_events) >= 2 for character in state.known_characters.values())
     # Seeking resolves indexed semantic snapshots directly; no interval replay.

@@ -11,7 +11,11 @@ const MIN_ANALYSIS_TIMESTAMP_SECONDS = 1
 const MIN_FRAME_BYTES = 1024
 const MAX_BLACK_PIXEL_RATIO = 0.92
 const MIN_ENTROPY = 0.15
+const MIN_LUMINANCE_VARIANCE = 18
 const INITIAL_ANALYSIS_CANDIDATES = [1, 2, 3, 5, 8, 12, 20, 30]
+/** The immutable playback chapter boundary shared with the backend. */
+export const INTERVAL_SECONDS = 30
+const INTERVAL_CANDIDATE_OFFSETS = [2, 5, 8, 12, 18, 24, 28]
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -50,6 +54,7 @@ function validateCanvasFrame(context: CanvasRenderingContext2D, width: number, h
   if (fileSize < MIN_FRAME_BYTES) throw invalidFrame('frame_file_too_small')
 
   let luminanceTotal = 0
+  let luminanceSquaredTotal = 0
   let blackPixels = 0
   const bins = new Uint32Array(256)
   const pixels = context.getImageData(0, 0, width, height).data
@@ -57,6 +62,7 @@ function validateCanvasFrame(context: CanvasRenderingContext2D, width: number, h
   for (let index = 0; index < pixels.length; index += 4) {
     const luminance = Math.round(0.2126 * pixels[index] + 0.7152 * pixels[index + 1] + 0.0722 * pixels[index + 2])
     luminanceTotal += luminance
+    luminanceSquaredTotal += luminance * luminance
     bins[luminance] += 1
     if (luminance <= 12) blackPixels += 1
   }
@@ -67,9 +73,20 @@ function validateCanvasFrame(context: CanvasRenderingContext2D, width: number, h
     entropy -= probability * Math.log2(probability)
   }
   const averagePixel = luminanceTotal / pixelCount
-  if (averagePixel <= 3 || blackPixels / pixelCount >= MAX_BLACK_PIXEL_RATIO || entropy < MIN_ENTROPY) {
+  const variance = Math.max(0, luminanceSquaredTotal / pixelCount - averagePixel * averagePixel)
+  if (averagePixel <= 3 || blackPixels / pixelCount >= MAX_BLACK_PIXEL_RATIO) {
     throw invalidFrame('black_frame_detected')
   }
+  if (entropy < MIN_ENTROPY || variance < MIN_LUMINANCE_VARIANCE) throw invalidFrame('fade_frame_detected')
+}
+
+function candidateTimestamps(intervalStart: number | undefined, intervalEnd: number | undefined, originalTimestamp: number, duration: number): number[] {
+  const safeEnd = Math.min(intervalEnd ?? duration, duration) - 0.1
+  const rawCandidates = intervalStart === undefined
+    ? [Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, originalTimestamp), ...INITIAL_ANALYSIS_CANDIDATES]
+    : INTERVAL_CANDIDATE_OFFSETS.map((offset) => intervalStart + offset)
+  return [...new Set(rawCandidates.map((timestamp) => Number(timestamp.toFixed(3))))]
+    .filter((timestamp) => timestamp >= MIN_ANALYSIS_TIMESTAMP_SECONDS && timestamp < safeEnd)
 }
 
 async function seekTo(video: HTMLVideoElement, target: number): Promise<void> {
@@ -91,8 +108,12 @@ async function seekTo(video: HTMLVideoElement, target: number): Promise<void> {
   })
 }
 
-/** Captures one compact still from the active player; it never observes playback continuously. */
-export async function captureVideoFrame(video: HTMLVideoElement | null, requestedTimestamp?: number): Promise<CapturedVideoFrame> {
+/**
+ * Captures one compact still from the active player; it never observes playback
+ * continuously. When given interval bounds, it tries multiple semantic
+ * candidates inside that interval and returns the first visually valid frame.
+ */
+export async function captureVideoFrame(video: HTMLVideoElement | null, intervalStart?: number, intervalEnd?: number): Promise<CapturedVideoFrame> {
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error('The current movie frame is not ready yet.')
   }
@@ -108,32 +129,32 @@ export async function captureVideoFrame(video: HTMLVideoElement | null, requeste
   if (!context) throw new Error('Frame capture is not available in this browser.')
   const originalTimestamp = video.currentTime
   const duration = Number.isFinite(video.duration) ? video.duration : 0
-  const candidates = [...new Set(requestedTimestamp === undefined
-    ? [Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, originalTimestamp), ...INITIAL_ANALYSIS_CANDIDATES]
-    : [Math.max(MIN_ANALYSIS_TIMESTAMP_SECONDS, requestedTimestamp)])]
-    .filter((timestamp) => timestamp >= MIN_ANALYSIS_TIMESTAMP_SECONDS && timestamp < duration - 0.1)
-  let lastInvalidFrame: Error | null = null
+  const candidates = candidateTimestamps(intervalStart, intervalEnd, originalTimestamp, duration)
+  let lastCandidateFailure: Error | null = null
   try {
     for (const timestamp of candidates) {
-      await seekTo(video, timestamp)
-      if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) continue
+      console.info('[MagiFab] FRAME_CAPTURE_CANDIDATE', { intervalStart: intervalStart ?? null, intervalEnd: intervalEnd ?? null, timestamp })
       try {
+        await seekTo(video, timestamp)
+        if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) throw invalidFrame('frame_not_decoded')
         context.drawImage(video, 0, 0, width, height)
         const frameBlob = await canvasToBlob(canvas)
         validateCanvasFrame(context, width, height, frameBlob.size)
-        return { dataUrl: await blobToDataUrl(frameBlob), timestamp: video.currentTime, width, height }
+        const frame = { dataUrl: await blobToDataUrl(frameBlob), timestamp: video.currentTime, width, height }
+        console.info('[MagiFab] FRAME_SELECTED', { intervalStart: intervalStart ?? null, intervalEnd: intervalEnd ?? null, timestamp: frame.timestamp, width, height })
+        return frame
       } catch (error) {
-        if (error instanceof DOMException && error.name === 'SecurityError') {
-          throw new Error('This movie source does not allow secure frame capture. Configure CORS for the movie host and try again.')
-        }
-        if (error instanceof Error && error.message.includes('"error":"invalid_frame"')) {
-          lastInvalidFrame = error
-          continue
-        }
-        throw error
+        const candidateFailure = error instanceof DOMException && error.name === 'SecurityError'
+          ? new Error('This movie source does not allow secure frame capture. Configure CORS for the movie host and try again.')
+          : error instanceof Error ? error : new Error(String(error))
+        lastCandidateFailure = candidateFailure
+        console.warn('[MagiFab] FRAME_REJECTED', { intervalStart: intervalStart ?? null, intervalEnd: intervalEnd ?? null, timestamp, error: candidateFailure.message })
+        continue
       }
     }
-    throw lastInvalidFrame ?? invalidFrame('first_real_frame_unavailable')
+    const exhausted = lastCandidateFailure ?? invalidFrame('first_real_frame_unavailable')
+    console.error('[MagiFab] FRAME_CAPTURE_EXHAUSTED', { intervalStart: intervalStart ?? null, intervalEnd: intervalEnd ?? null, candidates, error: exhausted.message })
+    throw exhausted
   } finally {
     // Preparation may inspect a later representative frame, but it must not
     // move the user's playback position.

@@ -5,6 +5,7 @@ import { presets, useAccessibility, type Settings } from './accessibility-contex
 import { Onboarding } from './onboarding'
 import { MovieSelector } from './components/MovieSelector'
 import { MovieViewer } from './movie-viewer'
+import { BookViewer } from './book-viewer'
 import type { MovieId } from './types/movie'
 import { useAccessibilityProfile } from './hooks/useAccessibilityProfile'
 import { HomeProfileButton } from './components/HomeProfileButton'
@@ -59,7 +60,7 @@ function HomePage({ onSettings, onOnboardingComplete }: { onSettings: () => void
 
 function App() {
   const { profile, loading, refresh } = useAccessibilityProfile()
-  const [tab, setTab] = useState<'home' | 'profile' | 'settings' | 'setup' | 'selector' | 'watch'>('home')
+  const [tab, setTab] = useState<'home' | 'profile' | 'settings' | 'setup' | 'selector' | 'watch' | 'book'>('home')
   const [selectedMovie, setSelectedMovie] = useState<MovieId>('bigBuckBunny')
 
   if (loading) return <div className="loading-screen">Preparing your Magifab profile…</div>
@@ -75,6 +76,8 @@ function App() {
   if (tab === 'watch') {
     return <MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} onOpenAccessibilitySettings={() => setTab('settings')} />
   }
+
+  if (tab === 'book') return <BookViewer onBack={() => setTab('home')} />
 
   if (tab === 'selector') {
     return (
@@ -93,7 +96,7 @@ function App() {
     return <AccessibilityPage onHome={() => setTab('home')} onContinue={() => setTab(profile ? 'selector' : 'setup')} />
   }
 
-  return <LandingPage profile={profile} onProfile={() => setTab(profile ? 'profile' : 'settings')} onSettings={() => setTab('settings')} onMovies={() => setTab('selector')} />
+  return <LandingPage profile={profile} onProfile={() => setTab(profile ? 'profile' : 'settings')} onSettings={() => setTab('settings')} onMovies={() => setTab('selector')} onBooks={() => setTab('book')} />
 }
 
 export default App

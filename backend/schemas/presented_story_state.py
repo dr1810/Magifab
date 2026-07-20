@@ -9,7 +9,7 @@ class PresentedStoryState(BaseModel):
     # remain internal to the timeline and are never sent to the browser.
     scene_number: int | None = Field(default=None, ge=1)
     scene_summary: str | None = None
-    current_goal: str
+    current_goal: str | None = None
     timeline_position: str | None = None
     active_characters: list["PresentedCharacter"] = Field(default_factory=list)
     scene_mood: str | None = None

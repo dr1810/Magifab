@@ -70,6 +70,13 @@ class FileKnowledgeStore(KnowledgeStore):
                     else:
                         path.unlink()
 
+    def discard_movie(self, movie_id: str) -> None:
+        """Remove one semantic cache record without loading its schema."""
+        with self._lock:
+            path = self._path(movie_id)
+            if path.is_file():
+                path.unlink()
+
     def _path(self, movie_id: str) -> Path:
         """Hash externally supplied IDs so they can never become path segments."""
         digest = hashlib.sha256(movie_id.encode("utf-8")).hexdigest()

@@ -51,9 +51,12 @@ class PreprocessingStoryBuilder:
     def reset(self, movie_id: str) -> StoryState:
         """Start a fresh chronological preprocessing pass for one movie."""
         with self._lock:
+            path = self._path(movie_id)
+            if path.is_file():
+                path.unlink()
             state = StoryState(movie_id=movie_id)
             self._save(state)
-        logger.info("[PREPROCESSING STORY RESET] movie=%s", movie_id)
+        logger.info("[PREPROCESSING STORY RESET] movie=%s schema_deserialization=no", movie_id)
         return state
 
     def _apply(self, state: StoryState, event: StoryEvent, is_new: bool) -> None:

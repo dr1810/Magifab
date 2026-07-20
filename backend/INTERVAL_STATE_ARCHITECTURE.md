@@ -1,7 +1,7 @@
 # IntervalState ownership
 
 `IntervalState` is MagiFab's only browser-facing playback object. Movie load
-preprocesses every fixed 10-second interval in chronological order. Each
+preprocesses every fixed 30-second interval in chronological order. Each
 `POST /api/v1/companion/prepare` call samples one interval and persists its
 frozen snapshot. Playback and seeking only select that stored snapshot by
 timestamp; they never invoke semantic reasoning or prompt generation.
@@ -15,7 +15,7 @@ snapshot is a preprocessing failure (409), not a fallback to live generation.
 | Field | Owner | Consumers |
 | --- | --- | --- |
 | `metadata` | interval assembly in `CompanionPipelineService` | all UI surfaces; identifies the exact movie interval and knowledge revision |
-| `metadata.interval_id`, `start_time`, `end_time`, `interval_number` | fixed 10-second `IntervalStateRepository` boundary | cache invalidation and time-aware rendering |
+| `metadata.interval_id`, `start_time`, `end_time`, `interval_number` | fixed 30-second `IntervalStateRepository` boundary | cache invalidation and time-aware rendering |
 | `metadata.catalog_scene_id`, `movie_id`, `knowledge_revision` | optional catalog enrichment and interval assembly | diagnostics; never playback identity |
 | `prompts.prompt_bubbles` | prompt ranking over the resolved story interval | prompt panel and bubbles |
 | `prompts.prompt_answers` | prompt-response assembly | companion bubble/widget |
@@ -64,7 +64,7 @@ discarded before StoryState presentation and every display list in an
 ## Playback retrieval rules
 
 The frontend cache is populated only by preprocessing. During playback it
-calculates `floor(timestamp / 10)`, unloads the previously active snapshot,
+calculates `floor(timestamp / 30)`, unloads the previously active snapshot,
 and loads the matching immutable snapshot from that cache. Rewinding and
 seeking follow the same lookup: there is no interpolation, prompt generation,
 StoryState generation, or Visual Drawer generation in the playback path.

@@ -147,6 +147,20 @@ class SemanticMatchingService(SemanticMatcher):
             )
             matches.append(MatchedFact(id=relationship.id, label=relationship.description, confidence=confidence,
                                        evidence=["catalog_relationship_graph", "known_participants_active"]))
+        # Catalog participation establishes co-presence, which is a real
+        # interval relationship fact even when a catalog has no authored
+        # relationship graph. It preserves group continuity without claiming
+        # motive, friendship, or conflict that the movie never established.
+        if not matches and catalog_scene is not None:
+            participants = [character for character in characters if character.id in character_ids]
+            if len(participants) >= 2:
+                first, second = participants[:2]
+                matches.append(MatchedFact(
+                    id=f"co-presence:{first.id}:{second.id}",
+                    label=f"{first.label} and {second.label} are together in this story moment.",
+                    confidence=min(first.confidence, second.confidence),
+                    evidence=["catalog_scene_participants", "semantic_co_presence"],
+                ))
         return _unique_facts(matches)
 
     def _match_events(self, scene, knowledge, catalog_scene):
@@ -188,15 +202,20 @@ def _catalog_scene(knowledge, scene_id, timestamp_seconds) -> MovieSceneKnowledg
         exact = next((scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds <= scene.end_seconds), None)
         if exact is not None:
             return exact
-        # Catalogs sometimes describe a broad timeline phase more completely
-        # than they split its individual scene windows. Continue from the last
-        # authoritative scene only while that movie has an active timeline
-        # phase; this is a generic continuity rule, not a movie-specific map.
+        # Catalogs often end before a movie does. Keep enrichment available by
+        # selecting the nearest authored context; interval memory and vision
+        # remain the runtime authority, so this never creates a scene-boundary
+        # reset or a movie-specific mapping.
         timeline_active = any(item.start_seconds <= timestamp_seconds <= item.end_seconds for item in knowledge.timeline_positions)
         if timeline_active:
             prior = [scene for scene in knowledge.movie_scenes if scene.start_seconds <= timestamp_seconds]
             if prior:
                 return max(prior, key=lambda scene: scene.start_seconds)
+        if knowledge.movie_scenes:
+            return min(
+                knowledge.movie_scenes,
+                key=lambda scene: min(abs(timestamp_seconds - scene.start_seconds), abs(timestamp_seconds - scene.end_seconds)),
+            )
     return None
 
 

@@ -1,6 +1,8 @@
 """Retrieval-first expansion engine; it turns current perception into factual movie knowledge."""
+from contextvars import ContextVar
 from hashlib import sha256
 import logging
+from threading import RLock
 from time import perf_counter
 from uuid import uuid4
 
@@ -19,6 +21,9 @@ from schemas.knowledge import (
     VisibleSceneEntity,
 )
 from schemas.knowledge_expansion import KnowledgeExpansionRequest, KnowledgeExpansionResult
+from schemas.detection import DetectionResponse
+from schemas.grounding import GroundingResponse
+from schemas.understanding import UnderstandingResponse
 from services.face_verification import FaceVerificationService
 from services.knowledge_retriever import KnowledgeRetriever
 from services.movie_knowledge_provider import MovieKnowledgeProvider
@@ -32,6 +37,64 @@ from services.semantic_claim_audit import log_claims
 from services.vision_understanding import VisionUnderstandingService
 
 logger = logging.getLogger(__name__)
+
+_GROUNDING_REUSE_CONFIDENCE = 0.82
+_PROFILE_STAGES = (
+    "movie_knowledge",
+    "catalog_coverage",
+    "knowledge_retrieval",
+    "baseline_persistence",
+    "semantic_planning",
+    "yolo_detection",
+    "grounding_dino",
+    "florence_understanding",
+    "face_verification",
+    "perception_fusion",
+    "semantic_matching",
+    "observation_factory",
+    "semantic_graph",
+    "knowledge_merge",
+    "knowledge_persistence",
+)
+
+
+class _IntervalProfiler:
+    """Collect deterministic wall-clock timings for one preparation interval."""
+
+    def __init__(self, movie_id: str, interval_id: str):
+        self.movie_id = movie_id
+        self.interval_id = interval_id
+        self.started_at = perf_counter()
+        self.stages: dict[str, float] = {}
+
+    def record(self, stage: str, duration_seconds: float) -> None:
+        self.stages[stage] = max(0.0, duration_seconds * 1000)
+
+    def log(self, outcome: str) -> None:
+        rows = [
+            f"{stage:<28} {self.stages[stage]:9.1f} ms"
+            if stage in self.stages else f"{stage:<28} {'skipped':>12}"
+            for stage in _PROFILE_STAGES
+        ]
+        rows.append(f"{'total':<28} {(perf_counter() - self.started_at) * 1000:9.1f} ms")
+        logger.info(
+            "[INTERVAL_TIMING_TABLE] movie=%s interval=%s outcome=%s\n%s",
+            self.movie_id,
+            self.interval_id,
+            outcome,
+            "\n".join(rows),
+        )
+
+
+_active_interval_profiler: ContextVar[_IntervalProfiler | None] = ContextVar(
+    "active_interval_profiler", default=None,
+)
+
+
+def _record_timing(stage: str, started_at: float) -> None:
+    profiler = _active_interval_profiler.get()
+    if profiler is not None:
+        profiler.record(stage, perf_counter() - started_at)
 
 
 class KnowledgeExpansionEngine:
@@ -64,11 +127,32 @@ class KnowledgeExpansionEngine:
         self._graph_builder = graph_builder or SemanticGraphBuilder()
         self._movie_knowledge_provider = movie_knowledge_provider or MovieKnowledgeProvider()
         self._cache_version = cache_version
+        # Detector output is valid only for the exact captured frame. Grounding
+        # is reused only for an unchanged entity plan that was fully confirmed
+        # at high confidence; this avoids repeating the most expensive model
+        # without turning partial evidence into a semantic fact.
+        self._perception_cache_lock = RLock()
+        self._detection_cache: dict[str, DetectionResponse] = {}
+        self._grounding_cache: dict[str, GroundingResponse] = {}
 
     def retrieve_or_expand(self, request: KnowledgeExpansionRequest, image: Image.Image | None) -> KnowledgeExpansionResult:
+        """Expand one interval and always emit a complete timing table."""
+        profiler = _IntervalProfiler(request.movie_id, request.interval_id)
+        token = _active_interval_profiler.set(profiler)
+        outcome = "failed"
+        try:
+            result = self._retrieve_or_expand(request, image)
+            outcome = result.source
+            return result
+        finally:
+            profiler.log(outcome)
+            _active_interval_profiler.reset(token)
+
+    def _retrieve_or_expand(self, request: KnowledgeExpansionRequest, image: Image.Image | None) -> KnowledgeExpansionResult:
         """Retrieve a known scene immediately; otherwise run only requested perception and persist observations."""
         catalog_started = perf_counter()
         catalog = self._movie_knowledge_provider.get(request.movie_id)
+        _record_timing("movie_knowledge", catalog_started)
         logger.info(
             "[TRACE][MOVIE_KNOWLEDGE] executed=yes movie=%s catalog_found=%s catalog_version=%s duration_ms=%.1f",
             request.movie_id, catalog is not None,
@@ -80,7 +164,9 @@ class KnowledgeExpansionEngine:
                 catalog.movie_id, len(catalog.characters), len(catalog.relationships), len(catalog.events),
                 len(catalog.timeline_positions), len(catalog.emotions), len(catalog.movie_scenes),
             )
+        coverage_started = perf_counter()
         covered, catalog_scene_id = self._movie_knowledge_provider.scene_coverage(catalog, request.catalog_scene_id, request.timestamp_seconds)
+        _record_timing("catalog_coverage", coverage_started)
         logger.info(
             "[INTERVAL_CATALOG_COVERAGE] status=%s movie=%s requested_scene=%s timestamp=%.3f catalog_scene=%s",
             "PASS" if covered else "ANNOTATION_MISSING", request.movie_id, request.catalog_scene_id, request.timestamp_seconds, catalog_scene_id,
@@ -91,6 +177,7 @@ class KnowledgeExpansionEngine:
             scene_id=request.interval_id,
             timestamp_seconds=request.timestamp_seconds,
         ))
+        _record_timing("knowledge_retrieval", retrieval_started)
         cache_key = _cache_key(request.movie_id, self._cache_version, request.interval_id, request.timestamp_seconds, request.frame_hash)
         logger.info(
             "[TRACE][KNOWLEDGE_RETRIEVAL] executed=yes movie=%s scene=%s timestamp=%.3f frame_hash=%s cache_key=%s found=%s scene_prepared=%s duration_ms=%.1f",
@@ -110,8 +197,10 @@ class KnowledgeExpansionEngine:
         # is the movie-level baseline: scene windows add observations to it but
         # can never make the story disappear when a detector misses a frame.
         if catalog is not None and retrieval.record is None:
+            baseline_started = perf_counter()
             baseline = _runtime_knowledge(catalog, None, request.movie_id, self._cache_version)
             baseline_record = self._store.save(baseline)
+            _record_timing("baseline_persistence", baseline_started)
             logger.info(
                 "[TRACE][KNOWLEDGE_PERSISTENCE] baseline_saved=yes key=%s revision=%d characters=%d relationships=%d events=%d timeline=%d",
                 _movie_knowledge_key(request.movie_id, self._cache_version), baseline_record.revision,
@@ -124,6 +213,7 @@ class KnowledgeExpansionEngine:
         # Movie knowledge is the perception plan.  Establish it before any
         # image model runs so a generic detector/caption can never decide what
         # this frame is "about".
+        planning_started = perf_counter()
         base_knowledge = _runtime_knowledge(catalog, retrieval.record.knowledge if retrieval.record else None, request.movie_id, self._cache_version)
         expected = _expected_scene_entities(base_knowledge, request.catalog_scene_id, request.timestamp_seconds)
         catalog_window = next((item for item in base_knowledge.movie_scenes if item.scene_id == expected["scene_id"]), None)
@@ -133,6 +223,7 @@ class KnowledgeExpansionEngine:
             catalog_window.start_seconds if catalog_window else None, catalog_window.end_seconds if catalog_window else None, 5,
         )
         grounding_queries = _grounding_queries(request.grounding_queries, expected, base_knowledge)
+        _record_timing("semantic_planning", planning_started)
         logger.info(
             "[TRACE][EXPECTED_ENTITIES] movie=%s scene=%s characters=%s objects=%s locations=%s events=%s",
             request.movie_id, expected["scene_id"], expected["characters"], expected["objects"], expected["locations"], expected["events"],
@@ -140,30 +231,76 @@ class KnowledgeExpansionEngine:
         logger.info("[TRACE][GROUNDING_DINO_QUERIES] movie=%s scene=%s queries=%s", request.movie_id, expected["scene_id"], grounding_queries)
 
         yolo_started = perf_counter()
-        detection = self._detector.detect(image)
-        logger.info("[TRACE][YOLO] executed=yes input=%dx%d output_detections=%d duration_ms=%.1f", image.width, image.height, len(detection.detections), (perf_counter() - yolo_started) * 1000)
+        detection_cache_key = _detection_cache_key(request)
+        with self._perception_cache_lock:
+            cached_detection = self._detection_cache.get(detection_cache_key) if detection_cache_key else None
+        if cached_detection is not None:
+            detection = cached_detection.model_copy(deep=True)
+            yolo_cache_hit = True
+        else:
+            detection = self._detector.detect(image)
+            yolo_cache_hit = False
+            if detection_cache_key:
+                with self._perception_cache_lock:
+                    self._detection_cache[detection_cache_key] = detection.model_copy(deep=True)
+        _record_timing("yolo_detection", yolo_started)
+        logger.info(
+            "[TRACE][YOLO] executed=%s cache_hit=%s input=%dx%d output_detections=%d duration_ms=%.1f",
+            not yolo_cache_hit, yolo_cache_hit, image.width, image.height, len(detection.detections), (perf_counter() - yolo_started) * 1000,
+        )
         grounding_started = perf_counter()
-        grounding = self._grounder.locate(image, grounding_queries) if grounding_queries else None
-        logger.info("[TRACE][GROUNDING_DINO] executed=%s input_queries=%d output_matches=%d duration_ms=%.1f", bool(grounding_queries), len(grounding_queries), len(grounding.matches) if grounding else 0, (perf_counter() - grounding_started) * 1000)
+        grounding_cache_key = _grounding_cache_key(request.movie_id, grounding_queries)
+        with self._perception_cache_lock:
+            cached_grounding = self._grounding_cache.get(grounding_cache_key) if grounding_cache_key else None
+        if cached_grounding is not None:
+            grounding = cached_grounding.model_copy(deep=True)
+            grounding_cache_hit = True
+        else:
+            grounding = self._grounder.locate(image, grounding_queries) if grounding_queries else None
+            grounding_cache_hit = False
+            if grounding is not None and grounding_cache_key and _grounding_is_complete(grounding, grounding_queries):
+                with self._perception_cache_lock:
+                    self._grounding_cache[grounding_cache_key] = grounding.model_copy(deep=True)
+        _record_timing("grounding_dino", grounding_started)
+        logger.info(
+            "[TRACE][GROUNDING_DINO] executed=%s cache_hit=%s entity_plan_reused=%s input_queries=%d output_matches=%d duration_ms=%.1f",
+            bool(grounding_queries) and not grounding_cache_hit, grounding_cache_hit, grounding_cache_hit,
+            len(grounding_queries), len(grounding.matches) if grounding else 0, (perf_counter() - grounding_started) * 1000,
+        )
         logger.info("[TRACE][ENTITIES_CONFIRMED] movie=%s entities=%s", request.movie_id, [match.matched_object for match in grounding.matches] if grounding else [])
         logger.info("[TRACE][ENTITIES_REJECTED] movie=%s entities=%s", request.movie_id, [query for query in grounding_queries if not grounding or query.lower() not in {match.matched_object.lower() for match in grounding.matches}])
         # Florence runs after catalog-driven grounding.  Its output is retained
         # only as atmosphere/action enrichment; it is never identity evidence.
         florence_started = perf_counter()
-        understanding = self._vision.understand(image)
+        if _grounding_is_complete(grounding, grounding_queries):
+            understanding = _grounded_understanding()
+            florence_skipped = True
+        else:
+            understanding = self._vision.understand(image)
+            florence_skipped = False
+        _record_timing("florence_understanding", florence_started)
         accepted_enrichment, discarded_enrichment = _florence_enrichment(understanding)
         logger.info("[TRACE][FLORENCE_ENRICHMENT] accepted=%s discarded=%s", accepted_enrichment, discarded_enrichment)
-        logger.info("[TRACE][FLORENCE] executed=yes caption=%r output_objects=%s actions=%s interactions=%d duration_ms=%.1f", understanding.scene_description, understanding.important_objects, understanding.detected_actions, len(understanding.interactions), (perf_counter() - florence_started) * 1000)
+        logger.info(
+            "[TRACE][FLORENCE] executed=%s skipped_high_confidence_grounding=%s confidence_threshold=%.2f caption=%r output_objects=%s actions=%s interactions=%d duration_ms=%.1f",
+            not florence_skipped, florence_skipped, _GROUNDING_REUSE_CONFIDENCE, understanding.scene_description, understanding.important_objects,
+            understanding.detected_actions, len(understanding.interactions), (perf_counter() - florence_started) * 1000,
+        )
+        faces_started = perf_counter()
         faces = self._face_verifier.verify(image, base_knowledge) if request.verify_faces and base_knowledge.face_references else None
+        _record_timing("face_verification", faces_started)
         fusion_started = perf_counter()
         perception = self._fusion.fuse_current_outputs(detection, understanding, grounding, faces)
+        _record_timing("perception_fusion", fusion_started)
         logger.info("[TRACE][SEMANTIC_GRAPH_CONSTRUCTION] executed=yes fused_entities=%d duration_ms=%.1f", len(perception.entities), (perf_counter() - fusion_started) * 1000)
         # Matching returns semantic references, not claims. Claims first exist
         # only after SemanticGraphBuilder, so make that boundary explicit.
         log_claims("SemanticMatcher.input", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.interval_id)
+        matching_started = perf_counter()
         semantic_matches = self._matcher.match(
             perception, base_knowledge, scene_id=request.catalog_scene_id, timestamp_seconds=request.timestamp_seconds,
         )
+        _record_timing("semantic_matching", matching_started)
         log_claims("SemanticMatcher.output", base_knowledge.semantic_claims, movie_id=request.movie_id, scene_id=request.interval_id)
         logger.info(
             "[TRACE][SEMANTIC_MATCHING] executed=yes catalog_queried=yes movie_scenes=%d scene_id=%s timestamp=%.3f "
@@ -172,6 +309,7 @@ class KnowledgeExpansionEngine:
             len(semantic_matches.characters), len(semantic_matches.locations), len(semantic_matches.objects),
             len(semantic_matches.events), len(semantic_matches.relationships),
         )
+        observation_started = perf_counter()
         observation = self._observation_factory.create(
             movie_id=request.movie_id,
             scene_id=request.interval_id,
@@ -183,6 +321,8 @@ class KnowledgeExpansionEngine:
             understanding=understanding,
             grounding=grounding,
         )
+        _record_timing("observation_factory", observation_started)
+        graph_started = perf_counter()
         claims = self._graph_builder.build(
             observation=observation,
             perception=perception,
@@ -190,15 +330,19 @@ class KnowledgeExpansionEngine:
             existing=base_knowledge,
             catalog_scene_id=expected["scene_id"],
         )
+        _record_timing("semantic_graph", graph_started)
         log_claims("SemanticGraphBuilder.output", claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         logger.info(
             "[TRACE][SEMANTIC_GRAPH_BUILDER] executed=yes observation_id=%s raw_caption_retained=observation_only claims=%d claim_kinds=%s",
             observation.id, len(claims), sorted({claim.kind for claim in claims}),
         )
+        merge_started = perf_counter()
         knowledge = self.merge_observations(base_knowledge, request, perception, semantic_matches, observation, claims)
+        _record_timing("knowledge_merge", merge_started)
         log_claims("KnowledgePersistence.input", knowledge.semantic_claims, movie_id=request.movie_id, scene_id=observation.scene_id)
         save_started = perf_counter()
         record = self._store.save(knowledge)
+        _record_timing("knowledge_persistence", save_started)
         log_claims("KnowledgePersistence.output", record.knowledge.semantic_claims, movie_id=record.movie_id, scene_id=observation.scene_id)
         logger.info("[TRACE][KNOWLEDGE_PERSISTENCE] executed=yes revision=%d interval_visible_entities=%d duration_ms=%.1f", record.revision, len(next((scene.visible_entities for scene in knowledge.scene_summaries if scene.scene_id == request.interval_id), [])), (perf_counter() - save_started) * 1000)
         scene_summary = next((scene for scene in knowledge.scene_summaries if scene.scene_id == request.interval_id), None)
@@ -215,6 +359,21 @@ class KnowledgeExpansionEngine:
     def knowledge_exists(self, movie_id: str) -> bool:
         """Cheap cache check used to avoid decoding an image on an existing knowledge record."""
         return self._store.exists(movie_id)
+
+    def reset_movie(self, movie_id: str) -> None:
+        """Discard stale semantic cache by key before interval zero is built."""
+        self._store.discard_movie(movie_id)
+        cache_prefix = f"{movie_id}:"
+        with self._perception_cache_lock:
+            self._detection_cache = {
+                key: value for key, value in self._detection_cache.items()
+                if not key.startswith(cache_prefix)
+            }
+            self._grounding_cache = {
+                key: value for key, value in self._grounding_cache.items()
+                if not key.startswith(cache_prefix)
+            }
+        logger.info("[SEMANTIC CACHE RESET] movie=%s schema_deserialization=no", movie_id)
 
     def needs_expansion(self, request: KnowledgeExpansionRequest) -> bool:
         """Avoid image decoding and model work when the requested interval is already represented."""
@@ -330,6 +489,47 @@ def _cache_key(movie_id: str, cache_version: int, interval_id: str, timestamp_se
     return f"{movie_id}:v{cache_version}:interval:{interval_id}"
 
 
+def _detection_cache_key(request: KnowledgeExpansionRequest) -> str | None:
+    """Cache YOLO only for an identical, caller-provided captured frame."""
+    if not request.frame_hash:
+        return None
+    return f"{request.movie_id}:detection:{request.frame_hash}"
+
+
+def _grounding_cache_key(movie_id: str, queries: list[str]) -> str | None:
+    """Stable entity-plan key; a reordered but unchanged entity set is equivalent."""
+    if not queries:
+        return None
+    normalized = "\x1f".join(sorted({query.strip().casefold() for query in queries if query.strip()}))
+    if not normalized:
+        return None
+    return f"{movie_id}:grounding:{sha256(normalized.encode('utf-8')).hexdigest()}"
+
+
+def _grounding_is_complete(grounding: GroundingResponse | None, queries: list[str]) -> bool:
+    """Require every planned entity to be grounded before reusing or skipping Florence."""
+    if grounding is None or not queries:
+        return False
+    confirmed = {
+        match.matched_object.strip().casefold()
+        for match in grounding.matches
+        if match.confidence >= _GROUNDING_REUSE_CONFIDENCE
+    }
+    return all(query.strip().casefold() in confirmed for query in queries if query.strip())
+
+
+def _grounded_understanding() -> UnderstandingResponse:
+    """Explicitly mark that complete grounding made optional caption enrichment unnecessary."""
+    return UnderstandingResponse(
+        scene_description="",
+        detected_actions=[],
+        environment="",
+        important_objects=[],
+        interactions=[],
+        model="skipped_high_confidence_grounding",
+    )
+
+
 def _movie_knowledge_key(movie_id: str, cache_version: int) -> str:
     """Stable persistent key for the whole movie graph, independent of frames."""
     return f"{movie_id}:v{cache_version}:knowledge"
@@ -381,6 +581,13 @@ def _expected_scene_entities(knowledge: SemanticMovieKnowledge, scene_id: str | 
     if scene is None and timeline_active:
         prior = [item for item in knowledge.movie_scenes if item.start_seconds <= timestamp_seconds]
         scene = max(prior, key=lambda item: item.start_seconds) if prior else None
+    if scene is None and knowledge.movie_scenes:
+        # Missing catalog coverage enriches an interval with the nearest
+        # authored context; it never prevents vision/memory preprocessing.
+        scene = min(
+            knowledge.movie_scenes,
+            key=lambda item: min(abs(timestamp_seconds - item.start_seconds), abs(timestamp_seconds - item.end_seconds)),
+        )
     character_ids = set(scene.character_ids) if scene else set()
     object_ids = set(scene.object_ids) if scene else set()
     event_ids = set(scene.event_ids) if scene else set()

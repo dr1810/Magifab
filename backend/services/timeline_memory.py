@@ -126,12 +126,13 @@ class TimelineMemoryService:
         """Canonicalize interval/prompt lifetimes before any resolver sees them."""
         intervals = sorted(memory.intervals, key=lambda item: (item.start_timestamp, item.interval_id))
         repaired = []
-        seen_triggers: set[tuple[str, ...]] = set()
+        seen_intervals: set[str] = set()
         for index, interval in enumerate(intervals):
-            trigger_key = tuple(sorted(interval.triggering_event_ids))
-            if trigger_key in seen_triggers:
+            # Fixed intervals may legitimately have no new semantic trigger.
+            # Their own interval ID—not an empty event list—is the identity.
+            if interval.interval_id in seen_intervals:
                 continue
-            seen_triggers.add(trigger_key)
+            seen_intervals.add(interval.interval_id)
             next_start = intervals[index + 1].start_timestamp if index + 1 < len(intervals) else None
             if next_start is not None and (interval.end_timestamp is None or interval.end_timestamp > next_start):
                 interval.end_timestamp = next_start

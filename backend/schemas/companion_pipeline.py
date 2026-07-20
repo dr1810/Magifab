@@ -6,6 +6,47 @@ from schemas.accessibility_reasoning import AccessibilityProfile, CompanionProfi
 from schemas.interval_state import IntervalState
 
 
+class CompanionInterval(BaseModel):
+    """Content-neutral unit produced by every MagiFab content provider."""
+    model_config = ConfigDict(extra="forbid")
+    id: str = Field(min_length=1)
+    contentId: str = Field(min_length=1)
+    start: float = Field(ge=0)
+    end: float = Field(gt=0)
+    timestamp: float = Field(ge=0)
+    image: str = Field(min_length=8)
+    text: str = Field(default="", max_length=100_000)
+    metadata: dict[str, object] = Field(default_factory=dict)
+
+    @field_validator("end")
+    @classmethod
+    def end_follows_start(cls, value: float, info) -> float:
+        if value <= info.data.get("start", 0):
+            raise ValueError("end must be greater than start")
+        return value
+
+
+class CompanionIntervalPreparationRequest(BaseModel):
+    """The provider-agnostic boundary for companion preparation."""
+    model_config = ConfigDict(extra="forbid")
+    interval: CompanionInterval
+    accessibility_profile: AccessibilityProfile
+    companion_profile: CompanionProfile
+
+
+class CompanionIntervalPromptRequest(BaseModel):
+    """Provider-agnostic prompt lookup against a prepared content interval."""
+    model_config = ConfigDict(extra="forbid")
+    contentId: str = Field(min_length=1)
+    timestamp: float = Field(ge=0)
+    question: str = Field(min_length=1, max_length=2_000)
+    intent: str = Field(default="general", min_length=1, max_length=100)
+    grounding_queries: list[str] = Field(default_factory=list, max_length=20)
+    verify_faces: bool = False
+    accessibility_profile: AccessibilityProfile
+    companion_profile: CompanionProfile
+
+
 class CompanionPipelineRequest(BaseModel):
     """Interaction requests retrieve a prepared interval; they never carry an image."""
     model_config = ConfigDict(extra="forbid")
