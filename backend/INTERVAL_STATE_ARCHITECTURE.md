@@ -2,7 +2,7 @@
 
 `IntervalState` is MagiFab's only browser-facing playback object. Movie load
 preprocesses every fixed 30-second interval in chronological order. Each
-`POST /api/v1/companion/prepare` call samples one interval and persists its
+`POST /api/v1/companion/intervals/prepare` call samples one interval and persists its
 frozen snapshot. Playback and seeking only select that stored snapshot by
 timestamp; they never invoke semantic reasoning or prompt generation.
 

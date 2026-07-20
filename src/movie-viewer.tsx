@@ -12,6 +12,7 @@ import { INTERVAL_SECONDS, type CapturedVideoFrame } from './services/ai/VideoFr
 import { companionBackendService, type IntervalState } from './services/backend/CompanionBackendService'
 import { SceneStateStore } from './services/scene/SceneStateStore'
 import { toSceneState, type SceneState } from './services/scene/SceneState'
+import { captionPromptAnswer, createCaptionCompanionState } from './services/scene/captionCompanionState'
 import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import { getScene } from './services/movieService'
@@ -100,6 +101,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   latestPreparationInputsRef.current = { settings, profile }
   durationRef.current = duration
   const hasPlayableDuration = duration > 0
+  const captionSceneState = useMemo(() => createCaptionCompanionState(movie, scene, scene?.timestamp ?? currentTime), [movie, scene])
+  const activeSceneState = captionSceneState ?? sceneState
 
   useEffect(() => {
     if (import.meta.env.DEV) console.debug('[MagiFab companion] MovieViewer mounted', { movieId: movie })
@@ -107,13 +110,13 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [movie])
 
   const backendPrompts = useMemo<PromptQuestion[]>(() => {
-    return sceneState?.promptBubbles.map((prompt) => ({
+    return activeSceneState?.promptBubbles.map((prompt) => ({
       id: `backend:${prompt.id}`,
       label: prompt.label,
       question: prompt.question,
       explanation: '',
     })) ?? []
-  }, [sceneState])
+  }, [activeSceneState])
   const prompts = backendPrompts
   const [selectedPromptId, setSelectedPromptId] = useState<string>('')
 
@@ -121,7 +124,13 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     // PromptSet ownership is interval-scoped. Selecting an item in a new
     // interval must not carry an id from the previous PromptSet.
     setSelectedPromptId(prompts[0]?.id ?? '')
-  }, [sceneState?.sceneId])
+  }, [activeSceneState?.sceneId])
+
+  useEffect(() => {
+    if (!activeSceneState) return
+    setPromptOpen(true)
+    setDrawerOpen(true)
+  }, [activeSceneState?.sceneId])
 
   const traceInterval = useCallback((event: 'INTERVAL_LOADED' | 'INTERVAL_RESTORED' | 'SEEK_TO_INTERVAL' | 'PROMPTSET_RESTORED' | 'VISUALDRAWER_RESTORED' | 'INTERVAL_PRELOADED', details: Record<string, unknown>) => {
     console.info(`[MagiFab] ${event}`, { movieId: movie, ...details })
@@ -490,8 +499,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [loadIntervalState, movie, updateScene])
 
   useEffect(() => {
-    if (companionReady) setPlaying(true)
-  }, [companionReady])
+    if (movieData && hasPlayableDuration) setPlaying(true)
+  }, [hasPlayableDuration, movieData])
 
   useEffect(() => {
     if (!movieData) return
@@ -520,6 +529,18 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
 
   const selectPrompt = async (prompt: PromptQuestion) => {
     if (!movieData || isSeekingRef.current) return
+    const localState = activeSceneState
+    if (localState) {
+      const answer = captionPromptAnswer(localState, prompt.question)
+      setSelectedPromptId(prompt.id)
+      setPromptOpen(false)
+      setDrawerOpen(false)
+      setWidgetOpen(false)
+      setActiveBubble({ id: `${localState.sceneId}:${prompt.id}`, question: prompt.question, title: prompt.label, relationship: localState.emotions[0]?.summary ?? '', explanation: answer, anchor: scene?.companionPosition ?? { x: 84, y: 74 }, highlightTarget: false })
+      setAssistantText(answer)
+      if (settings.voiceAssistance || settings.readPrompts) void speakText({ text: answer, rate: settings.voiceSpeed, volume: Math.min(1, settings.voiceVolume / 100) })
+      return
+    }
     const promptIntervalId = sceneState?.sceneId
     setSelectedPromptId(prompt.id)
     setPromptOpen(false)
@@ -704,7 +725,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
           drawerOverlay={
             <VisualDrawer
               open={drawerOpen}
-              sceneState={sceneState}
+              sceneState={activeSceneState}
               onClose={() => setDrawerOpen(false)}
             />
           }

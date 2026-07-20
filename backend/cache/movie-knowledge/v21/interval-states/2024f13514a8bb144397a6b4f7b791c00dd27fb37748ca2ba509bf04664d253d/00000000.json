@@ -11,49 +11,49 @@
   "prompts": {
     "prompt_bubbles": [
       {
-        "id": "interval-prompt:critical:2.000",
+        "id": "interval-prompt:critical:2.019",
         "kind": "critical",
         "label": "Critical",
         "question": "Why is this important now: Big Buck Bunny is in the forest before the conflict escalates?",
         "priority": 1,
         "claim_ids": [],
-        "timestamp_start": 2.0,
+        "timestamp_start": 2.018733,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:memory:2.000",
+        "id": "interval-prompt:memory:2.019",
         "kind": "memory",
         "label": "Memory",
         "question": "Remember when Big Buck Bunny feels calm and content in his peaceful routine? That helps explain Big Buck Bunny is in the forest before the conflict escalates.",
         "priority": 2,
         "claim_ids": [],
-        "timestamp_start": 2.0,
+        "timestamp_start": 2.018733,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:emotion:2.000",
+        "id": "interval-prompt:emotion:2.019",
         "kind": "emotion",
         "label": "Emotion",
         "question": "Why is Big Buck Bunny feeling Big Buck Bunny feels calm and content in his peaceful routine after Big Buck Bunny is in the forest before the conflict escalates?",
         "priority": 3,
         "claim_ids": [],
-        "timestamp_start": 2.0,
+        "timestamp_start": 2.018733,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:prediction:2.000",
+        "id": "interval-prompt:prediction:2.019",
         "kind": "prediction",
         "label": "Watch next",
         "question": "Watch Big Buck Bunny is in the forest before the conflict escalates carefully—it may become important next.",
         "priority": 4,
         "claim_ids": [],
-        "timestamp_start": 2.0,
+        "timestamp_start": 2.018733,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"

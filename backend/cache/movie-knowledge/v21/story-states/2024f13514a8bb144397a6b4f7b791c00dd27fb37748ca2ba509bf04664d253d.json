@@ -4,89 +4,39 @@
     "character-big-buck-bunny": {
       "id": "character-big-buck-bunny",
       "name": "Big Buck Bunny",
-      "first_seen_timestamp": 2.0,
-      "last_seen_timestamp": 153.04858,
-      "total_screen_time": 151.04858,
+      "first_seen_timestamp": 2.018733,
+      "last_seen_timestamp": 2.018733,
+      "total_screen_time": 0.0,
       "current_visibility": true,
       "associated_events": [
-        "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.000",
-        "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.000",
-        "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.000",
-        "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.792",
-        "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:63.282",
-        "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.054",
-        "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:123.081",
-        "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.049"
+        "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
+        "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+        "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019"
       ],
       "relationships": []
     }
   },
   "known_relationships": {},
   "known_locations": {
-    "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.000": {
-      "id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.000",
+    "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019": {
+      "id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019",
       "name": "Big Buck Bunny is in the forest before the conflict escalates.",
-      "entity_type": "location"
-    },
-    "bigBuckBunny:location_changed:claim-54d07989698dcc24:32.792": {
-      "id": "bigBuckBunny:location_changed:claim-54d07989698dcc24:32.792",
-      "name": "Big Buck Bunny is in the forest before the conflict escalates. Visible now: Big Buck Bunny.",
       "entity_type": "location"
     }
   },
   "known_objects": {},
-  "current_interval_id": "bigBuckBunny:interval:5",
-  "current_timestamp": 153.04858,
-  "current_location": "Big Buck Bunny is in the forest before the conflict escalates. Visible now: Big Buck Bunny.",
+  "current_interval_id": "bigBuckBunny:interval:0",
+  "current_timestamp": 2.018733,
+  "current_location": "Big Buck Bunny is in the forest before the conflict escalates.",
   "current_goal": null,
   "active_emotions": {
     "character-big-buck-bunny": "Big Buck Bunny feels calm and content in his peaceful routine."
   },
   "recent_events": [
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-1ae534c193b01b9d"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-7ba088e2f7e7ce2f"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    }
-  ],
-  "story_so_far": [
-    {
-      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "character_introduced",
@@ -106,9 +56,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -128,9 +78,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -144,9 +94,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
@@ -166,9 +116,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 1.0,
       "confidence": 0.5545768141746521,
       "event_type": "location_changed",
@@ -180,221 +130,57 @@
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": false
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-8c5315022c4a3e34:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-8c5315022c4a3e34"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-e0eaaedb8667c750"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:location_changed:claim-54d07989698dcc24:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
-      "importance_score": 1.0,
-      "confidence": 0.43449945747852325,
-      "event_type": "location_changed",
-      "semantic_claim_ids": [
-        "claim-54d07989698dcc24"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny is in the forest before the conflict escalates. Visible now: Big Buck Bunny.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": false
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-7742977b02e4fc4e:63.282",
-      "timestamp_start": 63.282013,
-      "timestamp_end": 63.282013,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-7742977b02e4fc4e"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:63.282",
-      "timestamp_start": 63.282013,
-      "timestamp_end": 63.282013,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-0ade7df2574f952a"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-de71ffe0fcbffde9:93.054",
-      "timestamp_start": 93.053729,
-      "timestamp_end": 93.053729,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-de71ffe0fcbffde9"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.054",
-      "timestamp_start": 93.053729,
-      "timestamp_end": 93.053729,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-1b921e795be366a0"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-b2ad18b49f620ae9:123.081",
-      "timestamp_start": 123.080802,
-      "timestamp_end": 123.080802,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-b2ad18b49f620ae9"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:123.081",
-      "timestamp_start": 123.080802,
-      "timestamp_end": 123.080802,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-4e4c6ddaef46b1e4"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-1ae534c193b01b9d"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-7ba088e2f7e7ce2f"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
     }
   ],
-  "open_story_threads": [],
-  "resolved_threads": [],
-  "memory_reminders": [
+  "story_so_far": [
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-38b7653251d0b568"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-e84d8e27d0f3770b"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
@@ -408,9 +194,9 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
@@ -430,30 +216,34 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-8c5315022c4a3e34:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
+      "event_id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
+      "importance_score": 1.0,
+      "confidence": 0.5545768141746521,
+      "event_type": "location_changed",
       "semantic_claim_ids": [
-        "claim-8c5315022c4a3e34"
+        "claim-15564624814f7fd3"
       ],
       "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
+      "summary": "Big Buck Bunny is in the forest before the conflict escalates.",
       "is_new": true,
       "requires_memory": true,
-      "requires_prompt": true
-    },
+      "requires_prompt": false
+    }
+  ],
+  "open_story_threads": [],
+  "resolved_threads": [],
+  "memory_reminders": [
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
+      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
-      "event_type": "emotion_changed",
+      "event_type": "character_introduced",
       "semantic_claim_ids": [
-        "claim-e0eaaedb8667c750"
+        "claim-38b7653251d0b568"
       ],
       "entities": [
         {
@@ -462,36 +252,20 @@
           "entity_type": "character"
         }
       ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "summary": "Big Buck Bunny is introduced",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-7742977b02e4fc4e:63.282",
-      "timestamp_start": 63.282013,
-      "timestamp_end": 63.282013,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-7742977b02e4fc4e"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:63.282",
-      "timestamp_start": 63.282013,
-      "timestamp_end": 63.282013,
+      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
-      "event_type": "emotion_changed",
+      "event_type": "timeline_changed",
       "semantic_claim_ids": [
-        "claim-0ade7df2574f952a"
+        "claim-e84d8e27d0f3770b"
       ],
       "entities": [
         {
@@ -500,20 +274,20 @@
           "entity_type": "character"
         }
       ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "summary": "appears in",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-de71ffe0fcbffde9:93.054",
-      "timestamp_start": 93.053729,
-      "timestamp_end": 93.053729,
+      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
       "semantic_claim_ids": [
-        "claim-de71ffe0fcbffde9"
+        "claim-6b198b0ff4e68625"
       ],
       "entities": [],
       "summary": "Big Buck Bunny's quiet forest routine.",
@@ -522,90 +296,14 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.054",
-      "timestamp_start": 93.053729,
-      "timestamp_end": 93.053729,
+      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
       "semantic_claim_ids": [
-        "claim-1b921e795be366a0"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-b2ad18b49f620ae9:123.081",
-      "timestamp_start": 123.080802,
-      "timestamp_end": 123.080802,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-b2ad18b49f620ae9"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:123.081",
-      "timestamp_start": 123.080802,
-      "timestamp_end": 123.080802,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-4e4c6ddaef46b1e4"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-1ae534c193b01b9d"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "emotion_changed",
-      "semantic_claim_ids": [
-        "claim-7ba088e2f7e7ce2f"
+        "claim-cfbf2e399cb875c2"
       ],
       "entities": [
         {
@@ -623,9 +321,9 @@
   "character_history": {
     "character-big-buck-bunny": [
       {
-        "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.000",
-        "timestamp_start": 2.0,
-        "timestamp_end": 2.0,
+        "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
+        "timestamp_start": 2.018733,
+        "timestamp_end": 2.018733,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "character_introduced",
@@ -645,9 +343,9 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.000",
-        "timestamp_start": 2.0,
-        "timestamp_end": 2.0,
+        "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+        "timestamp_start": 2.018733,
+        "timestamp_end": 2.018733,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "timeline_changed",
@@ -667,124 +365,14 @@
         "requires_prompt": true
       },
       {
-        "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.000",
-        "timestamp_start": 2.0,
-        "timestamp_end": 2.0,
+        "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
+        "timestamp_start": 2.018733,
+        "timestamp_end": 2.018733,
         "importance_score": 2.5,
         "confidence": 1.0,
         "event_type": "emotion_changed",
         "semantic_claim_ids": [
           "claim-cfbf2e399cb875c2"
-        ],
-        "entities": [
-          {
-            "id": "character-big-buck-bunny",
-            "name": "Big Buck Bunny",
-            "entity_type": "character"
-          }
-        ],
-        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-        "is_new": true,
-        "requires_memory": true,
-        "requires_prompt": true
-      },
-      {
-        "event_id": "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.792",
-        "timestamp_start": 32.791705,
-        "timestamp_end": 32.791705,
-        "importance_score": 2.5,
-        "confidence": 1.0,
-        "event_type": "emotion_changed",
-        "semantic_claim_ids": [
-          "claim-e0eaaedb8667c750"
-        ],
-        "entities": [
-          {
-            "id": "character-big-buck-bunny",
-            "name": "Big Buck Bunny",
-            "entity_type": "character"
-          }
-        ],
-        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-        "is_new": true,
-        "requires_memory": true,
-        "requires_prompt": true
-      },
-      {
-        "event_id": "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:63.282",
-        "timestamp_start": 63.282013,
-        "timestamp_end": 63.282013,
-        "importance_score": 2.5,
-        "confidence": 1.0,
-        "event_type": "emotion_changed",
-        "semantic_claim_ids": [
-          "claim-0ade7df2574f952a"
-        ],
-        "entities": [
-          {
-            "id": "character-big-buck-bunny",
-            "name": "Big Buck Bunny",
-            "entity_type": "character"
-          }
-        ],
-        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-        "is_new": true,
-        "requires_memory": true,
-        "requires_prompt": true
-      },
-      {
-        "event_id": "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.054",
-        "timestamp_start": 93.053729,
-        "timestamp_end": 93.053729,
-        "importance_score": 2.5,
-        "confidence": 1.0,
-        "event_type": "emotion_changed",
-        "semantic_claim_ids": [
-          "claim-1b921e795be366a0"
-        ],
-        "entities": [
-          {
-            "id": "character-big-buck-bunny",
-            "name": "Big Buck Bunny",
-            "entity_type": "character"
-          }
-        ],
-        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-        "is_new": true,
-        "requires_memory": true,
-        "requires_prompt": true
-      },
-      {
-        "event_id": "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:123.081",
-        "timestamp_start": 123.080802,
-        "timestamp_end": 123.080802,
-        "importance_score": 2.5,
-        "confidence": 1.0,
-        "event_type": "emotion_changed",
-        "semantic_claim_ids": [
-          "claim-4e4c6ddaef46b1e4"
-        ],
-        "entities": [
-          {
-            "id": "character-big-buck-bunny",
-            "name": "Big Buck Bunny",
-            "entity_type": "character"
-          }
-        ],
-        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
-        "is_new": true,
-        "requires_memory": true,
-        "requires_prompt": true
-      },
-      {
-        "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.049",
-        "timestamp_start": 153.04858,
-        "timestamp_end": 153.04858,
-        "importance_score": 2.5,
-        "confidence": 1.0,
-        "event_type": "emotion_changed",
-        "semantic_claim_ids": [
-          "claim-7ba088e2f7e7ce2f"
         ],
         "entities": [
           {
@@ -803,9 +391,9 @@
   "relationship_history": {},
   "timeline_history": [
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "timeline_changed",
@@ -825,94 +413,14 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.000",
-      "timestamp_start": 2.0,
-      "timestamp_end": 2.0,
+      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
+      "timestamp_start": 2.018733,
+      "timestamp_end": 2.018733,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
       "semantic_claim_ids": [
         "claim-6b198b0ff4e68625"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-8c5315022c4a3e34:32.792",
-      "timestamp_start": 32.791705,
-      "timestamp_end": 32.791705,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-8c5315022c4a3e34"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-7742977b02e4fc4e:63.282",
-      "timestamp_start": 63.282013,
-      "timestamp_end": 63.282013,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-7742977b02e4fc4e"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-de71ffe0fcbffde9:93.054",
-      "timestamp_start": 93.053729,
-      "timestamp_end": 93.053729,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-de71ffe0fcbffde9"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-b2ad18b49f620ae9:123.081",
-      "timestamp_start": 123.080802,
-      "timestamp_end": 123.080802,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-b2ad18b49f620ae9"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.049",
-      "timestamp_start": 153.04858,
-      "timestamp_end": 153.04858,
-      "importance_score": 2.5,
-      "confidence": 0.9,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-1ae534c193b01b9d"
       ],
       "entities": [],
       "summary": "Big Buck Bunny's quiet forest routine.",

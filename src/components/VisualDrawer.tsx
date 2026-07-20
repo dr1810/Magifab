@@ -4,10 +4,11 @@ import { ChevronDown } from 'lucide-react'
 import { useAccessibility } from '../accessibility-context'
 import type { SceneState } from '../services/scene/SceneState'
 
-type TabKey = 'story' | 'relationships' | 'emotions' | 'objects' | 'memory' | 'timeline' | 'causeEffect' | 'conversation' | 'summary'
+type TabKey = 'story' | 'characters' | 'relationships' | 'emotions' | 'objects' | 'memory' | 'timeline' | 'causeEffect' | 'conversation' | 'summary'
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'story', label: 'Story Now' },
+  { key: 'characters', label: 'Characters' },
   { key: 'relationships', label: 'Relationships' },
   { key: 'emotions', label: 'Emotions' },
   { key: 'objects', label: 'Objects' },
@@ -22,9 +23,10 @@ type VisualDrawerProps = {
   open: boolean
   sceneState?: SceneState | null
   onClose: () => void
+  presentation?: 'default' | 'book-sheet'
 }
 
-export function VisualDrawer({ open, sceneState, onClose }: VisualDrawerProps) {
+export function VisualDrawer({ open, sceneState, onClose, presentation = 'default' }: VisualDrawerProps) {
   const { settings } = useAccessibility()
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
   const [activeTab, setActiveTab] = useState<TabKey>('relationships')
@@ -32,6 +34,10 @@ export function VisualDrawer({ open, sceneState, onClose }: VisualDrawerProps) {
   const scrollTopRef = useRef(0)
   const renderedIntervalIdRef = useRef<string | null>(null)
   const contentControls = useAnimation()
+  const [sheetHeight, setSheetHeight] = useState<'collapsed' | 'half' | 'expanded'>('half')
+  const dragStartRef = useRef<number | null>(null)
+  const isBookSheet = presentation === 'book-sheet'
+  const sheetHeights = { collapsed: '68px', half: '52vh', expanded: '80vh' }
 
   useLayoutEffect(() => {
     if (!sceneState || sceneState.sceneId === renderedIntervalIdRef.current) return
@@ -53,25 +59,26 @@ export function VisualDrawer({ open, sceneState, onClose }: VisualDrawerProps) {
       {open && (
         <motion.section
           ref={drawerRef}
-          className="visual-drawer"
+          className={`visual-drawer ${isBookSheet ? 'book-visual-sheet' : ''}`}
           aria-label="Visual aids drawer"
           initial={reduceMotion ? false : { y: '100%' }}
           animate={{ y: 0 }}
           exit={reduceMotion ? { y: 0 } : { y: '100%' }}
-          transition={{ duration: reduceMotion ? 0 : 0.18, ease: 'easeOut' }}
-          style={{ position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'min(48%, 360px)', overflow: 'auto' }}
+          transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 34, mass: .8 }}
+          style={isBookSheet ? { position: 'fixed', inset: 'auto 0 0', zIndex: 200, height: sheetHeights[sheetHeight], overflow: 'auto' } : { position: 'absolute', inset: 'auto 0 0', zIndex: 50, height: 'min(48%, 360px)', overflow: 'auto' }}
           onScroll={(event) => { scrollTopRef.current = event.currentTarget.scrollTop }}
         >
+          {isBookSheet && <button type="button" className="book-sheet-handle" aria-label="Resize Story Companion" onPointerDown={(event) => { dragStartRef.current = event.clientY }} onPointerUp={(event) => { const start = dragStartRef.current; dragStartRef.current = null; if (start === null) return; const delta = event.clientY - start; setSheetHeight((height) => delta > 42 ? 'collapsed' : delta < -42 ? 'expanded' : height === 'collapsed' ? 'half' : height) }} onClick={() => setSheetHeight((height) => height === 'collapsed' ? 'half' : height === 'half' ? 'expanded' : 'collapsed')}><span/></button>}
           <div className="drawer-header">
             <div><p className="eyebrow">Visual Aids</p><h3>Story Companion</h3></div>
-            <button className="ghost-btn" onClick={onClose}><ChevronDown size={16} /> Close</button>
+            <button className="ghost-btn" onClick={() => isBookSheet && sheetHeight !== 'collapsed' ? setSheetHeight('collapsed') : onClose()}><ChevronDown size={16} /> {isBookSheet && sheetHeight !== 'collapsed' ? 'Collapse' : 'Close'}</button>
           </div>
-          <div className="tab-row" role="tablist" aria-label="Visual aid tabs">
+          {sheetHeight !== 'collapsed' && <><div className="tab-row" role="tablist" aria-label="Visual aid tabs">
             {tabs.map((tab) => <button key={tab.key} role="tab" aria-selected={activeTab === tab.key} className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} onClick={() => setActiveTab(tab.key)}>{tab.label}</button>)}
           </div>
           <motion.div className="drawer-content" initial={false} animate={contentControls}>
             <SceneStateDrawerContent activeTab={activeTab} state={sceneState ?? null} />
-          </motion.div>
+          </motion.div></>}
         </motion.section>
       )}
     </AnimatePresence>
@@ -87,6 +94,7 @@ function SceneStateDrawerContent({ activeTab, state }: { activeTab: TabKey; stat
     ['Story so far', state.story.storySoFar],
     ['Unresolved', state.story.unresolvedThreads],
   ]} />
+  if (activeTab === 'characters') return <NodeGrid items={state.characters.map((item) => [item.name, item.reminder] as const)} empty="No character information is available for this part of the story yet." />
   if (activeTab === 'relationships') return <NodeGrid items={[
     ...state.characters.map((item) => [item.name, item.reminder] as const),
     ...state.relationships.map((item) => ['Relationship', item.summary] as const),

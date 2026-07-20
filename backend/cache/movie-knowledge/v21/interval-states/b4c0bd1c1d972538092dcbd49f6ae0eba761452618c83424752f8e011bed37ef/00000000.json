@@ -11,49 +11,49 @@
   "prompts": {
     "prompt_bubbles": [
       {
-        "id": "interval-prompt:critical:5.000",
+        "id": "interval-prompt:critical:5.005",
         "kind": "critical",
         "label": "Critical",
         "question": "Why is this important now: The group enters the isolated forest?",
         "priority": 1,
         "claim_ids": [],
-        "timestamp_start": 5.0,
+        "timestamp_start": 5.005494,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:memory:5.000",
+        "id": "interval-prompt:memory:5.005",
         "kind": "memory",
         "label": "Memory",
         "question": "Remember when Ellie is alert and curious as the group enters the forest? That helps explain The group enters the isolated forest.",
         "priority": 2,
         "claim_ids": [],
-        "timestamp_start": 5.0,
+        "timestamp_start": 5.005494,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:emotion:5.000",
+        "id": "interval-prompt:emotion:5.005",
         "kind": "emotion",
         "label": "Emotion",
         "question": "Why is Ellie feeling Ellie is alert and curious as the group enters the forest after The group enters the isolated forest?",
         "priority": 3,
         "claim_ids": [],
-        "timestamp_start": 5.0,
+        "timestamp_start": 5.005494,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"
       },
       {
-        "id": "interval-prompt:prediction:5.000",
+        "id": "interval-prompt:prediction:5.005",
         "kind": "prediction",
         "label": "Watch next",
         "question": "Watch The group enters the isolated forest carefully—it may become important next.",
         "priority": 4,
         "claim_ids": [],
-        "timestamp_start": 5.0,
+        "timestamp_start": 5.005494,
         "timestamp_end": null,
         "semantic_event": "location_changed",
         "screen_location": "bottom-right"

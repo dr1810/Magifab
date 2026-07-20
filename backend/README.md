@@ -31,7 +31,7 @@ Scene-level Semantic Movie Knowledge retrieval
 
 ## Retrieval and caching
 
-`POST /api/v1/companion/prepare` is the preparation endpoint. It is the only companion endpoint permitted to run perception for an unknown scene. `POST /api/v1/companion/respond` is retrieval-only: it reads a prepared scene and never decodes an image, runs a perception model, or calls GPT.
+`POST /api/v1/companion/intervals/prepare` is the preparation endpoint. It is the only companion endpoint permitted to run perception for an unknown scene. `POST /api/v1/companion/respond` is retrieval-only: it reads a prepared scene and never decodes an image, runs a perception model, or calls GPT.
 
 ## Preparation-first runtime
 

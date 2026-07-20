@@ -1,0 +1,339 @@
+{
+  "metadata": {
+    "interval_id": "spriteFright:interval:7",
+    "catalog_scene_id": "sf-02",
+    "movie_id": "spriteFright",
+    "start_time": 210.0,
+    "end_time": 240.0,
+    "interval_number": 7,
+    "knowledge_revision": 9
+  },
+  "prompts": {
+    "prompt_bubbles": [
+      {
+        "id": "interval-prompt:critical:212.013",
+        "kind": "critical",
+        "label": "Critical",
+        "question": "Why is this important now: The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite?",
+        "priority": 1,
+        "claim_ids": [],
+        "timestamp_start": 212.013207,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:memory:212.013",
+        "kind": "memory",
+        "label": "Memory",
+        "question": "Remember when The group becomes wary when they encounter the mushroom sprites? That helps explain The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+        "priority": 2,
+        "claim_ids": [],
+        "timestamp_start": 212.013207,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:emotion:212.013",
+        "kind": "emotion",
+        "label": "Emotion",
+        "question": "Why is Ellie feeling Ellie is alert and curious as the group enters the forest after The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite?",
+        "priority": 3,
+        "claim_ids": [],
+        "timestamp_start": 212.013207,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:prediction:212.013",
+        "kind": "prediction",
+        "label": "Watch next",
+        "question": "Watch The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite carefully—it may become important next.",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 212.013207,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      }
+    ],
+    "prompt_answers": [],
+    "suggested_questions": [
+      "Why is this important now: The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite?",
+      "Remember when The group becomes wary when they encounter the mushroom sprites? That helps explain The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+      "Why is Ellie feeling Ellie is alert and curious as the group enters the forest after The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite?",
+      "Watch The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite carefully—it may become important next."
+    ]
+  },
+  "visualDrawer": {
+    "now": "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+    "who": [
+      "Ellie: Ellie is alert and curious as the group enters the forest.",
+      "Rex: Important character"
+    ],
+    "important": [
+      "Story develops"
+    ],
+    "remember": [
+      "Mushroom Sprite is introduced"
+    ],
+    "why": "Because the group becomes wary when they encounter the mushroom sprites., the group encounters the mushroom sprites. Visible…",
+    "next": "Watch for the next change in the situation.",
+    "word_count": 58,
+    "story_now": [
+      "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite."
+    ],
+    "relationships": [
+      "Rex and Phil are together in this story moment.",
+      "Victoria and Phil are together in this story moment.",
+      "Rex and Victoria are together in this story moment.",
+      "Victoria and Mushroom Sprite are together in this story moment."
+    ],
+    "timeline": [
+      "The group becomes wary when they encounter the mushroom sprites.",
+      "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite."
+    ],
+    "emotion": "Ellie, Rex, Jay, Victoria feel curious because the group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+    "cause_effect": [
+      {
+        "cause": "The group becomes wary when they encounter the mushroom sprites.",
+        "effect": "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite."
+      }
+    ],
+    "objects": [],
+    "memory": [
+      "Ellie is alert and curious as the group enters the forest.",
+      "Victoria and Phil are together in this story moment."
+    ]
+  },
+  "storyState": {
+    "scene_summary": "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+    "current_goal": null,
+    "current_interval_id": "spriteFright:interval:7",
+    "timeline_position": "Story develops",
+    "story_so_far": [
+      "Rex and Victoria are together in this story moment.",
+      "The teenagers enter the isolated forest.",
+      "Ellie is alert and curious as the group enters the forest.",
+      "Victoria and Phil are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Victoria, Phil."
+    ],
+    "unresolved_threads": []
+  },
+  "characters": [
+    {
+      "character_id": "character-0",
+      "name": "Ellie",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-1",
+      "name": "Rex",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-2",
+      "name": "Jay",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-3",
+      "name": "Victoria",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-4",
+      "name": "Phil",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-5",
+      "name": "Mushroom Sprite",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "relationship-0",
+      "summary": "Rex and Phil are together in this story moment.",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "relationship_id": "relationship-1",
+      "summary": "Victoria and Phil are together in this story moment.",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "relationship_id": "relationship-2",
+      "summary": "Rex and Victoria are together in this story moment.",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "relationship_id": "relationship-3",
+      "summary": "Victoria and Mushroom Sprite are together in this story moment.",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "memory": [
+    {
+      "summary": "Mushroom Sprite is introduced",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "summary": "Victoria and Mushroom Sprite are together in this story moment.",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "conversationContext": {
+    "scene_explanation": "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+    "simplifications": []
+  },
+  "accessibilityHints": {
+    "vocabulary": [],
+    "emotions": [
+      {
+        "emotion_id": "emotion-0",
+        "summary": "Curious",
+        "confidence": 1.0,
+        "claim_ids": []
+      }
+    ]
+  },
+  "semanticMemoryBefore": {
+    "active_characters": [
+      "Ellie",
+      "Rex",
+      "Jay",
+      "Victoria",
+      "Phil",
+      "Mushroom Sprite"
+    ],
+    "relationships": [
+      "Rex and Phil are together in this story moment.",
+      "Victoria and Phil are together in this story moment.",
+      "Rex and Victoria are together in this story moment.",
+      "Victoria and Mushroom Sprite are together in this story moment."
+    ],
+    "emotions": [
+      "Ellie is alert and curious as the group enters the forest."
+    ],
+    "important_objects": [
+      "person"
+    ],
+    "unresolved_threads": [],
+    "story_events": [
+      "Ellie is introduced",
+      "Rex is introduced",
+      "Jay is introduced",
+      "Victoria is introduced",
+      "Phil is introduced",
+      "appears in",
+      "The teenagers enter the isolated forest.",
+      "Ellie is alert and curious as the group enters the forest.",
+      "The group enters the isolated forest.",
+      "Rex and Phil are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Rex, Phil.",
+      "Victoria and Phil are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Victoria, Phil.",
+      "The group enters the isolated forest. Visible now: Victoria.",
+      "person becomes important",
+      "Rex and Victoria are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Rex, Victoria, person.",
+      "Mushroom Sprite is introduced",
+      "The teenagers encounter the mushroom sprites in the forest.",
+      "Victoria and Mushroom Sprite are together in this story moment.",
+      "The group encounters the mushroom sprites.",
+      "The group becomes wary when they encounter the mushroom sprites.",
+      "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite, person."
+    ]
+  },
+  "semanticMemoryAfter": {
+    "active_characters": [
+      "Ellie",
+      "Rex",
+      "Jay",
+      "Victoria",
+      "Phil",
+      "Mushroom Sprite"
+    ],
+    "relationships": [
+      "Rex and Phil are together in this story moment.",
+      "Victoria and Phil are together in this story moment.",
+      "Rex and Victoria are together in this story moment.",
+      "Victoria and Mushroom Sprite are together in this story moment."
+    ],
+    "emotions": [
+      "Ellie is alert and curious as the group enters the forest."
+    ],
+    "important_objects": [
+      "person"
+    ],
+    "unresolved_threads": [],
+    "story_events": [
+      "Ellie is introduced",
+      "Rex is introduced",
+      "Jay is introduced",
+      "Victoria is introduced",
+      "Phil is introduced",
+      "appears in",
+      "The teenagers enter the isolated forest.",
+      "Ellie is alert and curious as the group enters the forest.",
+      "The group enters the isolated forest.",
+      "Rex and Phil are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Rex, Phil.",
+      "Victoria and Phil are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Victoria, Phil.",
+      "The group enters the isolated forest. Visible now: Victoria.",
+      "person becomes important",
+      "Rex and Victoria are together in this story moment.",
+      "The group enters the isolated forest. Visible now: Rex, Victoria, person.",
+      "Mushroom Sprite is introduced",
+      "The teenagers encounter the mushroom sprites in the forest.",
+      "Victoria and Mushroom Sprite are together in this story moment.",
+      "The group encounters the mushroom sprites.",
+      "The group becomes wary when they encounter the mushroom sprites.",
+      "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite, person.",
+      "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite."
+    ]
+  },
+  "timelineMemory": {
+    "timeline_position": "Story develops",
+    "previous_event": "The group becomes wary when they encounter the mushroom sprites.",
+    "current_event": "The group encounters the mushroom sprites. Visible now: Victoria, Mushroom Sprite.",
+    "next_event": null,
+    "is_movie_start": false,
+    "is_movie_end": false
+  },
+  "cacheMetadata": {
+    "semantic_cache_key": "spriteFright:v21:interval:spriteFright:interval:7",
+    "knowledge_source": "expanded",
+    "semantic_map_cached": false,
+    "frame_hash": "8b277d491c8a6ce95dc0482f772ffe87662f9cda5ba790ec1a136500b2a03fb7"
+  }
+}

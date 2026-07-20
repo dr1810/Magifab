@@ -23,6 +23,7 @@ export type PromptBubbleContent = {
   visualAidType?: 'magnifier' | 'highlight'
   highlightTarget: boolean
   loading?: boolean
+  absolutePosition?: { left: number; top: number }
 }
 
 function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpenCompanion, onClose }: FloatingBubbleProps) {
@@ -64,7 +65,7 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
           <motion.aside
             key={content.id}
             className={calloutClass}
-            style={{ left: `${cardLeft}%`, top: `${bubbleTop}%` }}
+            style={content.absolutePosition ? { left: content.absolutePosition.left, top: content.absolutePosition.top } : { left: `${cardLeft}%`, top: `${bubbleTop}%` }}
             initial={reduceMotion ? false : { opacity: 0, scale: 0.92, y: 10 }}
             animate={stableAnimation}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}

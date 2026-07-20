@@ -36,6 +36,7 @@ from services.story_event_extractor import StoryEventExtractor
 from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 from services.interval_state_store import IntervalStateRepository
+from services.book_scene_pipeline import BookScenePipeline
 
 
 def configure_logging(settings: Settings) -> None:
@@ -190,6 +191,12 @@ def get_timeline_memory_service() -> TimelineMemoryService:
 def get_interval_state_repository() -> IntervalStateRepository:
     settings = get_settings()
     return IntervalStateRepository(settings.knowledge_store_dir, settings.semantic_cache_version)
+
+
+@lru_cache
+def get_book_scene_pipeline() -> BookScenePipeline:
+    """Book-only source normalization before the shared SceneState boundary."""
+    return BookScenePipeline()
 
 
 @lru_cache

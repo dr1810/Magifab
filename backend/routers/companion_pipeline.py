@@ -1,14 +1,13 @@
 """Retrieval-first runtime endpoint for the full MagiFab backend pipeline."""
 import logging
-from time import perf_counter
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
 
 from adapters.openai_personalizer import PersonalizationConfigurationError, PersonalizationProviderError
-from app import get_companion_pipeline_service
+from app import get_book_scene_pipeline, get_companion_pipeline_service
 from config import Settings, get_settings
 from schemas.companion_pipeline import CompanionInterval, CompanionIntervalPreparationRequest, CompanionIntervalPromptRequest, CompanionPipelineRequest, CompanionPipelineResponse, IntervalPreparationRequest, IntervalPreparationResponse, PreprocessingCompletionRequest
 from services.companion_pipeline import CompanionPipelineService
+from services.book_scene_pipeline import BookScenePipeline
 from services.frame_validation import InvalidFrameError, validate_frame
 from utils.image import decode_base64_image_with_size
 
@@ -78,9 +77,12 @@ def prepare_companion_interval(
     request: CompanionIntervalPreparationRequest,
     settings: Settings = Depends(get_settings),
     service: CompanionPipelineService = Depends(get_companion_pipeline_service),
+    book_pipeline: BookScenePipeline = Depends(get_book_scene_pipeline),
 ) -> IntervalPreparationResponse:
     """Prepare any provider's interval without branching on its source type."""
     interval = request.interval
+    if interval.metadata.get("provider") == "book":
+        return book_pipeline.prepare(interval)
     normalized = _normalize_companion_interval(interval, request.accessibility_profile, request.companion_profile)
     try:
         image, file_size, frame_hash = decode_base64_image_with_size(interval.image, settings)
@@ -92,54 +94,6 @@ def prepare_companion_interval(
     except (ValueError, AssertionError) as error:
         logger.exception("[COMPANION_INTERVAL_FAILED] content=%s interval=%s", interval.contentId, interval.id)
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Companion interval preprocessing failed.") from error
-
-
-@router.post("/prepare", response_model=IntervalPreparationResponse)
-def prepare_interval(
-    request: IntervalPreparationRequest,
-    settings: Settings = Depends(get_settings),
-    service: CompanionPipelineService = Depends(get_companion_pipeline_service),
-) -> IntervalPreparationResponse:
-    """Run perception once for a fixed interval before playback is available."""
-    started = perf_counter()
-    try:
-        logger.info("[INTERVAL_STARTED] movie=%s interval=%s start=%.2f end=%.2f", request.movie_id, request.interval_id, request.interval_start, request.interval_end)
-        logger.info("[TRACE][PREPARE] start movie_id=%s interval_id=%s timestamp=%s", request.movie_id, request.interval_id, request.timestamp_seconds)
-        decode_started = perf_counter()
-        image, file_size, frame_hash = decode_base64_image_with_size(request.image, settings)
-        logger.info("[TRACE][FRAME_CAPTURE] executed=yes movie=%s interval=%s frame_hash=%s input_bytes=%d output=%dx%d duration_ms=%.1f", request.movie_id, request.interval_id, frame_hash, file_size, image.width, image.height, (perf_counter() - decode_started) * 1000)
-        validation_started = perf_counter()
-        validate_frame(
-            image,
-            file_size=file_size,
-            timestamp=request.timestamp_seconds,
-            debug_dir=settings.debug_frames_dir,
-            movie_id=request.movie_id,
-            scene_id=request.interval_id,
-            frame_hash=frame_hash,
-        )
-        logger.info("[TRACE][FRAME_VALIDATION] executed=yes output=valid duration_ms=%.1f", (perf_counter() - validation_started) * 1000)
-        logger.info("[FRAME_SELECTED] movie=%s interval=%s timestamp=%.3f frame_hash=%s", request.movie_id, request.interval_id, request.timestamp_seconds, frame_hash)
-        response = service.prepare(request, image, frame_hash)
-        serialized = response.model_dump(mode="json")
-        logger.info(
-            "[TRACE][FASTAPI_SERIALIZATION] executed=yes interval_prompts=%d first_prompt=%s response_list_id=%s dumped_prompt_count=%d dumped_first=%s",
-            len(response.prompts.prompt_bubbles), response.prompts.prompt_bubbles[0].label if response.prompts.prompt_bubbles else None,
-            id(response.prompts.prompt_bubbles), len(serialized["prompts"]["prompt_bubbles"]), serialized["prompts"]["prompt_bubbles"][0]["label"] if serialized["prompts"]["prompt_bubbles"] else None,
-        )
-        logger.info("[INTERVAL_READY] movie=%s interval=%s", request.movie_id, request.interval_id)
-        logger.info(
-            "[TRACE][API_RESPONSE] executed=yes output interval_prompts=%d characters=%d relationships=%d duration_ms=%.1f",
-            len(response.prompts.prompt_bubbles), len(response.characters), len(response.relationships), (perf_counter() - started) * 1000,
-        )
-        return response
-    except InvalidFrameError as error:
-        logger.warning("[FRAME_REJECTED] movie=%s interval=%s reason=%s", request.movie_id, request.interval_id, error.reason)
-        logger.warning("[FAILED_INTERVAL] movie=%s interval=%s stage=frame_validation reason=%s", request.movie_id, request.interval_id, error.reason)
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="A valid interval frame is required for preprocessing.") from error
-    except (ValueError, AssertionError) as error:
-        logger.exception("[FAILED_INTERVAL] movie=%s interval=%s stage=prepare", request.movie_id, request.interval_id)
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Interval preprocessing failed.") from error
 
 
 def _normalize_companion_interval(interval: CompanionInterval, accessibility_profile, companion_profile) -> IntervalPreparationRequest:
