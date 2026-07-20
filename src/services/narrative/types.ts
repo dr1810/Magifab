@@ -13,6 +13,23 @@ export type NarrativeCharacter = {
   relationships: string[]
   firstAppearance: number
   importantInformation: string[]
+  visualDescription: string
+  confidenceThreshold: number
+  lastAppearance?: number
+}
+
+export type VisualGrounding = {
+  visibleEntityIds: string[]
+  missingEntityIds: string[]
+  confidence: Record<string, number>
+  evidence: Record<string, string[]>
+  visibleObjects: string[]
+}
+
+export type DialogueReference = {
+  speakerEntityId?: string
+  targetEntityIds: string[]
+  pronouns: Array<{ pronoun: string; resolvedEntityId: string; evidence: string }>
 }
 
 export type NarrativeRelationship = {
@@ -29,6 +46,8 @@ export type NarrativePrompt = {
   explanation: string
   difficultyCategory: string
   priority?: number
+  subjectEntityIds?: string[]
+  evidence?: string[]
 }
 
 export type VisualAidNode = { type: VisualAidType; content: string; visualizationDescription: string }
@@ -49,12 +68,15 @@ export type NarrativeScene = {
   title: string
   summary: string
   characters: string[]
+  visualGrounding: VisualGrounding
+  dialogueReferences: DialogueReference[]
   events: string[]
   emotions: Array<{ character?: string; emotion: string; explanation: string }>
   relationships: string[]
   objects: string[]
   conversationSummary: string
   importantDetails: string[]
+  causeEffect: Array<{ cause: string; effect: string }>
   timelinePosition: string
   memoryCheckpoint: string[]
   accessibility: AccessibilityGraph

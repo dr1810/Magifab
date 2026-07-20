@@ -59,6 +59,13 @@ export type SceneData = {
   companionPosition: { x: number; y: number }
   highlightObject: HighlightObject
   voiceNarration: string
+  visibleCharacterIds?: string[]
+  missingCharacterIds?: string[]
+  entityConfidence?: Record<string, number>
+  entityEvidence?: Record<string, string[]>
+  visibleObjects?: string[]
+  promptSubjects?: Record<string, string[]>
+  dialogueReferences?: Array<{ speakerEntityId?: string; targetEntityIds: string[]; pronouns: Array<{ pronoun: string; resolvedEntityId: string; evidence: string }> }>
 }
 
 export type MovieData = {
@@ -74,4 +81,7 @@ export type MovieData = {
   subtitleSrc: string
   companionTheme: CompanionTheme
   scenes: SceneData[]
+  canonicalCharacters?: Array<{
+    id: string; name: string; description: string; personality: string; goals: string[]; relationships: string[]; firstAppearance: number; importantInformation: string[]; visualDescription: string; confidenceThreshold: number; lastAppearance?: number
+  }>
 }
