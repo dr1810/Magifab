@@ -9,27 +9,43 @@ export function useMoviePlayback(movieId: MovieId) {
   const sceneRef = useRef<SceneData | null>(null)
   const sceneTimerRef = useRef<number | null>(null)
   const sceneRequestIdRef = useRef(0)
+  const movieRequestIdRef = useRef(0)
+  const movieControllerRef = useRef<AbortController | null>(null)
+  const sceneControllerRef = useRef<AbortController | null>(null)
   const pendingTimestampRef = useRef(0)
 
   useEffect(() => {
-    let mounted = true
+    const requestId = ++movieRequestIdRef.current
+    movieControllerRef.current?.abort()
+    sceneControllerRef.current?.abort()
+    const controller = new AbortController()
+    movieControllerRef.current = controller
     setLoading(true)
+    setMovie(null)
+    setScene(null)
+    sceneRef.current = null
+    pendingTimestampRef.current = 0
 
-    void getMovie(movieId).then((response) => {
-      if (!mounted) return
+    void getMovie(movieId, controller.signal).then((response) => {
+      if (controller.signal.aborted || requestId !== movieRequestIdRef.current) return
       setMovie(response)
       setScene(response?.scenes[0] ?? null)
       sceneRef.current = response?.scenes[0] ?? null
       setLoading(false)
+    }).catch((error: unknown) => {
+      if (controller.signal.aborted || requestId !== movieRequestIdRef.current) return
+      console.warn('[MagiFab] movie load failed', error)
+      setLoading(false)
     })
 
     return () => {
-      mounted = false
+      controller.abort()
     }
   }, [movieId])
 
   useEffect(() => () => {
     if (sceneTimerRef.current !== null) window.clearTimeout(sceneTimerRef.current)
+    sceneControllerRef.current?.abort()
     sceneRequestIdRef.current += 1
   }, [movieId])
 
@@ -37,10 +53,16 @@ export function useMoviePlayback(movieId: MovieId) {
     pendingTimestampRef.current = timestamp
     const requestId = ++sceneRequestIdRef.current
     const resolveScene = (timestampToResolve: number, resolutionRequestId: number) => {
-      void getScene(movieId, timestampToResolve).then((nextScene) => {
+      sceneControllerRef.current?.abort()
+      const controller = new AbortController()
+      sceneControllerRef.current = controller
+      void getScene(movieId, timestampToResolve, controller.signal).then((nextScene) => {
+        if (controller.signal.aborted) return
         if (resolutionRequestId !== sceneRequestIdRef.current || !nextScene || nextScene.sceneId === sceneRef.current?.sceneId) return
         sceneRef.current = nextScene
         setScene(nextScene)
+      }).catch((error: unknown) => {
+        if (!controller.signal.aborted) console.warn('[MagiFab] scene lookup failed', error)
       })
     }
 

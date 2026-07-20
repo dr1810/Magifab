@@ -46,6 +46,27 @@ function fallbackState(bookId: string, pageStart: number, pageEnd: number): Scen
   }
 }
 
+function indexedState(bookId: string, pages: RenderedPage[]): SceneState {
+  const pageStart = pages[0]?.pageNumber ?? 1
+  const pageEnd = pages.at(-1)?.pageNumber ?? pageStart
+  const text = pages.map((page) => page.text).join(' ').replace(/\s+/g, ' ').trim()
+  const names = [...new Set((text.match(/\b[A-Z][a-z]{2,}\b/g) ?? []).filter((name) => !['The', 'This', 'That', 'And', 'For', 'With'].includes(name)))].slice(0, 3)
+  const characters = names.map((name) => ({ character_id: `${bookId}:${name.toLowerCase()}`, name, reminder: `Mentioned on pages ${pageStart}–${pageEnd}.`, confidence: 1 }))
+  const excerpt = text.slice(0, 280) || `Pages ${pageStart}–${pageEnd} are ready to explore.`
+  const emotionalTone = /\b(afraid|fear|scared|angry|furious|sad|cry|happy|joy|excited|worried)\b/i.exec(text)?.[0]
+  return {
+    ...fallbackState(bookId, pageStart, pageEnd),
+    sceneSummary: excerpt,
+    characters,
+    relationships: [{ relationship_id: `${bookId}:${pageStart}:characters`, summary: characters.length > 1 ? `${characters.map((character) => character.name).join(', ')} appear together on these pages.` : 'These pages establish the current reading moment.', confidence: 1 }],
+    timeline: [`Reading pages ${pageStart}–${pageEnd}`, excerpt],
+    memory: [{ summary: excerpt, confidence: 1 }],
+    emotions: [{ emotion_id: `${bookId}:${pageStart}:tone`, summary: emotionalTone ? `The text names a ${emotionalTone.toLowerCase()} feeling on these pages.` : 'The text does not name a specific emotion on these pages.', confidence: 1 }],
+    conversation: { sceneExplanation: excerpt, simplifications: [] },
+    story: { currentGoal: excerpt, timelinePosition: `Pages ${pageStart}–${pageEnd}`, storySoFar: [excerpt], unresolvedThreads: [] },
+  }
+}
+
 async function renderPage(pdf: PDFDocumentProxy, pageNumber: number): Promise<RenderedPage> {
   const page: PDFPageProxy = await pdf.getPage(pageNumber)
   const viewport = page.getViewport({ scale: Math.min(1.6, Math.max(1, window.devicePixelRatio)) })
@@ -82,6 +103,8 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const rightTurnRef = useRef<HTMLButtonElement | null>(null)
   const activeSpreadRef = useRef('')
   const sceneCacheRef = useRef(new Map<string, CachedSpread>())
+  const inFlightSpreadsRef = useRef(new Map<string, Promise<CachedSpread>>())
+  const loadGenerationRef = useRef(0)
   const [document, setDocument] = useState<PDFDocumentProxy | null>(null)
   const [bookId, setBookId] = useState('')
   const [title, setTitle] = useState('Choose a PDF')
@@ -99,38 +122,46 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
   const prompts: Array<PromptQuestion & { priority?: number }> = useMemo(() => sceneState?.promptBubbles.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '', priority: prompt.priority })) ?? [], [sceneState])
 
-  const prepareSpread = useCallback(async (pdf: PDFDocumentProxy, sourceId: string, nextSpreadStart: number, background = false) => {
+  const prepareSpread = useCallback(async (pdf: PDFDocumentProxy, sourceId: string, nextSpreadStart: number, background = false, generation = loadGenerationRef.current) => {
     const range = pageRange(nextSpreadStart, pdf.numPages)
     const cacheKey = `${sourceId}:${range.pageStart}-${range.pageEnd}`
     const cached = sceneCacheRef.current.get(cacheKey)
     if (cached) {
-      if (!background && activeSpreadRef.current === cacheKey) { setPages(cached.pages); setSceneState(cached.sceneState) }
+      if (!background && generation === loadGenerationRef.current && activeSpreadRef.current === cacheKey) { setPages(cached.pages); setSceneState(cached.sceneState) }
       return
     }
-    let extractedText = ''
     if (!background) setLoading(true)
     try {
-      const rendered = await Promise.all([renderPage(pdf, range.pageStart), range.pageEnd !== range.pageStart ? renderPage(pdf, range.pageEnd) : Promise.resolve(null)])
-      const visiblePages = rendered.filter((page): page is RenderedPage => Boolean(page))
-      extractedText = visiblePages.map((page) => page.text).join('\n\n')
-      const graph = getContentNarrativeGraph(sourceId)
-      const initialSceneState = graph
-        ? new StoryResolver(graph).resolvePage(range.pageStart, accessibilityProfile?.aiProfile ?? null) ?? fallbackState(sourceId, range.pageStart, range.pageEnd)
-        : fallbackState(sourceId, range.pageStart, range.pageEnd)
-      sceneCacheRef.current.set(cacheKey, { pages: visiblePages, sceneState: initialSceneState })
+      let task = inFlightSpreadsRef.current.get(cacheKey)
+      if (!task) {
+        task = Promise.all([renderPage(pdf, range.pageStart), range.pageEnd !== range.pageStart ? renderPage(pdf, range.pageEnd) : Promise.resolve(null)]).then((rendered) => {
+          const visiblePages = rendered.filter((page): page is RenderedPage => Boolean(page))
+          const graph = getContentNarrativeGraph(sourceId)
+          const sceneState = graph
+            ? new StoryResolver(graph).resolvePage(range.pageStart, accessibilityProfile?.aiProfile ?? null) ?? indexedState(sourceId, visiblePages)
+            : indexedState(sourceId, visiblePages)
+          return { pages: visiblePages, sceneState }
+        })
+        inFlightSpreadsRef.current.set(cacheKey, task)
+      }
+      const result = await task
+      if (generation !== loadGenerationRef.current) return
+      sceneCacheRef.current.set(cacheKey, result)
       if (!background && activeSpreadRef.current === cacheKey) {
-        setPages(visiblePages)
-        setSceneState(initialSceneState)
+        setPages(result.pages)
+        setSceneState(result.sceneState)
         setLoading(false)
       }
     } catch (error) {
+      if (generation !== loadGenerationRef.current) return
       if (!background) console.warn('[MagiFab] Book range companion preparation failed; showing local reading context.', error)
       const initialSceneState = fallbackState(sourceId, range.pageStart, range.pageEnd)
       const current = sceneCacheRef.current.get(cacheKey)
       sceneCacheRef.current.set(cacheKey, { pages: current?.pages ?? [], sceneState: initialSceneState })
       if (!background && activeSpreadRef.current === cacheKey) setSceneState(initialSceneState)
     } finally {
-      if (!background && activeSpreadRef.current === cacheKey) setLoading(false)
+      inFlightSpreadsRef.current.delete(cacheKey)
+      if (!background && generation === loadGenerationRef.current && activeSpreadRef.current === cacheKey) setLoading(false)
     }
   }, [accessibilityProfile?.aiProfile])
 
@@ -139,10 +170,24 @@ export function BookViewer({ onBack }: BookViewerProps) {
     const range = pageRange(spreadStart, pageCount)
     const cacheKey = `${bookId}:${range.pageStart}-${range.pageEnd}`
     activeSpreadRef.current = cacheKey
-    void prepareSpread(document, bookId, spreadStart)
+    const generation = loadGenerationRef.current
+    void prepareSpread(document, bookId, spreadStart, false, generation)
     const nextStart = range.pageEnd + 1
-    if (nextStart <= pageCount) void prepareSpread(document, bookId, nextStart, true)
+    if (nextStart <= pageCount) void prepareSpread(document, bookId, nextStart, true, generation)
   }, [bookId, document, prepareSpread, spreadStart])
+
+  useEffect(() => {
+    if (!document || !bookId) return
+    const generation = loadGenerationRef.current
+    let cancelled = false
+    const indexRemainingSpreads = async () => {
+      for (let pageStart = 1; pageStart <= pageCount && !cancelled && generation === loadGenerationRef.current; pageStart += 2) {
+        await prepareSpread(document, bookId, pageStart, true, generation)
+      }
+    }
+    void indexRemainingSpreads()
+    return () => { cancelled = true }
+  }, [bookId, document, pageCount, prepareSpread])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -156,13 +201,25 @@ export function BookViewer({ onBack }: BookViewerProps) {
 
   const loadFile = async (file: File) => {
     if (file.type !== 'application/pdf') return
+    const generation = ++loadGenerationRef.current
+    overlays.closeAll()
+    setActiveBubble(null)
     setLoading(true)
     try {
       const pdf = await getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise
+      if (generation !== loadGenerationRef.current) { await pdf.destroy(); return }
+      if (document) await document.destroy()
       sceneCacheRef.current.clear()
+      inFlightSpreadsRef.current.clear()
       setDocument(pdf); setBookId(`${file.name}-${file.size}-${file.lastModified}`); setTitle(file.name.replace(/\.pdf$/i, '')); setPageCount(pdf.numPages); setSpreadStart(1); setPages([]); setSceneState(null)
-    } finally { setLoading(false) }
+    } catch (error) {
+      if (generation === loadGenerationRef.current) console.warn('[MagiFab] PDF load failed', error)
+    } finally { if (generation === loadGenerationRef.current) setLoading(false) }
   }
+  useEffect(() => () => {
+    loadGenerationRef.current += 1
+    void document?.destroy()
+  }, [document])
   const turn = (direction: -1 | 1) => setSpreadStart((current) => direction === 1 ? Math.min(Math.max(1, pageCount - 1), current + 2) : Math.max(1, current - 2))
   const activePrompt = prompts[0]
   const showBubble = (prompt: PromptQuestion, position?: { left: number; top: number }) => {

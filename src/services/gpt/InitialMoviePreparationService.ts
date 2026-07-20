@@ -26,12 +26,13 @@ const presentationPause = () => new Promise<void>((resolve) => window.setTimeout
  * perception, semantic memory, retrieval, and accessibility reasoning.
  */
 export class InitialMoviePreparationService {
-  async prepare(report: ProgressReporter): Promise<void> {
+  async prepare(report: ProgressReporter, signal?: AbortSignal): Promise<void> {
     const milestones: PreparationMilestoneId[] = [
       'story-exploration', 'characters', 'relationships', 'scenes', 'objects',
       'accessibility-explanations', 'semantic-memory',
     ]
     for (const milestone of milestones) {
+      if (signal?.aborted) throw new DOMException('Preparation cancelled', 'AbortError')
       report({ milestone, status: 'active' })
       await presentationPause()
       report({ milestone, status: 'complete' })

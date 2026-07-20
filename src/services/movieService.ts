@@ -15,7 +15,7 @@ export async function getMovies(): Promise<MovieData[]> {
   return Promise.resolve(demoMovies)
 }
 
-export async function getMovie(id: MovieId): Promise<MovieData | null> {
+export async function getMovie(id: MovieId, signal?: AbortSignal): Promise<MovieData | null> {
   // ===============================
   // BACKEND INTEGRATION POINT
   // ===============================
@@ -26,10 +26,11 @@ export async function getMovie(id: MovieId): Promise<MovieData | null> {
   // {
   //   movie: MovieData | null
   // }
-  return Promise.resolve(movieById[id] ?? null)
+  if (signal?.aborted) throw new DOMException('Movie request cancelled', 'AbortError')
+  return movieById[id] ?? null
 }
 
-export async function getScene(movieId: MovieId, timestamp: number): Promise<SceneData | null> {
+export async function getScene(movieId: MovieId, timestamp: number, signal?: AbortSignal): Promise<SceneData | null> {
   // ===============================
   // BACKEND INTEGRATION POINT
   // ===============================
@@ -45,10 +46,11 @@ export async function getScene(movieId: MovieId, timestamp: number): Promise<Sce
   //    companionPosition,
   //    subtitles
   // }
+  if (signal?.aborted) throw new DOMException('Scene request cancelled', 'AbortError')
   const movie = movieById[movieId]
   if (!movie) {
-    return Promise.resolve(null)
+    return null
   }
 
-  return Promise.resolve(getSceneAtTimestamp(movie, timestamp))
+  return getSceneAtTimestamp(movie, timestamp)
 }

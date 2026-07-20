@@ -3,12 +3,19 @@ import type { NarrativeGraph, NarrativeScene, PreprocessingInterval, StoryBeat, 
 export type BeatBoundarySignal = { timestamp: number; kind: 'speaker_change' | 'camera_change' | 'emotion_shift' | 'location_change' | 'combat_start' | 'combat_end' | 'relationship_change' | 'object_introduced' }
 
 export class StoryBeatBuilder {
-  build(scene: NarrativeScene, signals: BeatBoundarySignal[] = [], visualScenes: VisualSceneData[] = []): StoryBeat[] {
-    const boundaries = [scene.startTime, ...signals.map((signal) => signal.timestamp).filter((timestamp) => timestamp > scene.startTime && (scene.endTime === null || timestamp < scene.endTime)), scene.endTime].filter((timestamp): timestamp is number => timestamp !== null).sort((left, right) => left - right)
+  build(scene: NarrativeScene, signals: BeatBoundarySignal[] = [], visualScenes: VisualSceneData[] = [], maximumBeatSeconds = 20): StoryBeat[] {
+    const endTime = scene.endTime ?? scene.startTime + maximumBeatSeconds
+    const boundaries = [
+      scene.startTime,
+      ...signals.map((signal) => signal.timestamp),
+      ...visualScenes.flatMap((visual) => [visual.startTime, visual.endTime]),
+      ...regularBoundaries(scene.startTime, endTime, maximumBeatSeconds),
+      endTime,
+    ].filter((timestamp) => timestamp > scene.startTime && timestamp < endTime || timestamp === scene.startTime || timestamp === endTime).sort((left, right) => left - right).filter((timestamp, index, values) => index === 0 || timestamp !== values[index - 1])
     if (!boundaries.length) return [fallbackBeat(scene)]
     return boundaries.slice(0, -1).map((startTime, index) => {
       const endTime = boundaries[index + 1]
-      const visual = visualScenes.find((item) => item.startTime <= startTime && item.endTime >= startTime)
+      const visual = visualScenes.find((item) => item.startTime <= startTime && item.endTime > startTime)
       return {
         ...fallbackBeat(scene, `${scene.sceneId}:beat:${index + 1}`, startTime, endTime),
         phase: phaseFromSignals(signals.filter((signal) => signal.timestamp <= startTime)),
@@ -39,6 +46,25 @@ export class StoryBeatBuilder {
       }
     })
   }
+
+  subdivide(beats: StoryBeat[], maximumBeatSeconds = 20) {
+    return beats.flatMap((beat) => {
+      if (beat.endTime === null || beat.endTime - beat.startTime <= maximumBeatSeconds) return [beat]
+      const boundaries = [beat.startTime, ...regularBoundaries(beat.startTime, beat.endTime, maximumBeatSeconds), beat.endTime]
+      return boundaries.slice(0, -1).map((startTime, index) => ({
+        ...beat,
+        id: `${beat.id}:subscene:${index + 1}`,
+        startTime,
+        endTime: boundaries[index + 1],
+      }))
+    })
+  }
+}
+
+function regularBoundaries(startTime: number, endTime: number, maximumBeatSeconds: number) {
+  const boundaries: number[] = []
+  for (let timestamp = startTime + maximumBeatSeconds; timestamp < endTime; timestamp += maximumBeatSeconds) boundaries.push(timestamp)
+  return boundaries
 }
 
 export function fallbackBeat(scene: NarrativeScene, id = `${scene.sceneId}:beat:1`, startTime = scene.startTime, endTime = scene.endTime): StoryBeat {

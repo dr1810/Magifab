@@ -55,7 +55,23 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     void updateScene(savedTimestamp, true)
   }, [movie, updateScene])
 
-  useEffect(() => { setDrawerPrompt(null); setPromptCard(null); overlays.closeAll() }, [movie, overlays.closeAll, sceneState?.sceneId])
+  useEffect(() => {
+    overlays.closeAll()
+    setPlaying(false)
+    setDuration(0)
+    setDrawerPrompt(null)
+    setPromptCard(null)
+    setCompanionMessages([])
+    setCompanionGreetingSceneId(null)
+    resumeAfterDrawerRef.current = false
+    void stopSpeech()
+  }, [movie, overlays.closeAll])
+
+  useEffect(() => {
+    setDrawerPrompt(null)
+    setPromptCard(null)
+    overlays.close('prompt-card')
+  }, [movie, overlays.close, sceneState?.sceneId])
   useEffect(() => { setSelectedPromptId(sceneState?.promptBubbles[0]?.id ?? '') }, [sceneState?.sceneId])
   useEffect(() => {
     if (!companionOpen || !sceneState?.sceneId) return

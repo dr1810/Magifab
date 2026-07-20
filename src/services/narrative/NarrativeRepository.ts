@@ -5,15 +5,16 @@ import bigBuckAccessibilityJson from '../../data/movies/big-buck-bunny/accessibi
 import exampleBookNarrativeJson from '../../data/books/example-book/narrative.json'
 import exampleBookAccessibilityJson from '../../data/books/example-book/accessibility.json'
 import { graphFromMovieData } from './graphFactory'
+import { StoryBeatBuilder } from './StoryBeatBuilder'
 import type { AccessibilityGraph, NarrativeGraph } from './types'
 
 export interface NarrativeGraphStore { get(contentId: string): NarrativeGraph | null }
 
 export class LocalNarrativeGraphStore implements NarrativeGraphStore {
   private readonly graphs = new Map<string, NarrativeGraph>([
-    ['bigBuckBunny', applyAccessibility(bigBuckNarrativeJson as unknown as NarrativeGraph, bigBuckAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>)],
-    ['example-book', applyAccessibility(exampleBookNarrativeJson as unknown as NarrativeGraph, exampleBookAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>)],
-    ...Object.values(movieById).filter((movie) => movie.id !== 'bigBuckBunny').map((movie) => [movie.id, graphFromMovieData(movie)] as const),
+    ['bigBuckBunny', withSubScenes(applyAccessibility(bigBuckNarrativeJson as unknown as NarrativeGraph, bigBuckAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>))],
+    ['example-book', withSubScenes(applyAccessibility(exampleBookNarrativeJson as unknown as NarrativeGraph, exampleBookAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>))],
+    ...Object.values(movieById).filter((movie) => movie.id !== 'bigBuckBunny').map((movie) => [movie.id, withSubScenes(graphFromMovieData(movie))] as const),
   ])
   get(contentId: string) { return this.graphs.get(contentId) ?? null }
 }
@@ -24,4 +25,17 @@ export function getContentNarrativeGraph(contentId: string) { return narrativeGr
 
 function applyAccessibility(graph: NarrativeGraph, scenes: Record<string, AccessibilityGraph>): NarrativeGraph {
   return { ...graph, scenes: graph.scenes.map((scene) => ({ ...scene, accessibility: scenes[scene.sceneId] ?? scene.accessibility })) }
+}
+
+function withSubScenes(graph: NarrativeGraph): NarrativeGraph {
+  const beatBuilder = new StoryBeatBuilder()
+  return {
+    ...graph,
+    scenes: graph.scenes.map((scene) => ({
+      ...scene,
+      storyBeats: scene.storyBeats?.length
+        ? beatBuilder.subdivide(scene.storyBeats)
+        : beatBuilder.build(scene),
+    })),
+  }
 }

@@ -87,54 +87,85 @@ function distanceToBeat(beat: StoryBeat, timestamp: number) {
 }
 
 export function answerPrompt(state: SceneState, question: string) {
-  const questionType = classifyStoryQuestion(question)
-  const characterName = findMentionedCharacter(question, state)
+  return resolvePromptAnswer(state, question).text
+}
 
-  if (questionType === 'character') {
-    const character = state.characters.find((item) => item.name.toLowerCase() === characterName)
-      ?? state.characters.find((item) => item.name.toLowerCase().includes(characterName))
-      ?? state.characters[0]
-    return character ? `${character.name}: ${character.reminder}` : unavailable('character information')
+export type PromptAnswer = {
+  type: StoryQuestionType
+  text: string
+  entityIds: string[]
+  evidence: string[]
+}
+
+/**
+ * Retrieves a response from the current SceneState.  It intentionally has no
+ * generative fallback: an answer without a grounded state remains unavailable.
+ */
+export function resolvePromptAnswer(state: SceneState, question: string): PromptAnswer {
+  const type = classifyStoryQuestion(question)
+  const mentionedCharacters = findMentionedCharacters(question, state)
+  const answer = (text: string, entityIds: string[] = [], evidence: string[] = []): PromptAnswer => ({ type, text: cleanText(text), entityIds, evidence })
+
+  if (type === 'character') {
+    if (asksForAllCharacters(question)) {
+      const characters = state.characters.map((character) => `${character.name} is ${withoutNamePrefix(character.name, character.reminder)}`)
+      return answer(characters.length ? characters.join(' ') : unavailable('visible character information'), state.characters.map((character) => character.character_id), state.characters.map((character) => character.reminder))
+    }
+    const character = mentionedCharacters[0]
+    return character
+      ? answer(`${character.name} is ${withoutNamePrefix(character.name, character.reminder)}`, [character.character_id], [character.reminder])
+      : answer(unavailable('that character in this story moment'))
   }
 
-  if (questionType === 'emotion') {
-    const emotion = state.emotions.find((item) => !characterName || item.summary.toLowerCase().includes(characterName)) ?? state.emotions[0]
-    return emotion?.summary ?? unavailable('emotion information')
+  if (type === 'emotion') {
+    if (!mentionedCharacters.length && hasUnmatchedEntityTarget(question)) return answer(unavailable('emotion information for that character'))
+    const emotion = findByMention(state.emotions, mentionedCharacters.map((character) => character.name), (item) => item.summary)
+    return emotion ? answer(emotion.summary, mentionedCharacters.map((character) => character.character_id), [emotion.summary]) : answer(unavailable('grounded emotion information'))
   }
 
-  if (questionType === 'relationship') {
-    const relationship = state.relationships.find((item) => !characterName || item.summary.toLowerCase().includes(characterName)) ?? state.relationships[0]
-    return relationship?.summary ?? unavailable('relationship information')
+  if (type === 'relationship') {
+    if (!mentionedCharacters.length && /\bbetween\b/i.test(question)) return answer(unavailable('relationship information for those characters'))
+    const relationship = findByMention(state.relationships, mentionedCharacters.map((character) => character.name), (item) => item.summary)
+    return relationship ? answer(relationship.summary, mentionedCharacters.map((character) => character.character_id), [relationship.summary]) : answer(unavailable('grounded relationship information'))
   }
 
-  if (questionType === 'timeline') {
-    return firstText(state.story.timelinePosition, state.timeline[0], state.timeline.at(-1)) ?? unavailable('timeline information')
+  if (type === 'timeline') {
+    const timeline = firstText(state.story.timelinePosition, state.timeline[0], state.timeline.at(-1))
+    return answer(timeline ?? unavailable('timeline information'), [], timeline ? [timeline] : [])
   }
 
-  if (questionType === 'memory') {
-    return state.memory[0]?.summary ?? state.story.storySoFar[0] ?? unavailable('an earlier-story reminder')
+  if (type === 'memory') {
+    const memory = firstText(state.memory[0]?.summary, state.story.storySoFar[0])
+    return answer(memory ?? unavailable('an earlier-story reminder'), [], memory ? [memory] : [])
   }
 
-  if (questionType === 'causeEffect') {
+  if (type === 'causeEffect') {
     const connection = state.causeEffect[0]
-    return connection ? `${connection.cause}. This leads to ${connection.effect}.` : unavailable('a cause-and-effect explanation')
+    return connection
+      ? answer(`Because ${sentenceFragment(connection.cause)}, ${sentenceFragment(connection.effect)}.`, [], [connection.cause, connection.effect])
+      : answer(unavailable('a cause-and-effect explanation'))
   }
 
-  if (questionType === 'object') {
-    const object = state.importantObjects[0]
+  if (type === 'object') {
+    const object = findMentionedObject(question, state.importantObjects) ?? state.importantObjects[0]
     const vocabulary = state.accessibilityHints.vocabulary.find((item) => object && item.term.toLowerCase() === object.toLowerCase())
-    return vocabulary ? `${vocabulary.term}: ${vocabulary.simple_definition}` : object ?? unavailable('an important object')
+    return vocabulary
+      ? answer(`${vocabulary.term} means ${sentenceFragment(vocabulary.simple_definition)}.`, [], [vocabulary.term, vocabulary.simple_definition])
+      : object ? answer(`${object} is the important object visible in this story moment.`, [], [object]) : answer(unavailable('a grounded object'))
   }
 
-  if (questionType === 'conversation') {
-    return firstText(state.conversation.simplifications[0]?.simple_text, state.conversation.sceneExplanation, state.subtitle) ?? unavailable('a conversation explanation')
+  if (type === 'conversation') {
+    const conversation = firstText(state.conversation.simplifications[0]?.simple_text, state.conversation.sceneExplanation, state.subtitle)
+    return answer(conversation ?? unavailable('conversation information'), [], conversation ? [conversation] : [])
   }
 
-  if (questionType === 'storyNow') {
-    return firstText(state.sceneSummary, state.story.currentGoal) ?? unavailable('the current story moment')
+  if (type === 'storyNow') {
+    const storyNow = firstText(state.sceneSummary, state.story.currentGoal)
+    return answer(storyNow ?? unavailable('the current story moment'), [], storyNow ? [storyNow] : [])
   }
 
-  return firstText(state.sceneSummary, state.story.currentGoal, state.timeline[0], state.memory[0]?.summary) ?? unavailable('a story summary')
+  const summary = firstText(state.sceneSummary, state.story.currentGoal, state.timeline[0], state.memory[0]?.summary)
+  return answer(summary ?? unavailable('a story summary'), [], summary ? [summary] : [])
 }
 
 export type StoryQuestionType = 'character' | 'emotion' | 'relationship' | 'timeline' | 'memory' | 'causeEffect' | 'object' | 'conversation' | 'storyNow' | 'summary'
@@ -147,15 +178,50 @@ export function classifyStoryQuestion(question: string): StoryQuestionType {
   if (/relationship|between|connected|together|how.*(get along|relate)/.test(value)) return 'relationship'
   if (/timeline|when|what.*next|where.*(story|timeline)/.test(value)) return 'timeline'
   if (/feel|feeling|emotion|angry|annoyed|upset|happy|frustrated|afraid|scared|sad|worried/.test(value)) return 'emotion'
-  if (/why|cause|because|led to|how did.*happen/.test(value)) return 'causeEffect'
+  if (/what caused|cause|because|led to|how did.*happen|why did.*(happen|start|change)/.test(value)) return 'causeEffect'
   if (/who|character|tell me about|role/.test(value)) return 'character'
   if (/what.*(happening|going on|now)|story now|right now/.test(value)) return 'storyNow'
   return 'summary'
 }
 
-function findMentionedCharacter(question: string, state: SceneState) {
+function findMentionedCharacters(question: string, state: SceneState) {
   const value = question.toLowerCase()
-  return state.characters.find((item) => value.includes(item.name.toLowerCase()))?.name.toLowerCase() ?? ''
+  return state.characters.filter((item) => value.includes(item.name.toLowerCase()))
+}
+
+function findMentionedObject(question: string, objects: string[]) {
+  const value = question.toLowerCase()
+  return objects.find((object) => value.includes(object.toLowerCase()))
+}
+
+function asksForAllCharacters(question: string) {
+  return /all (the )?(people|characters)|who('?s| is) here|who are they/.test(question.toLowerCase())
+}
+
+function hasUnmatchedEntityTarget(question: string) {
+  return /\b(?:why|how)\s+(?:is|are|does|do)\s+(?!they\b|he\b|she\b|this\b|that\b|it\b)/i.test(question)
+}
+
+function findByMention<T>(items: T[], names: string[], toText: (item: T) => string) {
+  if (!items.length) return undefined
+  if (!names.length) return items[0]
+  return items.find((item) => names.some((name) => toText(item).toLowerCase().includes(name.toLowerCase())))
+}
+
+function withoutNamePrefix(name: string, value: string) {
+  return value.replace(new RegExp(`^${escapeRegExp(name)}\\s*:\\s*`, 'i'), '').trim()
+}
+
+function sentenceFragment(value: string) {
+  return value.replace(/[.?!]+$/, '').replace(/^(because|so)\s+/i, '').trim()
+}
+
+function cleanText(value: string) {
+  return value.replace(/\b([A-Z][\w’'-]+):\s*\1:\s*/g, '$1: ').replace(/\s{2,}/g, ' ').trim()
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function firstText(...values: Array<string | null | undefined>) {

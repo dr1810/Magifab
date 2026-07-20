@@ -16,7 +16,7 @@ const milestoneIds: PreparationMilestoneId[] = [
 
 const initialMilestones = () => Object.fromEntries(milestoneIds.map((id) => [id, id === 'accessibility-needs' ? 'active' : 'pending'])) as Record<PreparationMilestoneId, PreparationMilestoneState>
 const presentationPause = () => new Promise<void>((resolve) => window.setTimeout(resolve, 140))
-const READINESS_TIMEOUT_MS = 5 * 60_000
+const PLAYBACK_GATE_MS = 1_500
 
 /** Connect this hook to backend SSE/WebSocket events by passing them to reportProgress. */
 export function useExperiencePreparation(movie: MovieData | null, companionProfileLoading: boolean, companionReady: boolean) {
@@ -38,13 +38,14 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
 
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
     let completionTimer: number | undefined
     let transitionTimer: number | undefined
-    const readinessTimer = window.setTimeout(() => {
-      if (cancelled || companionReadyRef.current) return
-      console.warn('[MagiFab] PREPARATION_READINESS_TIMEOUT', { movieId: movie?.id ?? null, timeoutMs: READINESS_TIMEOUT_MS })
+    const playbackGate = window.setTimeout(() => {
+      if (cancelled) return
+      console.warn('[MagiFab] preparation continues in background', { movieId: movie?.id ?? null })
       setPhase('ready')
-    }, READINESS_TIMEOUT_MS)
+    }, PLAYBACK_GATE_MS)
     setMilestones(initialMilestones())
     setPhase('preparing')
 
@@ -61,29 +62,29 @@ export function useExperiencePreparation(movie: MovieData | null, companionProfi
       try {
         await initialMoviePreparationService.prepare((event) => {
           if (!cancelled) reportProgress(event)
-        })
-        // The viewer opens once its bounded opening-snapshot gate resolves;
-        // remaining interval snapshots are prepared in the background.
-        while (!cancelled && !companionReadyRef.current) await presentationPause()
+        }, controller.signal)
+        // Never hold playback for background interval preparation.
         if (cancelled) return
-        window.clearTimeout(readinessTimer)
+        window.clearTimeout(playbackGate)
         setPhase('complete-message')
         completionTimer = window.setTimeout(() => {
           if (cancelled) return
           setPhase('transitioning')
           transitionTimer = window.setTimeout(() => !cancelled && setPhase('ready'), 360)
         }, 1000)
-      } catch {
-        // Do not open playback unless the opening semantic knowledge is valid.
-        // A future backend event stream can retry and report the missing stage.
-        if (!cancelled) reportProgress({ milestone: 'personalized-guidance', status: 'active' })
+      } catch (error) {
+        if (cancelled || controller.signal.aborted) return
+        console.warn('[MagiFab] preparation failed; playback remains available', error)
+        reportProgress({ milestone: 'personalized-guidance', status: 'complete', readyForPlayback: true })
+        setPhase('ready')
       }
     }
     void prepare()
 
     return () => {
       cancelled = true
-      window.clearTimeout(readinessTimer)
+      controller.abort()
+      window.clearTimeout(playbackGate)
       if (completionTimer) window.clearTimeout(completionTimer)
       if (transitionTimer) window.clearTimeout(transitionTimer)
     }
