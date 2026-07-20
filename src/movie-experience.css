@@ -843,6 +843,88 @@
   box-shadow: 0 16px 32px -26px rgba(245, 158, 11, 0.85);
 }
 
+.movie-experience .companion-launcher {
+  position: absolute;
+  z-index: 46;
+  left: 14px;
+  bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 5px 12px 5px 5px;
+  border: 1px solid rgba(220, 235, 255, .34);
+  border-radius: 999px;
+  color: #f8fcff;
+  background: rgba(7, 23, 48, .84);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .32);
+  backdrop-filter: blur(14px);
+  transition: bottom .2s ease, background .2s ease, transform .2s ease;
+}
+
+.movie-experience .companion-launcher:hover { background: rgba(20, 48, 84, .94); transform: translateY(-1px); }
+.movie-experience .companion-launcher.above-drawer { bottom: min(calc(48% + 14px), 374px); }
+
+.movie-experience .companion-avatar {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, .48);
+  border-radius: 50%;
+  color: #102549;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .08), 0 0 22px rgba(252, 211, 119, .28);
+  animation: companion-breathe 3s ease-in-out infinite;
+}
+
+.movie-experience .companion-avatar.small { width: 30px; height: 30px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .08); }
+.movie-experience .companion-avatar.robot { background: linear-gradient(135deg, #c8f4ff, #8fc9ff); color: #155c88; }
+.movie-experience .companion-avatar.human { background: linear-gradient(135deg, #ffe2db, #ffd18f); color: #9c4b56; }
+.movie-experience .companion-avatar.fox { background: linear-gradient(135deg, #ffd4a6, #f9b45e); color: #a54a12; }
+.movie-experience .companion-avatar.owl { background: linear-gradient(135deg, #e5d7ff, #aebcf8); color: #5040a0; }
+.movie-experience .companion-avatar.cat { background: linear-gradient(135deg, #ffd5e5, #f3a6cb); color: #a8376d; }
+.movie-experience .companion-avatar.dog { background: linear-gradient(135deg, #ffe9ac, #f4bd67); color: #966016; }
+.movie-experience .companion-avatar.spirit { background: linear-gradient(135deg, #f7c8ff, #baa7ff); color: #7745b4; }
+
+.movie-experience .companion-chat-panel {
+  position: absolute;
+  z-index: 47;
+  left: 14px;
+  bottom: 72px;
+  display: grid;
+  width: min(360px, calc(100% - 48px));
+  max-height: min(52%, 360px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid rgba(196, 220, 255, .34);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(13, 39, 73, .96), rgba(6, 17, 36, .96));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .4);
+  backdrop-filter: blur(18px);
+}
+
+.movie-experience .companion-chat-panel.above-drawer { bottom: min(calc(48% + 72px), 432px); }
+.movie-experience .companion-chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 10px; border-bottom: 1px solid rgba(196, 220, 255, .16); }
+.movie-experience .companion-chat-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.movie-experience .companion-chat-identity h3 { margin: 0; font-size: 1rem; color: #fff7df; }
+.movie-experience .companion-chat-identity .eyebrow { margin-bottom: 2px; }
+.movie-experience .companion-chat-close { display: grid; width: 28px; height: 28px; place-items: center; flex: 0 0 auto; border: 0; border-radius: 50%; color: #eef7ff; background: rgba(255,255,255,.1); }
+.movie-experience .companion-chat-messages { display: grid; align-content: start; gap: 8px; min-height: 96px; overflow-y: auto; padding: 12px; }
+.movie-experience .companion-chat-message { width: fit-content; max-width: 90%; margin: 0; padding: 9px 11px; border-radius: 13px; font-size: .84rem; line-height: 1.4; }
+.movie-experience .companion-chat-message.assistant { border-top-left-radius: 4px; color: #eaf4ff; background: rgba(255,255,255,.1); }
+.movie-experience .companion-chat-message.user { justify-self: end; border-top-right-radius: 4px; color: #1c2b44; background: #f6d88b; }
+.movie-experience .companion-chat-form { display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid rgba(196, 220, 255, .16); }
+.movie-experience .companion-chat-form input { width: 100%; min-width: 0; border: 1px solid rgba(196, 220, 255, .24); border-radius: 999px; padding: 9px 12px; color: #f8fcff; background: rgba(255,255,255,.08); outline: none; }
+.movie-experience .companion-chat-form input:focus { border-color: rgba(253, 216, 139, .78); }
+.movie-experience .companion-chat-form input::placeholder { color: #bdd0e7; }
+.movie-experience .companion-chat-form button { display: grid; width: 38px; height: 38px; place-items: center; flex: 0 0 auto; border: 0; border-radius: 50%; color: #17284a; background: #f6d88b; }
+.movie-experience .companion-chat-form button:disabled { opacity: .42; }
+
+@keyframes companion-breathe { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 3px rgba(255,255,255,.08), 0 0 18px rgba(252,211,119,.2); } 50% { transform: scale(1.04); box-shadow: 0 0 0 4px rgba(255,255,255,.11), 0 0 28px rgba(252,211,119,.42); } }
+
+@media (prefers-reduced-motion: reduce) { .movie-experience .companion-avatar { animation: none; } }
+
 @media (max-width: 900px) {
   .movie-experience .top-bar {
     flex-direction: column;

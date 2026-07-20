@@ -230,7 +230,7 @@ export function MoviePlayer({
 
   const isInteractiveTarget = (target: EventTarget | null) => {
     if (!(target instanceof Element)) return false
-    return Boolean(target.closest('button, input, select, textarea, [contenteditable="true"], .prompt-panel, .visual-drawer, .companion-widget, .floating-bubble'))
+    return Boolean(target.closest('button, input, select, textarea, [contenteditable="true"], .prompt-panel, .visual-drawer, .companion-widget, .companion-chat-panel, .floating-bubble'))
   }
 
   useEffect(() => {
