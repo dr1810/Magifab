@@ -165,6 +165,9 @@ class CompanionPipelineService:
             or summary["intervals_valid"] != request.expected_intervals
         ):
             raise ValueError("movie_interval_preprocessing_incomplete")
+        if self._answer_service is None:
+            raise RuntimeError("grounded_answer_service_not_configured")
+        self._answer_service.preprocess_work(request.movie_id)
         return summary
 
     def _log_timeline_resolution(self, movie_id, timestamp, timeline_state, interval_state) -> None:

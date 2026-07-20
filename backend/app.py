@@ -37,6 +37,7 @@ from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 from services.interval_state_store import IntervalStateRepository
 from services.book_scene_pipeline import BookScenePipeline
+from services.semantic_retrieval import SemanticRetrievalIndex
 from services.companion_answer_service import CompanionAnswerService
 from services.conversation_memory import ConversationMemory, FileConversationMemory
 
@@ -198,7 +199,7 @@ def get_interval_state_repository() -> IntervalStateRepository:
 @lru_cache
 def get_book_scene_pipeline() -> BookScenePipeline:
     """Book-only source normalization before the shared SceneState boundary."""
-    return BookScenePipeline(interval_states=get_interval_state_repository())
+    return BookScenePipeline(interval_states=get_interval_state_repository(), semantic_index=get_semantic_retrieval_index())
 
 
 @lru_cache
@@ -211,11 +212,22 @@ def get_conversation_memory() -> ConversationMemory:
 @lru_cache
 def get_companion_answer_service() -> CompanionAnswerService:
     """LLM answer boundary receives bounded whole-work retrieval, never a raw frame."""
-    from adapters.openai_answer_generator import OpenAIGroundedAnswerGenerator
+    from adapters.gemini_answer_generator import GeminiGroundedAnswerGenerator
     return CompanionAnswerService(
         states=get_interval_state_repository(),
-        generator=OpenAIGroundedAnswerGenerator(get_settings()),
+        generator=GeminiGroundedAnswerGenerator(get_settings()),
         memory=get_conversation_memory(),
+        semantic_index=get_semantic_retrieval_index(),
+    )
+
+
+@lru_cache
+def get_semantic_retrieval_index() -> SemanticRetrievalIndex:
+    from adapters.gemini_embeddings import GeminiEmbeddingProvider
+    settings = get_settings()
+    return SemanticRetrievalIndex(
+        settings.knowledge_store_dir / f"v{settings.semantic_cache_version}" / "semantic-retrieval",
+        GeminiEmbeddingProvider(settings),
     )
 
 

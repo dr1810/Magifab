@@ -13,6 +13,23 @@ from services.conversation_memory import FileConversationMemory
 from services.interval_state_store import IntervalStateRepository
 
 
+class FakeSemanticIndex:
+    def __init__(self):
+        self.built = []
+
+    def build(self, work_id, states):
+        self.built.append((work_id, states))
+
+    def retrieve(self, work_id, query, *, current_interval_id, entity_hints=(), limit=8):
+        from services.semantic_retrieval import SemanticChunk
+        return [SemanticChunk(
+            id=f"{current_interval_id}:relationship:0", kind="relationship",
+            text="Ellie confronts Rex about the map.", interval_id=current_interval_id,
+            start_time=30, end_time=60, entities=("Rex", "Ellie"),
+            relationships=("Rex and Ellie disagree about the map.",), source=f"interval:{current_interval_id}",
+        )]
+
+
 class FakeGenerator(AnswerGenerator):
     def __init__(self):
         self.payload = None
@@ -60,19 +77,19 @@ def test_answer_service_retrieves_whole_work_and_remembers_followups(tmp_path: P
     states.save(current)
     generator = FakeGenerator()
     memory = FileConversationMemory(tmp_path / "conversations")
-    service = CompanionAnswerService(states, generator, memory)
+    semantic_index = FakeSemanticIndex()
+    service = CompanionAnswerService(states, generator, memory, semantic_index)
+    service.preprocess_work("movie")
     request = CompanionPipelineRequest(movie_id="movie", timestamp_seconds=35, question="Why are they arguing?", conversation_id="session-1", accessibility_profile=AccessibilityProfile(), companion_profile=CompanionProfile())
 
     answered = service.answer(request, current)
     service.answer(request.model_copy(update={"question": "What happened before?"}), current)
 
     assert answered.companionAnswer == CompanionAnswer(**generator.generate(generator.payload))
-    assert generator.payload["retrieval_context"]["current_scene"]["interval_id"] == "movie:interval:1"
-    assert generator.payload["retrieval_context"]["previous_events"][0]["interval_id"] == "movie:interval:0"
+    assert semantic_index.built[0][0] == "movie"
     assert generator.payload["reasoning_plan"]["intent"] == "relationship and cause"
     assert generator.payload["personal_memory"]["learning_preferences"]["reading_level"] == "adaptive"
-    entity_memory = generator.payload["retrieval_context"]["entity_memories"]
-    assert {item["entity"] for item in entity_memory} == {"Rex", "Ellie"}
-    assert generator.payload["retrieval_context"]["multi_hop_evidence"]
+    evidence = generator.payload["retrieval_context"]["evidence_chunks"]
+    assert evidence == [{"id": "movie:interval:1:relationship:0", "kind": "relationship", "text": "Ellie confronts Rex about the map.", "source": "interval:movie:interval:1", "start_time": 30, "end_time": 60, "entities": ("Rex", "Ellie"), "relationships": ("Rex and Ellie disagree about the map.",)}]
     assert len(generator.payload["conversation_memory"]) == 1
     assert memory.recall("movie:session-1")[0].question == "Why are they arguing?"

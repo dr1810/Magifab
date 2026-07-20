@@ -8,17 +8,23 @@ from schemas.companion_pipeline import CompanionPipelineRequest
 from schemas.interval_state import CompanionAnswer, ConversationContext, IntervalPrompts, IntervalState, PromptAnswer, VisualDrawerState
 from services.conversation_memory import ConversationMemory
 from services.interval_state_store import IntervalStateRepository
-from knowledge_engine.embeddings import EmbeddingProvider, HashEmbeddingProvider, cosine_similarity
+from services.semantic_retrieval import SemanticRetrievalIndex
 
 
 class CompanionAnswerService:
     """Retrieves bounded whole-work evidence before any LLM generation."""
 
-    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, embeddings: EmbeddingProvider | None = None) -> None:
+    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, semantic_index: SemanticRetrievalIndex | None = None) -> None:
         self._states = states
         self._generator = generator
         self._memory = memory or ConversationMemory()
-        self._embeddings = embeddings or HashEmbeddingProvider()
+        if semantic_index is None:
+            raise ValueError("semantic_index_required")
+        self._semantic_index = semantic_index
+
+    def preprocess_work(self, work_id: str) -> None:
+        """Embed the complete prepared work once; requests never construct an index."""
+        self._semantic_index.build(work_id, self._states.list_movie_states(work_id))
 
     def answer(self, request: CompanionPipelineRequest, current: IntervalState) -> IntervalState:
         all_states = self._states.list_movie_states(request.movie_id)
@@ -73,28 +79,17 @@ class CompanionAnswerService:
 
     def _retrieve(self, request: CompanionPipelineRequest, current: IntervalState, all_states: list[IntervalState], plan: dict[str, object], conversation: list[dict[str, str]]) -> dict[str, object]:
         query_terms = [request.question, *(value for value in plan["search_queries"] if isinstance(value, str))]
-        query = self._embeddings.embed(" ".join(query_terms))
-        vectors = {state.metadata.interval_id: self._embeddings.embed(_state_text(state)) for state in all_states}
-        ranked = sorted(all_states, key=lambda state: cosine_similarity(query, vectors[state.metadata.interval_id]), reverse=True)
-        prior = [state for state in all_states if state.metadata.start_time < current.metadata.start_time][-4:]
         all_entities = _unique_text(name for state in all_states for name in [*(card.name for card in state.characters), *state.semanticMemoryAfter.active_characters])
         seeds = [entity for entity in all_entities if any(entity.casefold() in term.casefold() for term in query_terms)]
-        seed_states = [state for state in all_states if any(entity.casefold() in _state_text(state).casefold() for entity in seeds)]
-        related = _unique_states([current, *ranked, *seed_states], 8)
-        entity_names = _unique_text(name for state in related for name in [*(card.name for card in state.characters), *state.semanticMemoryAfter.active_characters])
-        relationships = _unique_text(value for state in related for value in [*(item.summary for item in state.relationships), *state.semanticMemoryAfter.relationships])
-        conversations = _unique_text(state.conversationContext.scene_explanation for state in related)
+        chunks = self._semantic_index.retrieve(
+            request.movie_id,
+            " ".join(query_terms),
+            current_interval_id=current.metadata.interval_id,
+            entity_hints=tuple(seeds),
+        )
         return {
-            "current_scene": _state_evidence(current),
-            "previous_events": [_state_evidence(state) for state in prior],
-            "semantic_matches": [_state_evidence(state) for state in related],
-            "entities": entity_names,
-            "relationships": relationships,
-            "conversations": conversations,
-            "timeline": [_timeline_evidence(state) for state in _unique_states([*prior, current, *related], 10)],
-            "entity_memories": [_entity_memory(entity, all_states) for entity in entity_names],
-            "multi_hop_evidence": [_state_evidence(state) for state in _unique_states([*seed_states, *related], 10)],
-            "retrieval_trace": {"intent": plan["intent"], "evidence_requirements": plan["evidence_requirements"], "timeline_scope": plan["timeline_scope"], "entity_seeds": seeds},
+            "evidence_chunks": [{"id": chunk.id, "kind": chunk.kind, "text": chunk.text, "source": chunk.source, "start_time": chunk.start_time, "end_time": chunk.end_time, "entities": chunk.entities, "relationships": chunk.relationships} for chunk in chunks],
+            "retrieval_trace": {"intent": plan["intent"], "evidence_requirements": plan["evidence_requirements"], "timeline_scope": plan["timeline_scope"], "entity_seeds": seeds, "chunk_count": len(chunks)},
             "conversation_memory": conversation if plan["use_conversation_memory"] else [],
         }
 

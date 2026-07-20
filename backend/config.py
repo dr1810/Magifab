@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))
     openai_model: str = Field(default="gpt-5.6", validation_alias=AliasChoices("OPENAI_MODEL", "MAGIFAB_OPENAI_MODEL"))
     openai_max_output_tokens: int = 300
+    gemini_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("GEMINI_API_KEY", "MAGIFAB_GEMINI_API_KEY"))
+    gemini_model: str = "gemini-2.5-flash"
+    gemini_embedding_model: str = "gemini-embedding-2"
     face_model_pack: str = "buffalo_l"
     face_onnx_providers: str = "CPUExecutionProvider"
     face_detection_size: int = 640
