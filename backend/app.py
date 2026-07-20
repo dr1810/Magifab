@@ -38,6 +38,7 @@ from services.timeline_memory import TimelineMemoryService
 from services.interval_state_store import IntervalStateRepository
 from services.book_scene_pipeline import BookScenePipeline
 from services.semantic_retrieval import SemanticRetrievalIndex
+from services.intent_router import SemanticIntentRouter
 from services.companion_answer_service import CompanionAnswerService
 from services.conversation_memory import ConversationMemory, FileConversationMemory
 
@@ -218,6 +219,7 @@ def get_companion_answer_service() -> CompanionAnswerService:
         generator=GeminiGroundedAnswerGenerator(get_settings()),
         memory=get_conversation_memory(),
         semantic_index=get_semantic_retrieval_index(),
+        intent_router=get_intent_router(),
     )
 
 
@@ -229,6 +231,12 @@ def get_semantic_retrieval_index() -> SemanticRetrievalIndex:
         settings.knowledge_store_dir / f"v{settings.semantic_cache_version}" / "semantic-retrieval",
         GeminiEmbeddingProvider(settings),
     )
+
+
+@lru_cache
+def get_intent_router() -> SemanticIntentRouter:
+    from adapters.gemini_embeddings import GeminiEmbeddingProvider
+    return SemanticIntentRouter(GeminiEmbeddingProvider(get_settings()))
 
 
 @lru_cache

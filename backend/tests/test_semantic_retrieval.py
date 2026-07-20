@@ -27,7 +27,7 @@ def test_retrieval_returns_only_semantically_ranked_evidence_chunks(tmp_path):
     )
     index.build("book", [], chunks)
 
-    result = index.retrieve("book", "What is a Gom Jabbar?", current_interval_id="book:interval:9", limit=2)
+    result = index.retrieve("book", "What is a Gom Jabbar?", current_interval_id="book:interval:9", allowed_kinds=("paragraph",), limit=2)
 
     assert [chunk.id for chunk in result] == ["book:p1:paragraph:0", "book:p20:paragraph:0"]
     assert result[0].text == "The Reverend Mother tests Paul with a poison needle called a Gom Jabbar."
@@ -38,6 +38,6 @@ def test_retrieval_survives_index_reload(tmp_path):
     chunks = (SemanticChunk("movie:s1:character:0", "character", "Victoria is Ellie's sister.", "movie:interval:0", 0, 30, ("Victoria", "Ellie"), ("siblings",), "interval:movie:interval:0"),)
     SemanticRetrievalIndex(tmp_path, SemanticFakeEmbeddings()).build("movie", [], chunks)
 
-    result = SemanticRetrievalIndex(tmp_path, SemanticFakeEmbeddings()).retrieve("movie", "Who is Victoria?", current_interval_id="movie:interval:0")
+    result = SemanticRetrievalIndex(tmp_path, SemanticFakeEmbeddings()).retrieve("movie", "Who is Victoria?", current_interval_id="movie:interval:0", allowed_kinds=("character",))
 
     assert result[0].id == "movie:s1:character:0"

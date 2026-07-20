@@ -56,14 +56,15 @@ class SemanticRetrievalIndex:
                 raise ValueError("embedding_count_mismatch")
             self._save(work_id, fingerprint, [IndexedChunk(chunk, vector) for chunk, vector in zip(chunks, vectors, strict=True)])
 
-    def retrieve(self, work_id: str, query: str, *, current_interval_id: str, entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[SemanticChunk]:
+    def retrieve(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[SemanticChunk]:
         with self._lock:
             loaded = self._load(work_id)
         if loaded is None:
             raise ValueError("semantic_index_not_preprocessed")
         _, indexed = loaded
         query_vector = self._embeddings.embed_query(query)
-        ranked = sorted(indexed, key=lambda item: _score(item, query_vector, current_interval_id, entity_hints), reverse=True)
+        permitted = [item for item in indexed if item.chunk.kind in allowed_kinds]
+        ranked = sorted(permitted, key=lambda item: _score(item, query_vector, current_interval_id, entity_hints), reverse=True)
         selected = _diverse(ranked, limit)
         return [item.chunk for item in selected]
 
@@ -94,7 +95,11 @@ def _chunks_from_states(states: list[IntervalState], maximum: int) -> list[Seman
         base = {"interval_id": state.metadata.interval_id, "start_time": state.metadata.start_time, "end_time": state.metadata.end_time, "entities": entities, "relationships": relationships}
         _append(chunks, "scene", state.storyState.scene_summary, "scene_summary", base, maximum)
         _append(chunks, "timeline", state.timelineMemory.current_event, "timeline_event", base, maximum)
-        _append(chunks, "conversation", state.conversationContext.scene_explanation, "conversation", base, maximum)
+        _append(chunks, "dialogue", state.conversationContext.scene_explanation, "dialogue", base, maximum)
+        for index, emotion in enumerate(state.accessibilityHints.emotions):
+            _append(chunks, "emotion", emotion.summary, f"emotion:{index}", base, maximum)
+        for index, vocabulary in enumerate(state.accessibilityHints.vocabulary):
+            _append(chunks, "glossary", f"{vocabulary.term}: {vocabulary.simple_definition}", f"glossary:{index}", base, maximum)
         for index, relationship in enumerate(relationships):
             _append(chunks, "relationship", relationship, f"relationship:{index}", base, maximum)
         for index, event in enumerate(state.semanticMemoryAfter.story_events):

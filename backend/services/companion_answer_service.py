@@ -8,19 +8,23 @@ from schemas.companion_pipeline import CompanionPipelineRequest
 from schemas.interval_state import CompanionAnswer, ConversationContext, IntervalPrompts, IntervalState, PromptAnswer, VisualDrawerState
 from services.conversation_memory import ConversationMemory
 from services.interval_state_store import IntervalStateRepository
+from services.intent_router import IntentRoute, SemanticIntentRouter
 from services.semantic_retrieval import SemanticRetrievalIndex
 
 
 class CompanionAnswerService:
     """Retrieves bounded whole-work evidence before any LLM generation."""
 
-    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, semantic_index: SemanticRetrievalIndex | None = None) -> None:
+    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, semantic_index: SemanticRetrievalIndex | None = None, intent_router: SemanticIntentRouter | None = None) -> None:
         self._states = states
         self._generator = generator
         self._memory = memory or ConversationMemory()
         if semantic_index is None:
             raise ValueError("semantic_index_required")
+        if intent_router is None:
+            raise ValueError("intent_router_required")
         self._semantic_index = semantic_index
+        self._intent_router = intent_router
 
     def preprocess_work(self, work_id: str) -> None:
         """Embed the complete prepared work once; requests never construct an index."""
@@ -30,12 +34,12 @@ class CompanionAnswerService:
         all_states = self._states.list_movie_states(request.movie_id)
         memory_key = f"{request.movie_id}:{request.conversation_id}"
         conversation = [asdict(turn) for turn in self._memory.recall(memory_key)]
-        plan = self._plan(request, current, conversation)
-        context = self._retrieve(request, current, all_states, plan, conversation)
+        route = self._intent_router.route(request.question)
+        context = self._retrieve(request, current, all_states, route, conversation)
         payload = {
             "question": request.question,
             "personal_memory": self._personal_memory(request),
-            "reasoning_plan": plan,
+            "intent_route": {"intent": route.intent, "evidence_kinds": route.evidence_kinds, "retrieval_instruction": route.retrieval_instruction},
             "conversation_memory": conversation,
             "retrieval_context": context,
         }
@@ -64,33 +68,21 @@ class CompanionAnswerService:
             "conversationContext": ConversationContext(scene_explanation=answer.answer),
         })
 
-    def _plan(self, request: CompanionPipelineRequest, current: IntervalState, conversation: list[dict[str, str]]) -> dict[str, object]:
-        payload = {
-            "question": request.question,
-            "personal_memory": self._personal_memory(request),
-            "current_position": _state_evidence(current),
-            "conversation_memory": conversation,
-        }
-        plan = self._generator.plan(payload)
-        required = {"intent", "evidence_requirements", "search_queries", "timeline_scope", "use_conversation_memory"}
-        if not required.issubset(plan) or not isinstance(plan["intent"], str) or not isinstance(plan["use_conversation_memory"], bool):
-            raise ValueError("invalid_reasoning_plan")
-        return {key: plan[key] for key in required}
-
-    def _retrieve(self, request: CompanionPipelineRequest, current: IntervalState, all_states: list[IntervalState], plan: dict[str, object], conversation: list[dict[str, str]]) -> dict[str, object]:
-        query_terms = [request.question, *(value for value in plan["search_queries"] if isinstance(value, str))]
+    def _retrieve(self, request: CompanionPipelineRequest, current: IntervalState, all_states: list[IntervalState], route: IntentRoute, conversation: list[dict[str, str]]) -> dict[str, object]:
+        query_terms = [request.question, route.retrieval_instruction]
         all_entities = _unique_text(name for state in all_states for name in [*(card.name for card in state.characters), *state.semanticMemoryAfter.active_characters])
         seeds = [entity for entity in all_entities if any(entity.casefold() in term.casefold() for term in query_terms)]
         chunks = self._semantic_index.retrieve(
             request.movie_id,
             " ".join(query_terms),
             current_interval_id=current.metadata.interval_id,
+            allowed_kinds=route.evidence_kinds,
             entity_hints=tuple(seeds),
         )
         return {
             "evidence_chunks": [{"id": chunk.id, "kind": chunk.kind, "text": chunk.text, "source": chunk.source, "start_time": chunk.start_time, "end_time": chunk.end_time, "entities": chunk.entities, "relationships": chunk.relationships} for chunk in chunks],
-            "retrieval_trace": {"intent": plan["intent"], "evidence_requirements": plan["evidence_requirements"], "timeline_scope": plan["timeline_scope"], "entity_seeds": seeds, "chunk_count": len(chunks)},
-            "conversation_memory": conversation if plan["use_conversation_memory"] else [],
+            "retrieval_trace": {"intent": route.intent, "allowed_evidence_kinds": route.evidence_kinds, "entity_seeds": seeds, "chunk_count": len(chunks)},
+            "conversation_memory": conversation,
         }
 
     @staticmethod

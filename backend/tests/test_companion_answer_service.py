@@ -20,7 +20,7 @@ class FakeSemanticIndex:
     def build(self, work_id, states):
         self.built.append((work_id, states))
 
-    def retrieve(self, work_id, query, *, current_interval_id, entity_hints=(), limit=8):
+    def retrieve(self, work_id, query, *, current_interval_id, allowed_kinds, entity_hints=(), limit=8):
         from services.semantic_retrieval import SemanticChunk
         return [SemanticChunk(
             id=f"{current_interval_id}:relationship:0", kind="relationship",
@@ -28,6 +28,12 @@ class FakeSemanticIndex:
             start_time=30, end_time=60, entities=("Rex", "Ellie"),
             relationships=("Rex and Ellie disagree about the map.",), source=f"interval:{current_interval_id}",
         )]
+
+
+class FakeIntentRouter:
+    def route(self, question):
+        from services.intent_router import IntentRoute
+        return IntentRoute("relationship", ("relationship",), "Relationship history and conflict between people.")
 
 
 class FakeGenerator(AnswerGenerator):
@@ -78,7 +84,7 @@ def test_answer_service_retrieves_whole_work_and_remembers_followups(tmp_path: P
     generator = FakeGenerator()
     memory = FileConversationMemory(tmp_path / "conversations")
     semantic_index = FakeSemanticIndex()
-    service = CompanionAnswerService(states, generator, memory, semantic_index)
+    service = CompanionAnswerService(states, generator, memory, semantic_index, FakeIntentRouter())
     service.preprocess_work("movie")
     request = CompanionPipelineRequest(movie_id="movie", timestamp_seconds=35, question="Why are they arguing?", conversation_id="session-1", accessibility_profile=AccessibilityProfile(), companion_profile=CompanionProfile())
 
@@ -87,7 +93,7 @@ def test_answer_service_retrieves_whole_work_and_remembers_followups(tmp_path: P
 
     assert answered.companionAnswer == CompanionAnswer(**generator.generate(generator.payload))
     assert semantic_index.built[0][0] == "movie"
-    assert generator.payload["reasoning_plan"]["intent"] == "relationship and cause"
+    assert generator.payload["intent_route"]["intent"] == "relationship"
     assert generator.payload["personal_memory"]["learning_preferences"]["reading_level"] == "adaptive"
     evidence = generator.payload["retrieval_context"]["evidence_chunks"]
     assert evidence == [{"id": "movie:interval:1:relationship:0", "kind": "relationship", "text": "Ellie confronts Rex about the map.", "source": "interval:movie:interval:1", "start_time": 30, "end_time": 60, "entities": ("Rex", "Ellie"), "relationships": ("Rex and Ellie disagree about the map.",)}]
