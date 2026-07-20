@@ -3,6 +3,8 @@ import type { AIProfile } from '../../types/user'
 import { profileNeeds, type AccessibilityNeed, type NarrativeGraph, type NarrativePrompt, type NarrativeScene } from './types'
 import { VisualGroundingResolver } from './VisualGroundingResolver'
 import { DialogueResolver } from './DialogueResolver'
+import { fallbackBeat } from './StoryBeatBuilder'
+import type { StoryBeat } from './types'
 
 export class StoryResolver {
   private readonly grounding: VisualGroundingResolver
@@ -14,41 +16,74 @@ export class StoryResolver {
 
   resolveTime(currentTime: number, profile: AIProfile | null): SceneState | null {
     const scene = this.graph.scenes.find((item) => currentTime >= item.startTime && (item.endTime === null || currentTime < item.endTime)) ?? this.graph.scenes.at(-1)
-    return scene ? this.hydrate(scene, profile) : null
+    return scene ? this.hydrate(scene, this.resolveBeat(scene, currentTime), profile) : null
   }
 
   resolvePage(page: number, profile: AIProfile | null): SceneState | null {
     const scene = this.graph.scenes.find((item) => item.pageReference && page >= item.pageReference.start && page <= item.pageReference.end)
-    return scene ? this.hydrate(scene, profile) : null
+    return scene ? this.hydrate(scene, this.resolveBeat(scene, scene.startTime), profile) : null
   }
 
-  private hydrate(scene: NarrativeScene, profile: AIProfile | null): SceneState {
+  private resolveBeat(scene: NarrativeScene, timestamp: number): StoryBeat {
+    const beats = scene.storyBeats?.length ? scene.storyBeats : [fallbackBeat(scene)]
+    return beats.find((beat) => timestamp >= beat.startTime && (beat.endTime === null || timestamp < beat.endTime))
+      ?? beats.reduce((closest, beat) => distanceToBeat(beat, timestamp) < distanceToBeat(closest, timestamp) ? beat : closest)
+  }
+
+  private hydrate(scene: NarrativeScene, beat: StoryBeat, profile: AIProfile | null): SceneState {
+    const isIntro = beat.phase === 'intro_credits'
+    const isConfident = beat.confidence >= 0.6
     const needs = profileNeeds(profile)
-    const grounding = this.grounding.resolve(scene)
+    const beatScene: NarrativeScene = {
+      ...scene,
+      sceneId: beat.id,
+      startTime: beat.startTime,
+      endTime: beat.endTime,
+      summary: beat.summary,
+      visualGrounding: beat.visualGrounding,
+      characters: beat.visibleEntityIds,
+      relationships: beat.relationships,
+      emotions: beat.emotions,
+      objects: beat.objects,
+      causeEffect: beat.causeEffect,
+      memoryCheckpoint: beat.memory,
+      conversationSummary: beat.drawerState.conversationSummary ?? scene.conversationSummary,
+      timelinePosition: beat.drawerState.timelinePosition ?? scene.timelinePosition,
+      accessibility: { ...scene.accessibility, support: beat.drawerState.support ?? scene.accessibility.support, prompts: beat.promptCandidates },
+    }
+    const grounding = this.grounding.resolve(beatScene)
     const visibleCharacters = grounding.visible
     const visibleIds = new Set(visibleCharacters.map((character) => character.id))
     const visibleNames = new Set(visibleCharacters.map((character) => character.name))
-    const prompts = visibleCharacters.length ? selectPrompts(scene.accessibility.prompts, needs, visibleIds) : []
-    const support = (need: AccessibilityNeed) => scene.accessibility.support[need] ?? []
-    const priorScenes = this.graph.scenes.filter((item) => item.startTime < scene.startTime)
-    const dialogueReferences = this.dialogue.resolve(scene, priorScenes)
-    const emotions = scene.emotions.filter((emotion) => !emotion.character || visibleNames.has(emotion.character))
-    const relationships = scene.relationships.filter((relationship) => [...visibleNames].some((name) => relationship.includes(name)))
+    const prompts = !isIntro && isConfident && visibleCharacters.length ? selectPrompts(beatScene.accessibility.prompts, needs, visibleIds) : []
+    const support = (need: AccessibilityNeed) => beatScene.accessibility.support[need] ?? []
+    const priorScenes = this.graph.scenes.filter((item) => item.startTime < beat.startTime)
+    const dialogueReferences = this.dialogue.resolve(beatScene, priorScenes)
+    const emotions = beatScene.emotions.filter((emotion) => !emotion.character || visibleNames.has(emotion.character))
+    const relationships = beatScene.relationships.filter((relationship) => [...visibleNames].some((name) => relationship.includes(name)))
+    const sceneSummary = isIntro ? beat.summary : isConfident && visibleCharacters.length ? beat.summary : 'Current scene is still being analysed.'
     return {
-      sceneId: scene.sceneId, interval: Math.floor(scene.startTime / 30), startTime: scene.startTime, endTime: scene.endTime, sceneSummary: visibleCharacters.length ? scene.summary : 'Character identity is unclear in this moment. The scene continues.', subtitle: scene.conversationSummary,
-      characters: visibleCharacters.map((character) => ({ character_id: character.id, name: character.name, reminder: support('characters').find((item) => item.includes(character.name)) ?? character.description, confidence: scene.visualGrounding.confidence[character.id] })),
-      relationships: relationships.map((summary, index) => ({ relationship_id: `${scene.sceneId}:relationship:${index}`, summary, confidence: 1 })),
-      timeline: [scene.timelinePosition, ...scene.events], memory: scene.memoryCheckpoint.map((summary) => ({ summary, confidence: 1 })), importantObjects: scene.visualGrounding.visibleObjects,
-      emotions: emotions.map((item, index) => ({ emotion_id: `${scene.sceneId}:emotion:${index}`, summary: item.explanation, confidence: 1 })),
-      causeEffect: scene.causeEffect,
+      sceneId: beat.id, interval: Math.floor(beat.startTime / 30), startTime: beat.startTime, endTime: beat.endTime, sceneSummary, subtitle: isIntro ? beat.summary : isConfident ? beatScene.conversationSummary : 'Current scene is still being analysed.',
+      characters: isIntro || !isConfident ? [] : visibleCharacters.map((character) => ({ character_id: character.id, name: character.name, reminder: support('characters').find((item) => item.includes(character.name)) ?? character.description, confidence: beatScene.visualGrounding.confidence[character.id] })),
+      relationships: isIntro || !isConfident ? [] : relationships.map((summary, index) => ({ relationship_id: `${beat.id}:relationship:${index}`, summary, confidence: 1 })),
+      timeline: [beatScene.timelinePosition, ...beatScene.events], memory: isIntro || !isConfident ? [] : beatScene.memoryCheckpoint.map((summary) => ({ summary, confidence: 1 })), importantObjects: isIntro || !isConfident ? [] : beatScene.visualGrounding.visibleObjects,
+      emotions: isIntro || !isConfident ? [] : emotions.map((item, index) => ({ emotion_id: `${beat.id}:emotion:${index}`, summary: item.explanation, confidence: 1 })),
+      causeEffect: isIntro || !isConfident ? [] : beatScene.causeEffect,
       promptBubbles: prompts.map((prompt) => ({ id: prompt.id, kind: prompt.triggerType, label: prompt.difficultyCategory, question: prompt.question, priority: prompt.priority ?? 1 })),
-      accessibilityHints: { vocabulary: support('vocabulary').map((simple_definition, index) => ({ term: scene.visualGrounding.visibleObjects[index] ?? 'Word help', simple_definition, confidence: 1 })), emotions: emotions.map((item, index) => ({ emotion_id: `${scene.sceneId}:emotion:${index}`, summary: item.explanation, confidence: 1 })) },
-      conversation: { sceneExplanation: scene.conversationSummary, simplifications: [...support('conversations'), ...dialogueReferences.map((reference) => `${reference.pronoun} refers to ${reference.entityId}. ${reference.evidence}`)].map((simple_text, index) => ({ dialogue_id: `${scene.sceneId}:conversation:${index}`, simple_text, confidence: 1 })) },
-      story: { currentGoal: scene.events[0] ?? null, timelinePosition: scene.timelinePosition, storySoFar: scene.memoryCheckpoint, unresolvedThreads: [] },
+      accessibilityHints: { vocabulary: isIntro || !isConfident ? [] : support('vocabulary').map((simple_definition, index) => ({ term: beatScene.visualGrounding.visibleObjects[index] ?? 'Word help', simple_definition, confidence: 1 })), emotions: isIntro || !isConfident ? [] : emotions.map((item, index) => ({ emotion_id: `${beat.id}:emotion:${index}`, summary: item.explanation, confidence: 1 })) },
+      conversation: { sceneExplanation: isIntro ? beat.summary : beatScene.conversationSummary, simplifications: isIntro || !isConfident ? [] : [...support('conversations'), ...dialogueReferences.map((reference) => `${reference.pronoun} refers to ${reference.entityId}. ${reference.evidence}`)].map((simple_text, index) => ({ dialogue_id: `${beat.id}:conversation:${index}`, simple_text, confidence: 1 })) },
+      story: { currentGoal: isIntro || !isConfident ? null : beatScene.events[0] ?? null, timelinePosition: beatScene.timelinePosition, storySoFar: beatScene.memoryCheckpoint, unresolvedThreads: [] },
+      phase: beat.phase, confidence: beat.confidence, companionEnabled: !isIntro && isConfident,
       metadata: { movieId: this.graph.movie.id, generatedAt: 0, knowledgeRevision: this.graph.version, frameTimestamp: null },
     }
   }
 
+}
+
+function distanceToBeat(beat: StoryBeat, timestamp: number) {
+  if (timestamp < beat.startTime) return beat.startTime - timestamp
+  if (beat.endTime === null || timestamp <= beat.endTime) return 0
+  return timestamp - beat.endTime
 }
 
 export function answerPrompt(state: SceneState, question: string) {

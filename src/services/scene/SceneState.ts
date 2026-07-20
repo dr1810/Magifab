@@ -25,6 +25,9 @@ export type SceneState = {
   accessibilityHints: { vocabulary: BackendVocabularyAssistance[]; emotions: BackendEmotionSummary[] }
   conversation: { sceneExplanation: string; simplifications: BackendConversationSimplification[] }
   story: { currentGoal: string | null; timelinePosition: string | null; storySoFar: string[]; unresolvedThreads: string[] }
+  phase?: 'intro_credits' | 'setup' | 'rising_action' | 'climax' | 'resolution' | 'transition'
+  confidence?: number
+  companionEnabled?: boolean
   metadata: { movieId: string; generatedAt: number; knowledgeRevision: number; frameTimestamp: number | null }
 }
 

@@ -51,6 +51,32 @@ export type NarrativePrompt = {
 }
 
 export type VisualAidNode = { type: VisualAidType; content: string; visualizationDescription: string }
+export type StoryBeatPhase = 'intro_credits' | 'setup' | 'rising_action' | 'climax' | 'resolution' | 'transition'
+
+export type StoryBeat = {
+  id: string
+  startTime: number
+  endTime: number | null
+  phase: StoryBeatPhase
+  summary: string
+  visibleEntityIds: string[]
+  relationships: string[]
+  emotions: Array<{ character?: string; emotion: string; explanation: string }>
+  objects: string[]
+  causeEffect: Array<{ cause: string; effect: string }>
+  memory: string[]
+  promptCandidates: NarrativePrompt[]
+  drawerState: { conversationSummary?: string; timelinePosition?: string; support?: Partial<Record<AccessibilityNeed, string[]>> }
+  confidence: number
+  visualGrounding: VisualGrounding
+}
+
+export type PreprocessingInterval = {
+  id: string
+  startTime: number
+  endTime: number
+  storyBeatIds: string[]
+}
 
 export type AccessibilityGraph = {
   possibleConfusions: string[]
@@ -68,6 +94,7 @@ export type NarrativeScene = {
   title: string
   summary: string
   characters: string[]
+  storyBeats?: StoryBeat[]
   visualGrounding: VisualGrounding
   dialogueReferences: DialogueReference[]
   events: string[]
@@ -89,6 +116,7 @@ export type NarrativeGraph = {
   scenes: NarrativeScene[]
   characters: NarrativeCharacter[]
   relationships: NarrativeRelationship[]
+  preprocessingIntervals?: PreprocessingInterval[]
 }
 
 export type NarrativeSource = { contentId: string; type: ContentType; timestamp?: number; page?: number; chapter?: string }

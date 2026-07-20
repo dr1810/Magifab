@@ -24,6 +24,7 @@ function sceneNode(scene: SceneData, next: SceneData | undefined): NarrativeScen
     title: scene.subtitle,
     summary: scene.prompts.find((prompt) => /happening|scene|changed/i.test(prompt.question))?.explanation ?? scene.voiceNarration,
     characters,
+    storyBeats: scene.storyBeats,
     visualGrounding: {
       visibleEntityIds: scene.visibleCharacterIds ?? scene.characterList.map((character) => character.id),
       missingEntityIds: scene.missingCharacterIds ?? [],

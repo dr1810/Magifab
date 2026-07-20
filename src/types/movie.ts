@@ -1,3 +1,5 @@
+import type { StoryBeat } from '../services/narrative/types'
+
 export type MovieId = 'bigBuckBunny' | 'spriteFright'
 
 export type AccessibilityTag =
@@ -66,6 +68,7 @@ export type SceneData = {
   visibleObjects?: string[]
   promptSubjects?: Record<string, string[]>
   dialogueReferences?: Array<{ speakerEntityId?: string; targetEntityIds: string[]; pronouns: Array<{ pronoun: string; resolvedEntityId: string; evidence: string }> }>
+  storyBeats?: StoryBeat[]
 }
 
 export type MovieData = {

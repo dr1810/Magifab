@@ -37,6 +37,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
 
   const sceneState = useMemo(() => resolver?.resolveTime(currentTime, accessibilityProfile?.aiProfile ?? null) ?? null, [accessibilityProfile?.aiProfile, currentTime, resolver])
   const prompts = useMemo<PromptQuestion[]>(() => sceneState?.promptBubbles.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '' })) ?? [], [sceneState])
+  const narrativeBanner = sceneState?.phase === 'intro_credits' || !scene?.subtitle ? sceneState?.subtitle ?? '' : ''
   const [selectedPromptId, setSelectedPromptId] = useState('')
   const selectedPrompt = prompts.find((prompt) => prompt.id === selectedPromptId) ?? prompts[0]
 
@@ -49,7 +50,13 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [movie, updateScene])
 
   useEffect(() => { setSelectedPromptId(prompts[0]?.id ?? '') }, [sceneState?.sceneId])
-  useEffect(() => { if (sceneState) { setPromptOpen(true); setDrawerOpen(true) } }, [sceneState?.sceneId])
+  useEffect(() => {
+    if (sceneState?.companionEnabled) { setPromptOpen(true); setDrawerOpen(true); return }
+    setPromptOpen(false)
+    setDrawerOpen(false)
+    setActiveBubble(null)
+    setWidgetOpen(false)
+  }, [sceneState?.sceneId, sceneState?.companionEnabled])
   useEffect(() => { if (movieData && duration > 0) setPlaying(true) }, [duration, movieData])
   useEffect(() => {
     if (!movieData) return
@@ -80,9 +87,9 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
 
   if (loading || !movieData) return <div className="movie-experience viewer-page" aria-busy="true" />
   return <main className="movie-experience viewer-page playback-ready">
-    <TopBar movie={movieData} onBack={() => { savePlaybackTimestamp(movie, currentTime, duration || totalDuration); onBack() }} onOpenPrompts={() => { setDrawerOpen(false); setPromptOpen(true) }} onOpenDrawer={() => { setPromptOpen(false); setDrawerOpen(true) }} />
+    <TopBar movie={movieData} onBack={() => { savePlaybackTimestamp(movie, currentTime, duration || totalDuration); onBack() }} onOpenPrompts={() => { if (!sceneState?.companionEnabled) return; setDrawerOpen(false); setPromptOpen(true) }} onOpenDrawer={() => { if (!sceneState?.companionEnabled) return; setPromptOpen(false); setDrawerOpen(true) }} />
     <div className="viewer-layout" style={{ position: 'relative' }}>
-      <MoviePlayer movie={movieData} scene={scene} subtitle={sceneState?.subtitle ?? scene?.subtitle ?? ''} playing={playing} muted={muted} volume={volume} currentTime={currentTime} totalTime={duration || totalDuration} onPlayToggle={() => setPlaying((value) => !value)} onMuteToggle={() => setMuted((value) => !value)} onVolumeChange={setVolume} onSeek={(timestamp) => applyTime(timestamp, true)} onTimeChange={applyTime} onDurationChange={setDuration} onSeeking={closeBubbles} onSeekComplete={(timestamp) => applyTime(timestamp, true)} promptOpen={promptOpen} onTogglePromptPanel={() => { setDrawerOpen(false); setPromptOpen((open) => !open) }} onOpenVisualDrawer={() => { setPromptOpen(false); setDrawerOpen(true) }} onOpenPromptPanel={() => { setDrawerOpen(false); setPromptOpen(true) }} onCloseOverlays={closeBubbles} onOpenAccessibilitySettings={onOpenAccessibilitySettings} onCloseBubbles={closeBubbles} reduceMotion={settings.reduceMotion || settings.disableAnimations}
+      <MoviePlayer movie={movieData} scene={scene} subtitle={narrativeBanner} playing={playing} muted={muted} volume={volume} currentTime={currentTime} totalTime={duration || totalDuration} onPlayToggle={() => setPlaying((value) => !value)} onMuteToggle={() => setMuted((value) => !value)} onVolumeChange={setVolume} onSeek={(timestamp) => applyTime(timestamp, true)} onTimeChange={applyTime} onDurationChange={setDuration} onSeeking={closeBubbles} onSeekComplete={(timestamp) => applyTime(timestamp, true)} promptOpen={promptOpen} onTogglePromptPanel={() => { if (!sceneState?.companionEnabled) return; setDrawerOpen(false); setPromptOpen((open) => !open) }} onOpenVisualDrawer={() => { if (!sceneState?.companionEnabled) return; setPromptOpen(false); setDrawerOpen(true) }} onOpenPromptPanel={() => { if (!sceneState?.companionEnabled) return; setDrawerOpen(false); setPromptOpen(true) }} onCloseOverlays={closeBubbles} onOpenAccessibilitySettings={onOpenAccessibilitySettings} onCloseBubbles={closeBubbles} reduceMotion={settings.reduceMotion || settings.disableAnimations}
         overlays={<><FloatingBubble content={activeBubble} theme={movieData.companionTheme} reduceMotion={settings.reduceMotion || settings.disableAnimations} visible={Boolean(activeBubble)} onOpenCompanion={() => setWidgetOpen(true)} onClose={() => setActiveBubble(null)} /><CompanionWidget open={widgetOpen} name={profile?.name || 'Lumi'} message={assistantText} theme={movieData.companionTheme} onClose={() => setWidgetOpen(false)} reduceMotion={settings.reduceMotion || settings.disableAnimations} /><PromptPanel open={promptOpen} prompts={prompts} selectedPromptId={selectedPrompt?.id ?? ''} onSelectPrompt={selectPrompt} onClose={() => setPromptOpen(false)} /></>}
         drawerOverlay={<VisualDrawer open={drawerOpen} sceneState={sceneState} onClose={() => setDrawerOpen(false)} />}
       />
