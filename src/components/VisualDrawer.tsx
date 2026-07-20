@@ -2,9 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useAnimation } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { useAccessibility } from '../accessibility-context'
+import type { StoryCompanionPromptContext, StoryCompanionTab } from '../services/narrative/StoryCompanionNavigation'
 import type { SceneState } from '../services/scene/SceneState'
 
-type TabKey = 'story' | 'characters' | 'relationships' | 'emotions' | 'objects' | 'memory' | 'timeline' | 'causeEffect' | 'conversation' | 'summary'
+type TabKey = StoryCompanionTab
 
 const tabs: Array<{ key: TabKey; label: string }> = [
   { key: 'story', label: 'Story Now' },
@@ -22,11 +23,12 @@ const tabs: Array<{ key: TabKey; label: string }> = [
 type VisualDrawerProps = {
   open: boolean
   sceneState?: SceneState | null
+  promptContext?: StoryCompanionPromptContext | null
   onClose: () => void
   presentation?: 'default' | 'book-sheet'
 }
 
-export function VisualDrawer({ open, sceneState, onClose, presentation = 'default' }: VisualDrawerProps) {
+export function VisualDrawer({ open, sceneState, promptContext = null, onClose, presentation = 'default' }: VisualDrawerProps) {
   const { settings } = useAccessibility()
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
   const [activeTab, setActiveTab] = useState<TabKey>('relationships')
@@ -54,6 +56,10 @@ export function VisualDrawer({ open, sceneState, onClose, presentation = 'defaul
     void contentControls.start({ opacity: [0.82, 1], y: [4, 0], transition: { duration: 0.2, ease: 'easeOut' } })
   }, [contentControls, sceneState?.sceneId, reduceMotion])
 
+  useEffect(() => {
+    if (promptContext) setActiveTab(promptContext.tab)
+  }, [promptContext])
+
   return (
     <AnimatePresence initial={false}>
       {open && (
@@ -73,6 +79,12 @@ export function VisualDrawer({ open, sceneState, onClose, presentation = 'defaul
             <div><p className="eyebrow">Visual Aids</p><h3>Story Companion</h3></div>
             <button className="ghost-btn" onClick={() => isBookSheet && sheetHeight !== 'collapsed' ? setSheetHeight('collapsed') : onClose()}><ChevronDown size={16} /> {isBookSheet && sheetHeight !== 'collapsed' ? 'Collapse' : 'Close'}</button>
           </div>
+          {promptContext && <motion.section key={promptContext.id} className="drawer-prompt-context" initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 320, damping: 28, duration: 0.28 }}>
+            <p className="eyebrow">Prompt</p>
+            <h4>{promptContext.question}</h4>
+            <p>{promptContext.answer}</p>
+            <div className="drawer-prompt-visual-aid"><span>Visual Aid</span><strong>{promptContext.visualAid}</strong></div>
+          </motion.section>}
           {sheetHeight !== 'collapsed' && <><div className="tab-row" role="tablist" aria-label="Visual aid tabs">
             {tabs.map((tab) => <button key={tab.key} role="tab" aria-selected={activeTab === tab.key} className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`} onClick={() => setActiveTab(tab.key)}>{tab.label}</button>)}
           </div>

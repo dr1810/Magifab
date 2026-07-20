@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
+import { Pause, Play } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { MovieData, SceneData } from '../types/movie'
 import { SubtitleOverlay } from './SubtitleOverlay'
@@ -22,13 +22,9 @@ type MoviePlayerProps = {
   onDurationChange: (value: number) => void
   onSeeking?: () => void
   onSeekComplete?: (timestamp: number) => void
-  promptOpen: boolean
-  onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
-  onOpenPromptPanel: () => void
   onCloseOverlays: () => void
   onOpenAccessibilitySettings: () => void
-  onCloseBubbles: () => void
   overlays: ReactNode
   drawerOverlay?: ReactNode
   reduceMotion: boolean
@@ -51,13 +47,9 @@ export function MoviePlayer({
   onDurationChange,
   onSeeking,
   onSeekComplete,
-  promptOpen,
-  onTogglePromptPanel,
   onOpenVisualDrawer,
-  onOpenPromptPanel,
   onCloseOverlays,
   onOpenAccessibilitySettings,
-  onCloseBubbles,
   overlays,
   drawerOverlay,
   reduceMotion,
@@ -328,16 +320,6 @@ export function MoviePlayer({
         {overlays}
         {drawerOverlay}
         <SubtitleOverlay subtitle={subtitle} />
-        <button
-          type="button"
-          className="prompt-sidebar-toggle"
-          aria-label={promptOpen ? 'Collapse Prompt Panel' : 'Expand Prompt Panel'}
-          aria-controls="prompt-panel"
-          aria-expanded={promptOpen}
-          onClick={onTogglePromptPanel}
-        >
-          {promptOpen ? <ChevronRight size={18}/> : <ChevronLeft size={18}/>} 
-        </button>
       </div>
 
       <PlaybackControls
@@ -351,9 +333,7 @@ export function MoviePlayer({
         totalTime={totalTime}
         onSeek={seek}
         onOpenVisualDrawer={onOpenVisualDrawer}
-        onOpenPromptPanel={onOpenPromptPanel}
         onOpenAccessibilitySettings={onOpenAccessibilitySettings}
-        onCloseBubbles={onCloseBubbles}
         isFullscreen={isFullscreen}
         onFullscreen={toggleFullscreen}
       />

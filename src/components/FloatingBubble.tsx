@@ -76,10 +76,11 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
             animate={stableAnimation}
             transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
             exit={{ opacity: 0, scale: 0.92, y: 8 }}
+            onClick={content.loading || content.lifecycle === 'streaming' ? undefined : onOpenCompanion}
             role="status"
             aria-live="polite"
           >
-            <button type="button" className="bubble-close" onClick={onClose} aria-label="Close help bubble">
+            <button type="button" className="bubble-close" onClick={(event) => { event.stopPropagation(); onClose() }} aria-label="Close help bubble">
               <X size={14} />
             </button>
             <p className="eyebrow">{content.question}</p>
@@ -92,8 +93,8 @@ function FloatingBubbleComponent({ content, theme, reduceMotion, visible, onOpen
               <>
                 <p className="bubble-relationship">{content.relationship}</p>
                 <p className="bubble-explanation">{content.explanation}</p>
-                <button type="button" className="bubble-open-companion" onClick={onOpenCompanion}>
-                  <Sparkles size={14} /> Open companion
+                <button type="button" className="bubble-open-companion" onClick={(event) => { event.stopPropagation(); onOpenCompanion() }}>
+                  <Sparkles size={14} /> Open Story Companion
                 </button>
               </>
             )}

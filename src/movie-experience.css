@@ -496,6 +496,43 @@
   gap: 10px;
 }
 
+.movie-experience .drawer-prompt-context {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(250, 205, 102, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.movie-experience .drawer-prompt-context h4,
+.movie-experience .drawer-prompt-context > p:not(.eyebrow) {
+  margin: 0;
+}
+
+.movie-experience .drawer-prompt-context h4 { color: #ffe5aa; }
+.movie-experience .drawer-prompt-context > p:not(.eyebrow) { color: #e5f0ff; line-height: 1.4; }
+
+.movie-experience .drawer-prompt-visual-aid {
+  display: grid;
+  gap: 3px;
+  margin-top: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(7, 22, 47, 0.42);
+}
+
+.movie-experience .drawer-prompt-visual-aid span {
+  color: #f6d88b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.movie-experience .drawer-prompt-visual-aid strong { color: #d9eaff; font-size: .86rem; line-height: 1.35; }
+
 .movie-experience .tab-row {
   margin-top: 8px;
   display: flex;

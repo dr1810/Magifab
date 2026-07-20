@@ -88,7 +88,7 @@ function distanceToBeat(beat: StoryBeat, timestamp: number) {
 
 export function answerPrompt(state: SceneState, question: string) {
   if (/who|character/i.test(question)) return state.characters.map((item) => item.reminder).join(' ') || state.sceneSummary
-  if (/feel|emotion|why.*upset|happy/i.test(question)) return state.emotions[0]?.summary ?? state.sceneSummary
+  if (/feel|emotion|why.*(upset|happy|angry|annoyed|frustrated|afraid|scared)/i.test(question)) return state.emotions[0]?.summary ?? state.sceneSummary
   if (/remember|before|earlier/i.test(question)) return state.memory[0]?.summary ?? state.sceneSummary
   if (/relationship|together/i.test(question)) return state.relationships[0]?.summary ?? state.sceneSummary
   if (/object|what is this|word/i.test(question)) return state.importantObjects[0] ?? state.sceneSummary

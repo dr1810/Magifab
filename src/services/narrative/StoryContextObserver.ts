@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { SceneState } from '../scene/SceneState'
 
 export type StoryContext = {
@@ -31,11 +31,5 @@ export class StoryContextObserver {
 
 export function useStoryContextObserver(sceneState: SceneState | null, currentTime: number) {
   const observer = useRef(new StoryContextObserver())
-  const [context, setContext] = useState<StoryContext>(() => observer.current.observe(sceneState, currentTime))
-
-  useEffect(() => {
-    setContext(observer.current.observe(sceneState, currentTime))
-  }, [currentTime, sceneState?.endTime, sceneState?.sceneId, sceneState?.startTime])
-
-  return context
+  return observer.current.observe(sceneState, currentTime)
 }
