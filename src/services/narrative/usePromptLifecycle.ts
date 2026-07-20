@@ -108,5 +108,8 @@ export function usePromptLifecycle(context: StoryContext) {
     clearExitTimer()
   }, [clearExitTimer])
 
-  return { activePrompt, start, dismiss: () => finish('dismissed'), cancel: () => finish('dismissed') }
+  const dismiss = useCallback(() => finish('dismissed'), [finish])
+  const cancel = useCallback(() => finish('dismissed'), [finish])
+
+  return { activePrompt, start, dismiss, cancel }
 }
