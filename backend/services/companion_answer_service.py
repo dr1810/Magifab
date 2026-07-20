@@ -10,6 +10,7 @@ from schemas.interval_state import CompanionAnswer, CompanionDebugIssue, Compani
 from services.conversation_memory import ConversationMemory
 from services.interval_state_store import IntervalStateRepository
 from services.intent_router import IntentRoute, SemanticIntentRouter
+from services.retrieval_validation import RetrievalValidationResult, RetrievalValidator
 from services.semantic_retrieval import SemanticRetrievalIndex
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class CompanionAnswerService:
     """Retrieves bounded whole-work evidence before any LLM generation."""
 
-    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, semantic_index: SemanticRetrievalIndex | None = None, intent_router: SemanticIntentRouter | None = None, debug_enabled: bool = False) -> None:
+    def __init__(self, states: IntervalStateRepository, generator: AnswerGenerator, memory: ConversationMemory | None = None, semantic_index: SemanticRetrievalIndex | None = None, intent_router: SemanticIntentRouter | None = None, validator: RetrievalValidator | None = None, debug_enabled: bool = False) -> None:
         self._states = states
         self._generator = generator
         self._memory = memory or ConversationMemory()
@@ -28,6 +29,7 @@ class CompanionAnswerService:
             raise ValueError("intent_router_required")
         self._semantic_index = semantic_index
         self._intent_router = intent_router
+        self._validator = validator or RetrievalValidator()
         self._debug_enabled = debug_enabled
 
     def preprocess_work(self, work_id: str) -> None:
@@ -39,7 +41,7 @@ class CompanionAnswerService:
         memory_key = f"{request.movie_id}:{request.conversation_id}"
         conversation = [asdict(turn) for turn in self._memory.recall(memory_key)]
         route = self._intent_router.route(request.question)
-        context, retrieval_debug = self._retrieve(request, current, all_states, route, conversation)
+        context, retrieval_debug, validation = self._retrieve(request, current, all_states, route, conversation)
         payload = {
             "question": request.question,
             "personal_memory": self._personal_memory(request),
@@ -47,7 +49,11 @@ class CompanionAnswerService:
             "conversation_memory": conversation,
             "retrieval_context": context,
         }
-        if self._debug_enabled:
+        if not validation.passed:
+            generated_payload = {"answer": "I can’t verify that from the retrieved story evidence yet.", "intent": route.intent, "visual_aid_type": "evidence_missing", "entities": [], "relationships": [], "timeline_references": [], "suggested_follow_up_prompts": []}
+            exact_prompt = "Gemini was not called because retrieval validation failed."
+            raw_response = ""
+        elif self._debug_enabled:
             generated_payload, exact_prompt, raw_response = self._generator.generate_with_trace(payload)
         else:
             generated_payload, exact_prompt, raw_response = self._generator.generate(payload), "", ""
@@ -81,23 +87,36 @@ class CompanionAnswerService:
             answered = answered.model_copy(update={"companionDebug": trace})
         return answered
 
-    def _retrieve(self, request: CompanionPipelineRequest, current: IntervalState, all_states: list[IntervalState], route: IntentRoute, conversation: list[dict[str, str]]) -> tuple[dict[str, object], dict[str, object]]:
-        query_terms = [request.question, route.retrieval_instruction]
+    def _retrieve(self, request: CompanionPipelineRequest, current: IntervalState, all_states: list[IntervalState], route: IntentRoute, conversation: list[dict[str, str]]) -> tuple[dict[str, object], dict[str, object], RetrievalValidationResult]:
+        source = current.sourceContext
+        mode = source.mode if source else "movie"
+        current_position = float(source.page_start) if source and source.mode == "book" and source.page_start is not None else request.timestamp_seconds
+        current_text = " ".join(filter(None, [source.subtitle if source else None, source.visible_text if source else None]))
+        visible_entities = _unique_text([*(card.name for card in current.characters), *current.semanticMemoryAfter.active_characters])
+        query_terms = [request.question, route.retrieval_instruction, *visible_entities]
+        if current_text:
+            query_terms.append(current_text)
         all_entities = _unique_text(name for state in all_states for name in [*(card.name for card in state.characters), *state.semanticMemoryAfter.active_characters])
-        seeds = [entity for entity in all_entities if any(entity.casefold() in term.casefold() for term in query_terms)]
-        if self._debug_enabled:
-            scored = self._semantic_index.retrieve_with_scores(request.movie_id, " ".join(query_terms), current_interval_id=current.metadata.interval_id, allowed_kinds=route.evidence_kinds, entity_hints=tuple(seeds))
-            chunks = [item.chunk for item in scored]
-            retrieval_debug = {"semantic_query": " ".join(query_terms), "intent": route.intent, "allowed_kinds": route.evidence_kinds, "top_chunks": [{"chunk_id": item.chunk.id, "kind": item.chunk.kind, "similarity_score": item.similarity_score, "source": item.chunk.source, "start_time": item.chunk.start_time, "end_time": item.chunk.end_time, "text": item.chunk.text} for item in scored[:5]]}
-        else:
-            chunks = self._semantic_index.retrieve(request.movie_id, " ".join(query_terms), current_interval_id=current.metadata.interval_id, allowed_kinds=route.evidence_kinds, entity_hints=tuple(seeds))
-            retrieval_debug = {}
+        seeds = _unique_text([*visible_entities, *(entity for entity in all_entities if any(entity.casefold() in term.casefold() for term in query_terms))])
+        semantic_query = " ".join(query_terms)
+        retrieval_options = {"mode": mode, "current_position": current_position, "current_text": current_text or None, "intent": route.intent}
+        scored = self._semantic_index.retrieve_with_scores(request.movie_id, semantic_query, current_interval_id=current.metadata.interval_id, allowed_kinds=route.evidence_kinds, entity_hints=tuple(seeds), **retrieval_options)
+        validation = self._validator.validate(request.question, route.intent, scored)
+        attempts = [_attempt(0, scored, validation)]
+        for retry in range(1, 3):
+            if validation.passed:
+                break
+            scored = self._semantic_index.expand_with_scores(request.movie_id, semantic_query, current_interval_id=current.metadata.interval_id, seed_chunks=scored, allowed_kinds=route.evidence_kinds, entity_hints=tuple(seeds), radius=retry, **retrieval_options)
+            validation = self._validator.validate(request.question, route.intent, scored)
+            attempts.append(_attempt(retry, scored, validation))
+        chunks = [item.chunk for item in scored]
+        retrieval_debug = {"semantic_query": semantic_query, "intent": route.intent, "mode": mode, "current_position": current_position, "allowed_kinds": route.evidence_kinds, "retry_count": len(attempts) - 1, "validation_passed": validation.passed, "validation_reason": validation.reason, "anchor_terms": validation.anchor_terms, "attempts": attempts, "top_chunks": _chunk_debug(scored[:5])}
         context = {
             "evidence_chunks": [{"id": chunk.id, "kind": chunk.kind, "text": chunk.text, "source": chunk.source, "start_time": chunk.start_time, "end_time": chunk.end_time, "entities": chunk.entities, "relationships": chunk.relationships} for chunk in chunks],
-            "retrieval_trace": {"intent": route.intent, "allowed_evidence_kinds": route.evidence_kinds, "entity_seeds": seeds, "chunk_count": len(chunks)},
+            "retrieval_trace": {"intent": route.intent, "mode": mode, "current_position": current_position, "allowed_evidence_kinds": route.evidence_kinds, "entity_seeds": seeds, "chunk_count": len(chunks)},
             "conversation_memory": conversation,
         }
-        return context, retrieval_debug
+        return context, retrieval_debug, validation
 
     def _debug_trace(self, request, current, context, retrieval, prompt, raw_response, parsed, answered) -> CompanionDebugTrace:
         source = current.sourceContext
@@ -114,6 +133,8 @@ class CompanionAnswerService:
         issues = []
         if not retrieval.get("top_chunks"):
             issues.append(CompanionDebugIssue(stage="STEP 2 Retrieval", message="No route-approved evidence chunks matched. The answer is necessarily evidence-limited."))
+        if retrieval.get("validation_passed") is False:
+            issues.append(CompanionDebugIssue(stage="STEP 2 Retrieval", message=str(retrieval.get("validation_reason", "Retrieval validation failed; Gemini was not called."))))
         if current_context["visible_text"] is None:
             issues.append(CompanionDebugIssue(stage="STEP 1 Current Context", message="Raw visible text is not persisted in the prepared interval; this field is unavailable."))
         final_ui = {"companionAnswer": answered.companionAnswer.model_dump(mode="json") if answered.companionAnswer else None, "visualDrawer": answered.visualDrawer.model_dump(mode="json"), "prompts": answered.prompts.model_dump(mode="json"), "conversationContext": answered.conversationContext.model_dump(mode="json")}
@@ -186,3 +207,11 @@ def _unique_text(values) -> list[str]:
             seen.add(value.casefold())
             result.append(value)
     return result
+
+
+def _chunk_debug(chunks) -> list[dict[str, object]]:
+    return [{"chunk_id": item.chunk.id, "kind": item.chunk.kind, "similarity_score": item.similarity_score, "source": item.chunk.source, "start_time": item.chunk.start_time, "end_time": item.chunk.end_time, "text": item.chunk.text} for item in chunks]
+
+
+def _attempt(retry: int, chunks, validation: RetrievalValidationResult) -> dict[str, object]:
+    return {"retry": retry, "validation_passed": validation.passed, "validation_reason": validation.reason, "chunks": _chunk_debug(chunks)}

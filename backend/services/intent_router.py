@@ -40,7 +40,7 @@ def _routes() -> tuple[IntentRoute, ...]:
         IntentRoute("memory", ("event", "timeline", "character", "relationship", "quote"), "A callback, earlier story memory, or information the reader should recall."),
         IntentRoute("object", ("object", "event", "scene", "paragraph"), "An important object, who owns it, where it appeared, and why it matters."),
         IntentRoute("location", ("location", "scene", "paragraph", "lore"), "A setting, place, where someone is, or the meaning of a location."),
-        IntentRoute("definition", ("glossary", "dialogue", "paragraph", "lore"), "The meaning, name, term, phrase, word, title, or definition used in the source."),
+        IntentRoute("definition", ("glossary", "subtitle", "dialogue", "ocr", "paragraph", "lore"), "The meaning, name, term, phrase, word, title, or definition used in the source."),
         IntentRoute("world_building", ("lore", "location", "organization", "paragraph", "glossary"), "How the fictional world, society, culture, rules, or setting works."),
         IntentRoute("lore", ("lore", "organization", "glossary", "paragraph", "timeline"), "Background knowledge, history, mythology, institutions, or established story facts."),
         IntentRoute("summary", ("chapter", "scene", "event", "timeline", "paragraph"), "A concise summary of a scene, page, chapter, or section."),

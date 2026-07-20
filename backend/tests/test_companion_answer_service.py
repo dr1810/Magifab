@@ -29,9 +29,12 @@ class FakeSemanticIndex:
             relationships=("Rex and Ellie disagree about the map.",), source=f"interval:{current_interval_id}",
         )]
 
-    def retrieve_with_scores(self, work_id, query, *, current_interval_id, allowed_kinds, entity_hints=(), limit=8):
+    def retrieve_with_scores(self, work_id, query, *, current_interval_id, allowed_kinds, entity_hints=(), mode="movie", current_position=None, current_text=None, intent=None, limit=8):
         from services.semantic_retrieval import RetrievedChunk
         return [RetrievedChunk(chunk, .91) for chunk in self.retrieve(work_id, query, current_interval_id=current_interval_id, allowed_kinds=allowed_kinds, entity_hints=entity_hints, limit=limit)]
+
+    def expand_with_scores(self, work_id, query, *, current_interval_id, seed_chunks, allowed_kinds, entity_hints=(), mode="movie", current_position=None, current_text=None, intent=None, radius=1, limit=12):
+        return seed_chunks
 
 
 class FakeIntentRouter:

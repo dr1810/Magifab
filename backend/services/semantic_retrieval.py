@@ -62,10 +62,10 @@ class SemanticRetrievalIndex:
                 raise ValueError("embedding_count_mismatch")
             self._save(work_id, fingerprint, [IndexedChunk(chunk, vector) for chunk, vector in zip(chunks, vectors, strict=True)])
 
-    def retrieve(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[SemanticChunk]:
-        return [item.chunk for item in self.retrieve_with_scores(work_id, query, current_interval_id=current_interval_id, allowed_kinds=allowed_kinds, entity_hints=entity_hints, limit=limit)]
+    def retrieve(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), mode: str = "movie", current_position: float | None = None, current_text: str | None = None, intent: str | None = None, limit: int = 8) -> list[SemanticChunk]:
+        return [item.chunk for item in self.retrieve_with_scores(work_id, query, current_interval_id=current_interval_id, allowed_kinds=allowed_kinds, entity_hints=entity_hints, mode=mode, current_position=current_position, current_text=current_text, intent=intent, limit=limit)]
 
-    def retrieve_with_scores(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[RetrievedChunk]:
+    def retrieve_with_scores(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), mode: str = "movie", current_position: float | None = None, current_text: str | None = None, intent: str | None = None, limit: int = 8) -> list[RetrievedChunk]:
         with self._lock:
             loaded = self._load(work_id)
         if loaded is None:
@@ -73,9 +73,26 @@ class SemanticRetrievalIndex:
         _, indexed = loaded
         query_vector = self._embeddings.embed_query(query)
         permitted = [item for item in indexed if item.chunk.kind in allowed_kinds]
-        ranked = sorted(((item, _score(item, query_vector, current_interval_id, entity_hints)) for item in permitted), key=lambda item: item[1], reverse=True)
+        ranked = sorted(((item, _score(item, query_vector, current_interval_id, entity_hints, mode=mode, current_position=current_position, current_text=current_text, intent=intent)) for item in permitted), key=lambda item: item[1], reverse=True)
         selected = _diverse_scored(ranked, limit)
         return [RetrievedChunk(item.chunk, score) for item, score in selected]
+
+    def expand_with_scores(self, work_id: str, query: str, *, current_interval_id: str, seed_chunks: list[RetrievedChunk], allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), mode: str = "movie", current_position: float | None = None, current_text: str | None = None, intent: str | None = None, radius: int = 1, limit: int = 12) -> list[RetrievedChunk]:
+        with self._lock:
+            loaded = self._load(work_id)
+        if loaded is None:
+            raise ValueError("semantic_index_not_preprocessed")
+        _, indexed = loaded
+        query_vector = self._embeddings.embed_query(query)
+        permitted_kinds = set(allowed_kinds) | {"subtitle", "ocr", "dialogue", "paragraph", "glossary"}
+        seed_times = [item.chunk.start_time for item in seed_chunks]
+        seed_sources = {item.chunk.source for item in seed_chunks}
+        candidates = [item for item in indexed if item.chunk.kind in permitted_kinds and _near_seed(item.chunk, seed_times, seed_sources, radius)]
+        ranked = sorted(((item, _score(item, query_vector, current_interval_id, entity_hints, mode=mode, current_position=current_position, current_text=current_text, intent=intent)) for item in candidates), key=lambda item: item[1], reverse=True)
+        merged = {item.chunk.id: item for item in seed_chunks}
+        for item, score in _diverse_scored(ranked, limit):
+            merged.setdefault(item.chunk.id, RetrievedChunk(item.chunk, score))
+        return sorted(merged.values(), key=lambda item: item.similarity_score, reverse=True)[:limit]
 
     def _path(self, work_id: str) -> Path:
         return self._root / f"{sha256(work_id.encode('utf-8')).hexdigest()}.json"
@@ -105,6 +122,10 @@ def _chunks_from_states(states: list[IntervalState], maximum: int) -> list[Seman
         _append(chunks, "scene", state.storyState.scene_summary, "scene_summary", base, maximum)
         _append(chunks, "timeline", state.timelineMemory.current_event, "timeline_event", base, maximum)
         _append(chunks, "dialogue", state.conversationContext.scene_explanation, "dialogue", base, maximum)
+        if state.sourceContext and state.sourceContext.subtitle:
+            _append(chunks, "subtitle", state.sourceContext.subtitle, "subtitle", base, maximum)
+        if state.sourceContext and state.sourceContext.mode == "book" and state.sourceContext.visible_text:
+            _append(chunks, "ocr", state.sourceContext.visible_text, "ocr", base, maximum)
         for index, emotion in enumerate(state.accessibilityHints.emotions):
             _append(chunks, "emotion", emotion.summary, f"emotion:{index}", base, maximum)
         for index, vocabulary in enumerate(state.accessibilityHints.vocabulary):
@@ -127,11 +148,32 @@ def _append(chunks: list[SemanticChunk], kind: str, text: str | None, suffix: st
     chunks.append(SemanticChunk(id=f"{base['interval_id']}:{suffix}", kind=kind, text=cleaned, interval_id=str(base["interval_id"]), start_time=float(base["start_time"]), end_time=base["end_time"], entities=base["entities"], relationships=base["relationships"], source=f"interval:{base['interval_id']}"))
 
 
-def _score(item: IndexedChunk, query: tuple[float, ...], current_id: str, entity_hints: tuple[str, ...]) -> float:
+def _score(item: IndexedChunk, query: tuple[float, ...], current_id: str, entity_hints: tuple[str, ...], *, mode: str, current_position: float | None, current_text: str | None, intent: str | None) -> float:
     semantic = sum(left * right for left, right in zip(item.vector, query, strict=True))
-    current_bonus = .06 if item.chunk.interval_id == current_id else 0.0
-    entity_bonus = .08 if any(hint.casefold() in {entity.casefold() for entity in item.chunk.entities} for hint in entity_hints) else 0.0
-    return semantic + current_bonus + entity_bonus
+    current_bonus = .20 if item.chunk.interval_id == current_id else 0.0
+    entity_bonus = .14 if any(hint.casefold() in {entity.casefold() for entity in item.chunk.entities} for hint in entity_hints) else 0.0
+    source_tokens = _tokens(current_text or "")
+    source_bonus = .12 if source_tokens and _tokens(item.chunk.text).intersection(source_tokens) else 0.0
+    position_bonus = _position_bonus(item.chunk, mode, current_position)
+    evidence_bonus = .08 if intent == "definition" and item.chunk.kind in {"subtitle", "dialogue", "glossary", "paragraph", "lore"} else 0.0
+    return semantic + current_bonus + entity_bonus + source_bonus + position_bonus + evidence_bonus
+
+
+def _position_bonus(chunk: SemanticChunk, mode: str, current_position: float | None) -> float:
+    if current_position is None:
+        return 0.0
+    distance = abs(chunk.start_time - current_position)
+    if mode == "book":
+        # Pages adjacent to the visible page offer useful local context without
+        # taking precedence over semantically stronger book-wide evidence.
+        return max(0.0, .12 - (.04 * distance))
+    # Movie timestamps use a gentle decay so the current subtitles and on-screen
+    # evidence are favored while prior causes remain retrievable.
+    return max(0.0, .12 - (.001 * distance))
+
+
+def _tokens(value: str) -> set[str]:
+    return {token.casefold() for token in value.split() if len(token) > 2}
 
 
 def _diverse(indexed: list[IndexedChunk], limit: int) -> list[IndexedChunk]:
@@ -164,3 +206,10 @@ def _diverse_scored(indexed: list[tuple[IndexedChunk, float]], limit: int) -> li
 
 def _fingerprint(chunks: list[SemanticChunk]) -> str:
     return sha256(json.dumps([asdict(chunk) for chunk in chunks], sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _near_seed(chunk: SemanticChunk, seed_times: list[float], seed_sources: set[str], radius: int) -> bool:
+    if chunk.source in seed_sources:
+        return True
+    window = 2 * radius if chunk.source.startswith("page:") else 90 * radius
+    return any(abs(chunk.start_time - value) <= window for value in seed_times)
