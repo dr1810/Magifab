@@ -10,3 +10,7 @@ class AnswerGenerator(ABC):
     @abstractmethod
     def generate(self, payload: dict[str, object]) -> dict[str, object]:
         """Generate a validated answer using only the supplied retrieval context."""
+
+    def generate_with_trace(self, payload: dict[str, object]) -> tuple[dict[str, object], str, str]:
+        """Return parsed output, exact provider request JSON, and raw provider response."""
+        return self.generate(payload), "", ""

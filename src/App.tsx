@@ -12,10 +12,12 @@ import { HomeProfileButton } from './components/HomeProfileButton'
 import { LandingPage } from './landing-page'
 import { ProfileEditor } from './components/ProfileEditor'
 import { resetPlaybackTimestamp } from './services/playbackSessionService'
+import { CompanionDebugPanel } from './components/CompanionDebugPanel'
 
 type Key = keyof Settings
 const fontSizes: Settings['fontSize'][] = ['Small', 'Medium', 'Large', 'Extra Large']
 const fontFamilies: Settings['fontFamily'][] = ['Default', 'OpenDyslexic', 'Atkinson Hyperlegible', 'Lexend', 'Inter']
+const withDebugPanel = (view: React.ReactNode) => <>{view}<CompanionDebugPanel /></>
 
 function Segmented<K extends Key>({ label, setting, options }: { label: string; setting: K; options: Settings[K][] }) {
   const { settings, update } = useAccessibility()
@@ -63,24 +65,24 @@ function App() {
   const [tab, setTab] = useState<'home' | 'profile' | 'settings' | 'setup' | 'selector' | 'watch' | 'book'>('home')
   const [selectedMovie, setSelectedMovie] = useState<MovieId>('bigBuckBunny')
 
-  if (loading) return <div className="loading-screen">Preparing your Magifab profile…</div>
+  if (loading) return withDebugPanel(<div className="loading-screen">Preparing your Magifab profile…</div>)
 
   if (tab === 'setup') {
-    return <Onboarding open onClose={() => setTab('home')} onComplete={() => { void refresh(); setTab('selector') }} />
+    return withDebugPanel(<Onboarding open onClose={() => setTab('home')} onComplete={() => { void refresh(); setTab('selector') }} />)
   }
 
   if (tab === 'profile' && profile) {
-    return <ProfileEditor profile={profile} onClose={() => setTab('home')} onEdit={() => setTab('settings')} onSwitchCompanion={() => setTab('setup')} />
+    return withDebugPanel(<ProfileEditor profile={profile} onClose={() => setTab('home')} onEdit={() => setTab('settings')} onSwitchCompanion={() => setTab('setup')} />)
   }
 
   if (tab === 'watch') {
-    return <MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} onOpenAccessibilitySettings={() => setTab('settings')} />
+    return withDebugPanel(<MovieViewer movie={selectedMovie} onBack={() => setTab('selector')} onOpenAccessibilitySettings={() => setTab('settings')} />)
   }
 
-  if (tab === 'book') return <BookViewer onBack={() => setTab('home')} />
+  if (tab === 'book') return withDebugPanel(<BookViewer onBack={() => setTab('home')} />)
 
   if (tab === 'selector') {
-    return (
+    return withDebugPanel(
       <MovieSelector
         onBack={() => setTab('home')}
         onSelect={(movieId, startOver) => {
@@ -93,10 +95,10 @@ function App() {
   }
 
   if (tab === 'settings') {
-    return <AccessibilityPage onHome={() => setTab('home')} onContinue={() => setTab(profile ? 'selector' : 'setup')} />
+    return withDebugPanel(<AccessibilityPage onHome={() => setTab('home')} onContinue={() => setTab(profile ? 'selector' : 'setup')} />)
   }
 
-  return <LandingPage profile={profile} onProfile={() => setTab(profile ? 'profile' : 'settings')} onSettings={() => setTab('settings')} onMovies={() => setTab('selector')} onBooks={() => setTab('book')} />
+  return withDebugPanel(<LandingPage profile={profile} onProfile={() => setTab(profile ? 'profile' : 'settings')} onSettings={() => setTab('settings')} onMovies={() => setTab('selector')} onBooks={() => setTab('book')} />)
 }
 
 export default App

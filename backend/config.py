@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     gemini_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("GEMINI_API_KEY", "MAGIFAB_GEMINI_API_KEY"))
     gemini_model: str = "gemini-2.5-flash"
     gemini_embedding_model: str = "gemini-embedding-2"
+    debug_companion_pipeline: bool = False
     face_model_pack: str = "buffalo_l"
     face_onnx_providers: str = "CPUExecutionProvider"
     face_detection_size: int = 640

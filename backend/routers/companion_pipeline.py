@@ -109,6 +109,7 @@ def _normalize_companion_interval(interval: CompanionInterval, accessibility_pro
         timestamp_seconds=interval.timestamp,
         catalog_scene_id=catalog_scene_id if isinstance(catalog_scene_id, str) else None,
         image=interval.image,
+        source_text=interval.text,
         accessibility_profile=accessibility_profile,
         companion_profile=companion_profile,
     )

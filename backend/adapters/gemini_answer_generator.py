@@ -32,7 +32,19 @@ class GeminiGroundedAnswerGenerator(AnswerGenerator):
             _answer_schema(),
         )
 
+    def generate_with_trace(self, payload: dict[str, object]) -> tuple[dict[str, object], str, str]:
+        return self._generate_with_trace(
+            "You are Aster, a grounded companion. Answer using only the retrieved evidence chunks and conversation memory. "
+            "Each chunk is a source excerpt; do not claim facts absent from them. If evidence is insufficient, state that clearly. "
+            "Adapt wording to the supplied personal memory. Choose the most useful visual aid type yourself and offer relevant follow-ups.",
+            payload,
+            _answer_schema(),
+        )
+
     def _generate(self, instructions: str, payload: dict[str, object], schema: dict[str, object]) -> dict[str, object]:
+        return self._generate_with_trace(instructions, payload, schema)[0]
+
+    def _generate_with_trace(self, instructions: str, payload: dict[str, object], schema: dict[str, object]) -> tuple[dict[str, object], str, str]:
         if not self._key:
             raise PersonalizationConfigurationError("GEMINI_API_KEY is not configured on the backend")
         request_payload = {
@@ -41,13 +53,15 @@ class GeminiGroundedAnswerGenerator(AnswerGenerator):
             "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": schema},
         }
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self._model}:generateContent"
-        request = Request(url, data=json.dumps(request_payload).encode("utf-8"), headers={"Content-Type": "application/json", "x-goog-api-key": self._key}, method="POST")
+        exact_prompt = json.dumps(request_payload, ensure_ascii=False)
+        request = Request(url, data=exact_prompt.encode("utf-8"), headers={"Content-Type": "application/json", "x-goog-api-key": self._key}, method="POST")
         try:
             with urlopen(request, timeout=45) as response:
-                body = json.loads(response.read().decode("utf-8"))
+                raw_response = response.read().decode("utf-8")
+                body = json.loads(raw_response)
             text = body["candidates"][0]["content"]["parts"][0]["text"]
             result = json.loads(text)
-            return result if isinstance(result, dict) else {}
+            return (result if isinstance(result, dict) else {}), exact_prompt, raw_response
         except (URLError, OSError, KeyError, IndexError, TypeError, ValueError) as error:
             raise PersonalizationProviderError("Gemini could not produce a grounded answer") from error
 

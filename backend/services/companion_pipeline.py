@@ -26,7 +26,7 @@ from services.story_event_extractor import StoryEventExtractor
 from services.story_state_manager import PreprocessingStoryBuilder
 from services.timeline_memory import TimelineMemoryService
 from schemas.story_state import StoryState
-from schemas.interval_state import IntervalCacheMetadata, IntervalMetadata, IntervalSemanticMemory
+from schemas.interval_state import IntervalCacheMetadata, IntervalMetadata, IntervalSemanticMemory, SourceContext
 from services.interval_state_store import IntervalStateRepository
 from services.companion_answer_service import CompanionAnswerService
 
@@ -126,6 +126,7 @@ class CompanionPipelineService:
                 semantic_cache_key=expansion.cache_key, knowledge_source=expansion.source,
                 semantic_map_cached=expansion.source == "retrieved", frame_hash=frame_hash,
             )})
+        interval_state = interval_state.model_copy(update={"sourceContext": SourceContext(mode="movie", subtitle=request.source_text or None, visible_text=request.source_text or None)})
         self._interval_states.save(interval_state)
         self._logger.info("[INTERVAL_CACHE_UPDATED] movie=%s interval=%d", request.movie_id, interval_number)
         self._logger.info("[PROMPTS_GENERATED] movie=%s interval=%d count=%d", request.movie_id, interval_number, len(interval_state.prompts.prompt_bubbles))

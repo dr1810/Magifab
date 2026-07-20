@@ -84,6 +84,7 @@ class IntervalPreparationRequest(BaseModel):
     catalog_scene_id: str | None = None
     timestamp_seconds: float = Field(ge=0)
     image: str = Field(min_length=8)
+    source_text: str = Field(default="", max_length=100_000)
     # Optional caller hints supplement (never replace) the labels discovered by
     # YOLO. Keeping this on the preparation contract makes grounding extensible
     # for uploaded movies without coupling the UI to a particular model.

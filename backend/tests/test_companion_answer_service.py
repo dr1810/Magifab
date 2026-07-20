@@ -29,6 +29,10 @@ class FakeSemanticIndex:
             relationships=("Rex and Ellie disagree about the map.",), source=f"interval:{current_interval_id}",
         )]
 
+    def retrieve_with_scores(self, work_id, query, *, current_interval_id, allowed_kinds, entity_hints=(), limit=8):
+        from services.semantic_retrieval import RetrievedChunk
+        return [RetrievedChunk(chunk, .91) for chunk in self.retrieve(work_id, query, current_interval_id=current_interval_id, allowed_kinds=allowed_kinds, entity_hints=entity_hints, limit=limit)]
+
 
 class FakeIntentRouter:
     def route(self, question):
@@ -60,6 +64,9 @@ class FakeGenerator(AnswerGenerator):
             "timeline_scope": "earlier and current story events",
             "use_conversation_memory": True,
         }
+
+    def generate_with_trace(self, payload):
+        return self.generate(payload), '{"exact":"gemini request"}', '{"raw":"gemini response"}'
 
 
 def _state(number: int, summary: str) -> IntervalState:
@@ -97,5 +104,24 @@ def test_answer_service_retrieves_whole_work_and_remembers_followups(tmp_path: P
     assert generator.payload["personal_memory"]["learning_preferences"]["reading_level"] == "adaptive"
     evidence = generator.payload["retrieval_context"]["evidence_chunks"]
     assert evidence == [{"id": "movie:interval:1:relationship:0", "kind": "relationship", "text": "Ellie confronts Rex about the map.", "source": "interval:movie:interval:1", "start_time": 30, "end_time": 60, "entities": ("Rex", "Ellie"), "relationships": ("Rex and Ellie disagree about the map.",)}]
+
+
+def test_debug_trace_exposes_all_generation_stages(tmp_path: Path):
+    states = IntervalStateRepository(tmp_path, 1)
+    current = _state(0, "Ellie confronts Rex about the map.")
+    states.save(current)
+    service = CompanionAnswerService(states, FakeGenerator(), FileConversationMemory(tmp_path / "conversations"), FakeSemanticIndex(), FakeIntentRouter(), debug_enabled=True)
+    service.preprocess_work("movie")
+    request = CompanionPipelineRequest(movie_id="movie", timestamp_seconds=5, question="Why are they arguing?", accessibility_profile=AccessibilityProfile(), companion_profile=CompanionProfile())
+
+    answered = service.answer(request, current)
+
+    trace = answered.companionDebug
+    assert trace is not None
+    assert trace.user_question == "Why are they arguing?"
+    assert trace.retrieval["top_chunks"][0]["similarity_score"] == .91
+    assert trace.prompt == '{"exact":"gemini request"}'
+    assert trace.gemini_response == '{"raw":"gemini response"}'
+    assert trace.final_ui["companionAnswer"]["answer"] == "Rex and Ellie are arguing about the map."
     assert len(generator.payload["conversation_memory"]) == 1
     assert memory.recall("movie:session-1")[0].question == "Why are they arguing?"

@@ -17,6 +17,7 @@ import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion } from './types/movie'
 import { useOverlayManager } from './hooks/useOverlayManager'
+import { companionBackendService } from './services/backend/CompanionBackendService'
 
 type MovieViewerProps = { movie: MovieId; onBack: () => void; onOpenAccessibilitySettings?: () => void }
 type ScenePrompt = { id: string; kind: string; label: string; question: string; priority: number }
@@ -137,11 +138,17 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     }
     overlays.open('assistant')
   }, [accessibilityProfile?.companionProfile, companionGreetingSceneId, companionMessages.length, companionOpen, overlays, sceneState])
-  const askCompanion = useCallback((question: string) => {
-    const answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
+  const askCompanion = useCallback(async (question: string) => {
+    let answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
+    try {
+      const backend = await companionBackendService.respond({ movieId: movie, scene, question, timestamp: currentTime, settings, companion: accessibilityProfile?.companionProfile ?? null })
+      answer = backend.companionAnswer?.answer ?? backend.prompts.prompt_answers[0]?.answer ?? answer
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('[MagiFab companion] backend answer failed; using local compatibility answer.', error)
+    }
     const messageId = `${sceneState?.sceneId ?? 'opening'}:${Date.now()}`
     setCompanionMessages((messages) => [...messages, { id: `${messageId}:question`, role: 'user', text: question }, { id: `${messageId}:answer`, role: 'assistant', text: answer }])
-  }, [accessibilityProfile?.aiProfile, sceneState])
+  }, [accessibilityProfile?.aiProfile, accessibilityProfile?.companionProfile, currentTime, movie, scene, sceneState, settings])
   const closeOverlays = useCallback(() => {
     if (drawerOpen) closeDrawer()
     else closeInteractionUI()

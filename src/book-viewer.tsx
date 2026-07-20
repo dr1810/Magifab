@@ -16,6 +16,8 @@ import { StoryResolver } from './services/narrative/StoryResolver'
 import type { SceneState } from './services/scene/SceneState'
 import type { PromptQuestion } from './types/movie'
 import { useOverlayManager } from './hooks/useOverlayManager'
+import { companionBackendService } from './services/backend/CompanionBackendService'
+import { BookProvider } from './services/companion/BookProvider'
 
 GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -140,6 +142,10 @@ export function BookViewer({ onBack }: BookViewerProps) {
           const sceneState = graph
             ? new StoryResolver(graph).resolvePage(range.pageStart, accessibilityProfile?.aiProfile ?? null) ?? indexedState(sourceId, visiblePages)
             : indexedState(sourceId, visiblePages)
+          if (import.meta.env.DEV && visiblePages.length) {
+            const interval = new BookProvider().createInterval({ contentId: sourceId, pageStart: range.pageStart, pageEnd: range.pageEnd, text: visiblePages.map((page) => page.text).join('\n\n'), image: visiblePages[0].image, metadata: { pageDocuments: visiblePages.map((page) => ({ pageNumber: page.pageNumber, text: page.text })) } })
+            void companionBackendService.prepare(interval, settings, accessibilityProfile?.companionProfile ?? null).catch((error) => console.error('[MagiFab debug] book interval preparation failed', error))
+          }
           return { pages: visiblePages, sceneState }
         })
         inFlightSpreadsRef.current.set(cacheKey, task)
@@ -163,7 +169,7 @@ export function BookViewer({ onBack }: BookViewerProps) {
       inFlightSpreadsRef.current.delete(cacheKey)
       if (!background && generation === loadGenerationRef.current && activeSpreadRef.current === cacheKey) setLoading(false)
     }
-  }, [accessibilityProfile?.aiProfile])
+  }, [accessibilityProfile?.aiProfile, accessibilityProfile?.companionProfile, settings])
 
   useEffect(() => {
     if (!document || !bookId) return
@@ -223,6 +229,10 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const turn = (direction: -1 | 1) => setSpreadStart((current) => direction === 1 ? Math.min(Math.max(1, pageCount - 1), current + 2) : Math.max(1, current - 2))
   const activePrompt = prompts[0]
   const showBubble = (prompt: PromptQuestion, position?: { left: number; top: number }) => {
+    if (import.meta.env.DEV && bookId) {
+      const timestamp = Math.floor(((sceneState?.startTime ?? 1) - 1) / 2) * 30
+      void companionBackendService.respond({ movieId: bookId, scene: null, question: prompt.question, timestamp, settings, companion: accessibilityProfile?.companionProfile ?? null }).catch((error) => console.error('[MagiFab debug] book companion trace failed', error))
+    }
     setActiveBubble({ id: prompt.id, question: prompt.question, title: prompt.label, relationship: 'Reading companion', explanation: sceneState?.sceneSummary ?? '', anchor: { x: 50, y: 42 }, highlightTarget: false, absolutePosition: position })
     overlays.open('prompt-card')
   }

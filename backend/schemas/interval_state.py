@@ -46,6 +46,24 @@ class CompanionAnswer(ImmutableModel):
     suggested_follow_up_prompts: tuple[str, ...] = ()
 
 
+class CompanionDebugIssue(ImmutableModel):
+    stage: str
+    message: str
+
+
+class CompanionDebugTrace(ImmutableModel):
+    """Development-only forensic trace; never populated in production."""
+    user_question: str
+    current_context: dict[str, object]
+    retrieval: dict[str, object]
+    prompt: str
+    gemini_response: str
+    parsed_json: dict[str, object]
+    formatted_response: dict[str, object]
+    final_ui: dict[str, object]
+    issues: tuple[CompanionDebugIssue, ...] = ()
+
+
 class IntervalPrompts(ImmutableModel):
     prompt_bubbles: tuple[PromptBubbleSuggestion, ...] = ()
     prompt_answers: tuple[PromptAnswer, ...] = ()
@@ -117,6 +135,14 @@ class IntervalCacheMetadata(ImmutableModel):
     frame_hash: str | None = None
 
 
+class SourceContext(ImmutableModel):
+    mode: str
+    subtitle: str | None = None
+    visible_text: str | None = None
+    page_start: int | None = None
+    page_end: int | None = None
+
+
 class SceneState(ImmutableModel):
     """Single source of truth sent to the frontend for one interval."""
     metadata: IntervalMetadata
@@ -132,7 +158,9 @@ class SceneState(ImmutableModel):
     semanticMemoryAfter: IntervalSemanticMemory
     timelineMemory: IntervalTimelineMemory
     cacheMetadata: IntervalCacheMetadata
+    sourceContext: SourceContext | None = None
     companionAnswer: CompanionAnswer | None = None
+    companionDebug: CompanionDebugTrace | None = None
 
 
 IntervalState = SceneState

@@ -39,6 +39,7 @@ from services.interval_state_store import IntervalStateRepository
 from services.book_scene_pipeline import BookScenePipeline
 from services.semantic_retrieval import SemanticRetrievalIndex
 from services.intent_router import SemanticIntentRouter
+from services.book_knowledge_preprocessor import BookKnowledgePreprocessor
 from services.companion_answer_service import CompanionAnswerService
 from services.conversation_memory import ConversationMemory, FileConversationMemory
 
@@ -200,7 +201,7 @@ def get_interval_state_repository() -> IntervalStateRepository:
 @lru_cache
 def get_book_scene_pipeline() -> BookScenePipeline:
     """Book-only source normalization before the shared SceneState boundary."""
-    return BookScenePipeline(interval_states=get_interval_state_repository(), semantic_index=get_semantic_retrieval_index())
+    return BookScenePipeline(interval_states=get_interval_state_repository())
 
 
 @lru_cache
@@ -220,6 +221,7 @@ def get_companion_answer_service() -> CompanionAnswerService:
         memory=get_conversation_memory(),
         semantic_index=get_semantic_retrieval_index(),
         intent_router=get_intent_router(),
+        debug_enabled=get_settings().environment == "development",
     )
 
 
@@ -230,6 +232,17 @@ def get_semantic_retrieval_index() -> SemanticRetrievalIndex:
     return SemanticRetrievalIndex(
         settings.knowledge_store_dir / f"v{settings.semantic_cache_version}" / "semantic-retrieval",
         GeminiEmbeddingProvider(settings),
+    )
+
+
+@lru_cache
+def get_book_knowledge_preprocessor() -> BookKnowledgePreprocessor:
+    from adapters.gemini_book_semantic_extractor import GeminiBookSemanticExtractor
+    settings = get_settings()
+    return BookKnowledgePreprocessor(
+        extractor=GeminiBookSemanticExtractor(settings),
+        index=get_semantic_retrieval_index(),
+        graph_root=settings.knowledge_store_dir / f"v{settings.semantic_cache_version}" / "book-graphs",
     )
 
 
@@ -311,6 +324,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.companion_pipeline import router as companion_pipeline_router
     from routers.personalization import router as personalization_router
     from routers.understand import router as understand_router
+    from routers.books import router as books_router
     application.include_router(health_router)
     application.include_router(detect_router)
     application.include_router(debug_router)
@@ -324,6 +338,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(companion_pipeline_router)
     application.include_router(personalization_router)
     application.include_router(understand_router)
+    application.include_router(books_router)
     return application
 
 

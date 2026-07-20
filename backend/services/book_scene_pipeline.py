@@ -12,10 +12,9 @@ import re
 from schemas.accessibility_reasoning import CharacterCard, EmotionSummary, MemoryReminder, PromptBubbleSuggestion, RelationshipSummary
 from schemas.clean_page_document import CleanPageDocument
 from schemas.companion_pipeline import CompanionInterval, IntervalPreparationResponse
-from schemas.interval_state import AccessibilityHints, ConversationContext, IntervalCacheMetadata, IntervalMetadata, IntervalPrompts, IntervalSemanticMemory, IntervalStoryState, IntervalTimelineMemory, VisualDrawerState
+from schemas.interval_state import AccessibilityHints, ConversationContext, IntervalCacheMetadata, IntervalMetadata, IntervalPrompts, IntervalSemanticMemory, IntervalStoryState, IntervalTimelineMemory, SourceContext, VisualDrawerState
 from services.page_document_normalizer import PageDocumentNormalizer
 from services.interval_state_store import IntervalStateRepository
-from services.semantic_retrieval import SemanticChunk, SemanticRetrievalIndex
 
 
 class BookScenePipeline:
@@ -25,10 +24,9 @@ class BookScenePipeline:
     _emotion_words = {"afraid": "afraid", "angry": "angry", "sad": "sad", "worried": "worried", "happy": "happy", "relieved": "relieved", "nervous": "nervous"}
     _ignored_names = {"Chapter", "Page", "The", "A", "An", "He", "She", "They", "This", "That", "When", "What", "Why", "Where"}
 
-    def __init__(self, normalizer: PageDocumentNormalizer | None = None, interval_states: IntervalStateRepository | None = None, semantic_index: SemanticRetrievalIndex | None = None) -> None:
+    def __init__(self, normalizer: PageDocumentNormalizer | None = None, interval_states: IntervalStateRepository | None = None) -> None:
         self._normalizer = normalizer or PageDocumentNormalizer()
         self._interval_states = interval_states
-        self._semantic_index = semantic_index
         self._pages: dict[str, dict[int, CleanPageDocument]] = defaultdict(dict)
         self._states: dict[str, IntervalPreparationResponse] = {}
 
@@ -45,22 +43,9 @@ class BookScenePipeline:
         response = self._scene_state(interval, documents, context, page_start, page_end, cache_key)
         if self._interval_states is not None:
             self._interval_states.save(response)
-        if self._semantic_index is not None and self._interval_states is not None:
-            self._semantic_index.build(interval.contentId, self._interval_states.list_movie_states(interval.contentId), tuple(self._book_chunks(interval.contentId)))
         self._states[cache_key] = response
         return response
 
-    def _book_chunks(self, content_id: str) -> list[SemanticChunk]:
-        chunks: list[SemanticChunk] = []
-        for page_number, document in sorted(self._pages[content_id].items()):
-            paragraphs = [" ".join(part.split()) for part in re.split(r"\n\s*\n", document.text) if part.strip()]
-            for index, paragraph in enumerate(paragraphs):
-                chunks.append(SemanticChunk(
-                    id=f"{content_id}:page:{page_number}:paragraph:{index}", kind="paragraph", text=paragraph[:900],
-                    interval_id=f"{content_id}:interval:{(page_number - 1) // 2}", start_time=float(page_number), end_time=float(page_number),
-                    entities=tuple(self._names(paragraph)), relationships=(), source=f"page:{page_number}",
-                ))
-        return chunks
 
     def _documents_from_interval(self, interval: CompanionInterval) -> list[CleanPageDocument]:
         entries = interval.metadata.get("pageDocuments")
@@ -96,6 +81,7 @@ class BookScenePipeline:
             semanticMemoryAfter=IntervalSemanticMemory(active_characters=tuple(names), relationships=tuple(item.summary for item in relationships), emotions=(emotion,) if emotion else (), important_objects=tuple(objects), story_events=(summary,)),
             timelineMemory=IntervalTimelineMemory(timeline_position=f"Pages {page_start}–{page_end}", previous_event=memories[-1].summary if memories else None, current_event=summary),
             cacheMetadata=IntervalCacheMetadata(semantic_cache_key=cache_key, knowledge_source="clean-page-semantic", semantic_map_cached=False, frame_hash=sha256(interval.image.encode("utf-8")).hexdigest()),
+            sourceContext=SourceContext(mode="book", visible_text=current_text, page_start=page_start, page_end=page_end),
         )
 
     def _names(self, text: str) -> list[str]:

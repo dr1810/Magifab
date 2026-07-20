@@ -5,6 +5,7 @@ import type { CompanionProfile } from '../../types/user'
 import type { SceneData } from '../../types/movie'
 import type { CompanionInterval } from '../companion/CompanionInterval'
 import { MovieProvider } from '../companion/MovieProvider'
+import { setCompanionDebugFailure, setCompanionDebugTrace, type CompanionDebugTrace } from '../debugTraceStore'
 
 export type BackendCharacterCard = {
   character_id: string
@@ -38,6 +39,9 @@ export type IntervalState = {
   semanticMemoryAfter: { active_characters: string[]; relationships: string[]; emotions: string[]; important_objects: string[]; unresolved_threads: string[]; story_events: string[] }
   timelineMemory: { timeline_position: string | null; previous_event: string | null; current_event: string | null; next_event: string | null; is_movie_start: boolean; is_movie_end: boolean }
   cacheMetadata: { semantic_cache_key: string; knowledge_source: string; semantic_map_cached: boolean; frame_hash: string | null }
+  sourceContext?: { mode: string; subtitle?: string | null; visible_text?: string | null; page_start?: number | null; page_end?: number | null } | null
+  companionAnswer?: { answer: string; intent: string; visual_aid_type: string; entities: string[]; relationships: string[]; timeline_references: string[]; suggested_follow_up_prompts: string[] } | null
+  companionDebug?: CompanionDebugTrace | null
 }
 
 export type CompanionBackendResponse = IntervalState
@@ -193,9 +197,11 @@ export class CompanionBackendService {
     const body: unknown = await response.json().catch(() => null)
     if (!response.ok) {
       const detail = body && typeof body === 'object' && 'detail' in body ? String(body.detail) : 'The companion backend is unavailable.'
+      if (import.meta.env.DEV) setCompanionDebugFailure(options.question, detail)
       throw new Error(detail)
     }
     if (!isBackendResponse(body)) throw new Error('The companion backend returned an invalid response.')
+    if (import.meta.env.DEV) setCompanionDebugTrace(body.companionDebug ?? null)
     return body
   }
 

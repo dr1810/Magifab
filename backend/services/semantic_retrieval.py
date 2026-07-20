@@ -35,6 +35,12 @@ class IndexedChunk:
     vector: tuple[float, ...]
 
 
+@dataclass(frozen=True)
+class RetrievedChunk:
+    chunk: SemanticChunk
+    similarity_score: float
+
+
 class SemanticRetrievalIndex:
     """Persists typed chunks and vectors; query paths only score existing evidence."""
 
@@ -57,6 +63,9 @@ class SemanticRetrievalIndex:
             self._save(work_id, fingerprint, [IndexedChunk(chunk, vector) for chunk, vector in zip(chunks, vectors, strict=True)])
 
     def retrieve(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[SemanticChunk]:
+        return [item.chunk for item in self.retrieve_with_scores(work_id, query, current_interval_id=current_interval_id, allowed_kinds=allowed_kinds, entity_hints=entity_hints, limit=limit)]
+
+    def retrieve_with_scores(self, work_id: str, query: str, *, current_interval_id: str, allowed_kinds: tuple[str, ...], entity_hints: tuple[str, ...] = (), limit: int = 8) -> list[RetrievedChunk]:
         with self._lock:
             loaded = self._load(work_id)
         if loaded is None:
@@ -64,9 +73,9 @@ class SemanticRetrievalIndex:
         _, indexed = loaded
         query_vector = self._embeddings.embed_query(query)
         permitted = [item for item in indexed if item.chunk.kind in allowed_kinds]
-        ranked = sorted(permitted, key=lambda item: _score(item, query_vector, current_interval_id, entity_hints), reverse=True)
-        selected = _diverse(ranked, limit)
-        return [item.chunk for item in selected]
+        ranked = sorted(((item, _score(item, query_vector, current_interval_id, entity_hints)) for item in permitted), key=lambda item: item[1], reverse=True)
+        selected = _diverse_scored(ranked, limit)
+        return [RetrievedChunk(item.chunk, score) for item, score in selected]
 
     def _path(self, work_id: str) -> Path:
         return self._root / f"{sha256(work_id.encode('utf-8')).hexdigest()}.json"
@@ -134,6 +143,20 @@ def _diverse(indexed: list[IndexedChunk], limit: int) -> list[IndexedChunk]:
             continue
         seen.add(key)
         selected.append(item)
+        if len(selected) == limit:
+            return selected
+    return selected
+
+
+def _diverse_scored(indexed: list[tuple[IndexedChunk, float]], limit: int) -> list[tuple[IndexedChunk, float]]:
+    selected: list[tuple[IndexedChunk, float]] = []
+    seen: set[tuple[str, str]] = set()
+    for item, score in indexed:
+        key = (item.chunk.interval_id, item.chunk.kind)
+        if key in seen:
+            continue
+        seen.add(key)
+        selected.append((item, score))
         if len(selected) == limit:
             return selected
     return selected
