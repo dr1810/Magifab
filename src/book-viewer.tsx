@@ -9,6 +9,9 @@ import { PromptPanel } from './components/PromptPanel'
 import { VisualDrawer } from './components/VisualDrawer'
 import { useAccessibility } from './accessibility-context'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
+import { useAccessibilityProfile } from './hooks/useAccessibilityProfile'
+import { getContentNarrativeGraph } from './services/narrative/NarrativeRepository'
+import { StoryResolver } from './services/narrative/StoryResolver'
 import type { SceneState } from './services/scene/SceneState'
 import type { PromptQuestion } from './types/movie'
 
@@ -67,6 +70,7 @@ function PdfPage({ page, side }: { page: RenderedPage | null; side: 'left' | 'ri
 export function BookViewer({ onBack }: BookViewerProps) {
   const { settings } = useAccessibility()
   const { profile } = useCompanionProfile()
+  const { profile: accessibilityProfile } = useAccessibilityProfile()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const dragStartRef = useRef<number | null>(null)
   const stageRef = useRef<HTMLElement | null>(null)
@@ -105,7 +109,10 @@ export function BookViewer({ onBack }: BookViewerProps) {
       const rendered = await Promise.all([renderPage(pdf, range.pageStart), range.pageEnd !== range.pageStart ? renderPage(pdf, range.pageEnd) : Promise.resolve(null)])
       const visiblePages = rendered.filter((page): page is RenderedPage => Boolean(page))
       extractedText = visiblePages.map((page) => page.text).join('\n\n')
-      const initialSceneState = fallbackState(sourceId, range.pageStart, range.pageEnd)
+      const graph = getContentNarrativeGraph(sourceId)
+      const initialSceneState = graph
+        ? new StoryResolver(graph).resolvePage(range.pageStart, accessibilityProfile?.aiProfile ?? null) ?? fallbackState(sourceId, range.pageStart, range.pageEnd)
+        : fallbackState(sourceId, range.pageStart, range.pageEnd)
       sceneCacheRef.current.set(cacheKey, { pages: visiblePages, sceneState: initialSceneState })
       if (!background && activeSpreadRef.current === cacheKey) {
         setPages(visiblePages)
@@ -121,7 +128,7 @@ export function BookViewer({ onBack }: BookViewerProps) {
     } finally {
       if (!background && activeSpreadRef.current === cacheKey) setLoading(false)
     }
-  }, [])
+  }, [accessibilityProfile?.aiProfile])
 
   useEffect(() => {
     if (!document || !bookId) return

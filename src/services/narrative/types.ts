@@ -92,10 +92,14 @@ export type NarrativeGraph = {
 }
 
 export type NarrativeSource = { contentId: string; type: ContentType; timestamp?: number; page?: number; chapter?: string }
-export type NarrativeProcessorInput = { source: NarrativeSource; metadata: Record<string, string>; transcript?: string; screenplay?: string; scenes?: Array<{ startTime: number; endTime?: number; text?: string }> }
-export interface NarrativeProcessor { analyzeContent(input: NarrativeProcessorInput): Promise<NarrativeGraph> }
-export interface AccessibilityAnalyzer { analyzeScene(scene: NarrativeScene, graph: NarrativeGraph): Promise<AccessibilityGraph> }
-export interface VisionAnalyzer { analyzeFrame(input: { contentId: string; timestamp: number; image: Blob }): Promise<{ objects: string[]; description: string }> }
+export type VideoFrameInput = { timestamp: number; image: Blob; subtitleContext?: string }
+export type VisualSceneData = { sceneId: string; startTime: number; endTime: number; visibleEntityIds: string[]; visibleObjects: string[]; location?: string; facialExpressions: Array<{ entityId: string; expression: string; confidence: number }>; visualContext: string; confidence: Record<string, number> }
+export type NarrativeProcessorInput = { source: NarrativeSource; metadata: Record<string, string>; transcript?: string; screenplay?: string; scenes?: Array<{ startTime: number; endTime?: number; text?: string }>; visualScenes?: VisualSceneData[] }
+export type AccessibilityAnalyzerInput = { scene: NarrativeScene; graph: NarrativeGraph; userNeeds?: AccessibilityNeed[] }
+
+export interface VisualAnalyzer { analyzeFrames(input: { source: NarrativeSource; frames: VideoFrameInput[]; canonicalEntities: NarrativeCharacter[] }): Promise<VisualSceneData[]> }
+export interface NarrativeProcessor { createNarrativeGraph(input: NarrativeProcessorInput): Promise<NarrativeGraph> }
+export interface AccessibilityAnalyzer { createAccessibilityGraph(input: AccessibilityAnalyzerInput): Promise<AccessibilityGraph> }
 
 export function profileNeeds(profile: AIProfile | null): Set<AccessibilityNeed> {
   const needs = new Set<AccessibilityNeed>()

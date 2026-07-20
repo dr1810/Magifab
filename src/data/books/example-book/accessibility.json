@@ -1,0 +1,6 @@
+{
+  "bookId": "example-book",
+  "scenes": {
+    "example-book:pages:1-2": { "possibleConfusions": ["Who is Mia?", "Why does the lantern matter?"], "support": { "characters": ["Mia: The child beginning the journey."], "emotions": ["Mia is concerned because the lantern is important."], "memory": ["Remember the missing lantern because it motivates Mia's journey."], "objects": ["The lantern is the important object in this part of the story."] }, "memoryPoints": ["Mia begins by searching for the missing lantern."], "prompts": [{ "id": "example-book:who", "triggerType": "characters", "question": "Who is Mia?", "explanation": "Mia is the child who begins the search for the missing lantern.", "difficultyCategory": "Characters", "priority": 2, "subjectEntityIds": ["mia"] }, { "id": "example-book:object", "triggerType": "objects", "question": "Why does the lantern matter?", "explanation": "The missing lantern gives Mia a reason to begin the journey.", "difficultyCategory": "Important object", "priority": 1, "subjectEntityIds": ["mia"] }] }
+  }
+}
