@@ -30,6 +30,7 @@ type MoviePlayerProps = {
   onOpenAccessibilitySettings: () => void
   onCloseBubbles: () => void
   overlays: ReactNode
+  companionOverlay?: ReactNode
   drawerOverlay?: ReactNode
   reduceMotion: boolean
 }
@@ -59,6 +60,7 @@ export function MoviePlayer({
   onOpenAccessibilitySettings,
   onCloseBubbles,
   overlays,
+  companionOverlay,
   drawerOverlay,
   reduceMotion,
 }: MoviePlayerProps) {
@@ -230,7 +232,7 @@ export function MoviePlayer({
 
   const isInteractiveTarget = (target: EventTarget | null) => {
     if (!(target instanceof Element)) return false
-    return Boolean(target.closest('button, input, select, textarea, [contenteditable="true"], .prompt-panel, .visual-drawer, .companion-widget, .companion-chat-panel, .floating-bubble'))
+    return Boolean(target.closest('button, input, select, textarea, [contenteditable="true"], .prompt-panel, .visual-drawer, .companion-widget, .companion-launcher, .companion-chat-panel, .floating-bubble'))
   }
 
   useEffect(() => {
@@ -339,6 +341,7 @@ export function MoviePlayer({
           {promptOpen ? <ChevronRight size={18}/> : <ChevronLeft size={18}/>}
         </button>
       </div>
+      {companionOverlay}
 
       <PlaybackControls
         playing={playing}

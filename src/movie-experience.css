@@ -845,9 +845,9 @@
 
 .movie-experience .companion-launcher {
   position: absolute;
-  z-index: 46;
+  z-index: 60;
   left: 14px;
-  bottom: 14px;
+  bottom: 170px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -859,11 +859,10 @@
   background: rgba(7, 23, 48, .84);
   box-shadow: 0 10px 28px rgba(0, 0, 0, .32);
   backdrop-filter: blur(14px);
-  transition: bottom .2s ease, background .2s ease, transform .2s ease;
+  transition: background .2s ease, transform .2s ease;
 }
 
 .movie-experience .companion-launcher:hover { background: rgba(20, 48, 84, .94); transform: translateY(-1px); }
-.movie-experience .companion-launcher.above-drawer { bottom: min(calc(48% + 14px), 374px); }
 
 .movie-experience .companion-avatar {
   display: grid;
@@ -889,9 +888,9 @@
 
 .movie-experience .companion-chat-panel {
   position: absolute;
-  z-index: 47;
+  z-index: 61;
   left: 14px;
-  bottom: 72px;
+  bottom: 226px;
   display: grid;
   width: min(360px, calc(100% - 48px));
   max-height: min(52%, 360px);
@@ -904,7 +903,8 @@
   backdrop-filter: blur(18px);
 }
 
-.movie-experience .companion-chat-panel.above-drawer { bottom: min(calc(48% + 72px), 432px); }
+.movie-experience .companion-chat-panel.above-drawer { bottom: min(calc(48% + 164px), 500px); max-height: min(32%, 190px); }
+.movie-experience .companion-chat-panel.above-drawer .companion-chat-messages { min-height: 0; padding-block: 8px; }
 .movie-experience .companion-chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 10px; border-bottom: 1px solid rgba(196, 220, 255, .16); }
 .movie-experience .companion-chat-identity { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .movie-experience .companion-chat-identity h3 { margin: 0; font-size: 1rem; color: #fff7df; }

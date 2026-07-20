@@ -24,19 +24,29 @@ type CompanionChatPanelProps = {
 
 export function CompanionChatPanel({ open, name, appearance, theme, messages, onClose, onSend, reduceMotion, drawerOpen }: CompanionChatPanelProps) {
   const [question, setQuestion] = useState('')
-  const panelRef = useRef<HTMLElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     if (!open) return
     const timer = window.setTimeout(() => inputRef.current?.focus(), reduceMotion ? 0 : 180)
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && panelRef.current?.contains(document.activeElement)) onClose()
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopPropagation()
+      onClose()
     }
-    window.addEventListener('keydown', handleKeyDown)
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (target.closest('.companion-chat-panel, .companion-launcher')) return
+      onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown, true)
+    document.addEventListener('pointerdown', handlePointerDown, true)
     return () => {
       window.clearTimeout(timer)
-      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown, true)
+      document.removeEventListener('pointerdown', handlePointerDown, true)
     }
   }, [onClose, open, reduceMotion])
 
@@ -49,7 +59,7 @@ export function CompanionChatPanel({ open, name, appearance, theme, messages, on
   }
 
   return <AnimatePresence initial={false}>{open && <motion.aside
-    ref={panelRef}
+    id="companion-chat-panel"
     className={`companion-chat-panel ${theme} ${drawerOpen ? 'above-drawer' : ''}`}
     aria-label={`${name} companion chat`}
     initial={reduceMotion ? false : { opacity: 0, y: 12, scale: .98 }}
@@ -65,7 +75,7 @@ export function CompanionChatPanel({ open, name, appearance, theme, messages, on
       {messages.map((message) => <p key={message.id} className={`companion-chat-message ${message.role}`}>{message.text}</p>)}
     </div>
     <form className="companion-chat-form" onSubmit={submit}>
-      <input ref={inputRef} value={question} onChange={(event) => setQuestion(event.target.value)} aria-label={`Ask ${name} about this moment`} placeholder={`Ask ${name} about this moment`} />
+      <input ref={inputRef} value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === 'Escape') { event.preventDefault(); onClose() } }} aria-label={`Ask ${name} about this moment`} placeholder={`Ask ${name} about this moment`} />
       <button type="submit" aria-label="Send question" disabled={!question.trim()}><Send size={16} /></button>
     </form>
   </motion.aside>}</AnimatePresence>

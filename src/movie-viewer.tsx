@@ -58,17 +58,6 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   }, [movie, updateScene])
 
   useEffect(() => {
-    if (!sceneState?.companionEnabled) {
-      dismissPrompt()
-      setBubblePrompt(null)
-      setDrawerPrompt(null)
-      setDrawerOpen(false)
-      setPromptOpen(false)
-      return
-    }
-    setPromptOpen(true)
-  }, [dismissPrompt, sceneState?.companionEnabled, sceneState?.sceneId])
-  useEffect(() => {
     const prompt = prompts[0]
     if (!sceneState?.companionEnabled || !prompt) return
     const answer = answerPrompt(sceneState, prompt.question)
@@ -143,14 +132,18 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     if (resumeAfterDrawerRef.current) setPlaying(true)
     resumeAfterDrawerRef.current = false
   }, [])
-  const openCompanionChat = useCallback(() => {
+  const toggleCompanionChat = useCallback(() => {
+    if (companionOpen) {
+      setCompanionOpen(false)
+      return
+    }
     const sceneId = sceneState?.sceneId ?? 'opening'
     if (companionGreetingSceneId !== sceneId || companionMessages.length === 0) {
       setCompanionGreetingSceneId(sceneId)
       setCompanionMessages([{ id: `${sceneId}:greeting`, role: 'assistant', text: createCompanionGreeting(sceneState, accessibilityProfile?.companionProfile ?? null) }])
     }
     setCompanionOpen(true)
-  }, [accessibilityProfile?.companionProfile, companionGreetingSceneId, companionMessages.length, sceneState])
+  }, [accessibilityProfile?.companionProfile, companionGreetingSceneId, companionMessages.length, companionOpen, sceneState])
   const askCompanion = useCallback((question: string) => {
     const answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
     const messageId = `${sceneState?.sceneId ?? 'opening'}:${Date.now()}`
@@ -167,7 +160,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     <TopBar movie={movieData} onBack={() => { cancelPrompt(); savePlaybackTimestamp(movie, currentTime, duration || totalDuration); onBack() }} onOpenPrompts={() => { if (sceneState?.companionEnabled) setPromptOpen(true) }} onOpenDrawer={() => openStoryCompanion()} />
     <div className="viewer-layout" style={{ position: 'relative' }}>
       <MoviePlayer movie={movieData} scene={scene} subtitle={narrativeBanner} playing={playing} muted={muted} volume={volume} currentTime={currentTime} totalTime={duration || totalDuration} onPlayToggle={() => setPlaying((value) => !value)} onMuteToggle={() => setMuted((value) => !value)} onVolumeChange={setVolume} onSeek={(timestamp) => applyTime(timestamp, true)} onTimeChange={applyTime} onDurationChange={setDuration} onSeeking={expireBubble} onSeekComplete={(timestamp) => applyTime(timestamp, true)} promptOpen={promptOpen} onTogglePromptPanel={() => { if (sceneState?.companionEnabled) setPromptOpen((open) => !open) }} onOpenVisualDrawer={() => openStoryCompanion()} onOpenPromptPanel={() => { if (sceneState?.companionEnabled) setPromptOpen(true) }} onCloseOverlays={closeOverlays} onOpenAccessibilitySettings={onOpenAccessibilitySettings} onCloseBubbles={closeInteractionUI} reduceMotion={settings.reduceMotion || settings.disableAnimations}
-        overlays={<><FloatingBubble content={bubbleContent} theme={movieData.companionTheme} reduceMotion={settings.reduceMotion || settings.disableAnimations} visible={Boolean(bubbleContent)} onOpenCompanion={openStoryCompanionFromBubble} onClose={closeInteractionUI} /><PromptPanel open={promptOpen} prompts={panelPrompts} selectedPromptId={selectedPromptId} onSelectPrompt={selectPrompt} onClose={closePromptGuide} /><button type="button" className={`companion-launcher ${drawerOpen ? 'above-drawer' : ''}`} onClick={openCompanionChat} aria-label={`Open ${accessibilityProfile?.companionProfile?.name ?? 'Lumi'} companion chat`}><CompanionAvatar appearance={accessibilityProfile?.companionProfile?.appearance} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} /><span>{accessibilityProfile?.companionProfile?.name ?? 'Lumi'}</span></button><CompanionChatPanel open={companionOpen} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} appearance={accessibilityProfile?.companionProfile?.appearance} theme={movieData.companionTheme} messages={companionMessages} onClose={() => setCompanionOpen(false)} onSend={askCompanion} reduceMotion={settings.reduceMotion || settings.disableAnimations} drawerOpen={drawerOpen} /></>}
+        overlays={<><FloatingBubble content={bubbleContent} theme={movieData.companionTheme} reduceMotion={settings.reduceMotion || settings.disableAnimations} visible={Boolean(bubbleContent)} onOpenCompanion={openStoryCompanionFromBubble} onClose={closeInteractionUI} /><PromptPanel open={promptOpen} prompts={panelPrompts} selectedPromptId={selectedPromptId} onSelectPrompt={selectPrompt} onClose={closePromptGuide} /></>}
+        companionOverlay={<><button id="companion-launcher" type="button" className="companion-launcher" onClick={toggleCompanionChat} aria-expanded={companionOpen} aria-controls="companion-chat-panel" aria-label={`${companionOpen ? 'Close' : 'Open'} ${accessibilityProfile?.companionProfile?.name ?? 'Lumi'} companion chat`}><CompanionAvatar appearance={accessibilityProfile?.companionProfile?.appearance} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} /><span>{accessibilityProfile?.companionProfile?.name ?? 'Lumi'}</span></button><CompanionChatPanel open={companionOpen} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} appearance={accessibilityProfile?.companionProfile?.appearance} theme={movieData.companionTheme} messages={companionMessages} onClose={() => setCompanionOpen(false)} onSend={askCompanion} reduceMotion={settings.reduceMotion || settings.disableAnimations} drawerOpen={drawerOpen} /></>}
         drawerOverlay={<VisualDrawer open={drawerOpen} sceneState={sceneState} promptContext={drawerPrompt} onClose={closeDrawer} />}
       />
     </div>
