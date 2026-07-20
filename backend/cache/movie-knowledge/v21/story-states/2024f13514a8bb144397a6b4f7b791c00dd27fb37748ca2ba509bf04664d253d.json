@@ -5,13 +5,70 @@
       "id": "character-big-buck-bunny",
       "name": "Big Buck Bunny",
       "first_seen_timestamp": 2.018733,
-      "last_seen_timestamp": 2.018733,
-      "total_screen_time": 0.0,
+      "last_seen_timestamp": 542.0,
+      "total_screen_time": 539.981267,
       "current_visibility": true,
       "associated_events": [
         "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
         "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
-        "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019"
+        "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
+        "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.979",
+        "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:62.974",
+        "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.006",
+        "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:122.996",
+        "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.006",
+        "bigBuckBunny:emotion_changed:claim-1d00b7c1aff385bd:182.967",
+        "bigBuckBunny:emotion_changed:claim-f9b54f1f4c17fdfe:212.961",
+        "bigBuckBunny:emotion_changed:claim-9769c5ef1f815023:242.960",
+        "bigBuckBunny:emotion_changed:claim-cc43d7b2c9522f18:272.975",
+        "bigBuckBunny:emotion_changed:claim-0e4c337955315472:302.967",
+        "bigBuckBunny:emotion_changed:claim-b2d9b5be921157da:332.998",
+        "bigBuckBunny:emotion_changed:claim-e47028cb51df8462:362.968",
+        "bigBuckBunny:emotion_changed:claim-1da2a707ca695578:392.000",
+        "bigBuckBunny:emotion_changed:claim-32d20b1928fe9dc6:422.000",
+        "bigBuckBunny:emotion_changed:claim-c91455c492376b9f:452.000",
+        "bigBuckBunny:emotion_changed:claim-08da4272211330aa:482.000",
+        "bigBuckBunny:emotion_changed:claim-8f7a33aad8992e02:512.000",
+        "bigBuckBunny:emotion_changed:claim-fd9ca0bb1060948e:542.000"
+      ],
+      "relationships": []
+    },
+    "character-frank": {
+      "id": "character-frank",
+      "name": "Frank",
+      "first_seen_timestamp": 182.966677,
+      "last_seen_timestamp": 542.0,
+      "total_screen_time": 359.033323,
+      "current_visibility": true,
+      "associated_events": [
+        "bigBuckBunny:character_introduced:claim-ed89d308d348465a:182.967",
+        "bigBuckBunny:timeline_changed:claim-182f61cbb53ee07f:182.967"
+      ],
+      "relationships": []
+    },
+    "character-rinky": {
+      "id": "character-rinky",
+      "name": "Rinky",
+      "first_seen_timestamp": 182.966677,
+      "last_seen_timestamp": 542.0,
+      "total_screen_time": 359.033323,
+      "current_visibility": true,
+      "associated_events": [
+        "bigBuckBunny:character_introduced:claim-4bf68d58783d2ce3:182.967",
+        "bigBuckBunny:timeline_changed:claim-79a2bc5c0026dad3:182.967"
+      ],
+      "relationships": []
+    },
+    "character-gimera": {
+      "id": "character-gimera",
+      "name": "Gimera",
+      "first_seen_timestamp": 182.966677,
+      "last_seen_timestamp": 542.0,
+      "total_screen_time": 359.033323,
+      "current_visibility": true,
+      "associated_events": [
+        "bigBuckBunny:character_introduced:claim-332dc3573d107419:182.967",
+        "bigBuckBunny:timeline_changed:claim-01726cfa712d74e9:182.967"
       ],
       "relationships": []
     }
@@ -22,86 +79,79 @@
       "id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019",
       "name": "Big Buck Bunny is in the forest before the conflict escalates.",
       "entity_type": "location"
+    },
+    "bigBuckBunny:location_changed:claim-a2bd118e947135d0:182.967": {
+      "id": "bigBuckBunny:location_changed:claim-a2bd118e947135d0:182.967",
+      "name": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny, bird.",
+      "entity_type": "location"
+    },
+    "bigBuckBunny:location_changed:claim-6ec2c89ab84a5e43:392.000": {
+      "id": "bigBuckBunny:location_changed:claim-6ec2c89ab84a5e43:392.000",
+      "name": "The rodents disrupt Big Buck Bunny's routine.",
+      "entity_type": "location"
+    },
+    "bigBuckBunny:location_changed:claim-b971d756807c1b67:422.000": {
+      "id": "bigBuckBunny:location_changed:claim-b971d756807c1b67:422.000",
+      "name": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny.",
+      "entity_type": "location"
     }
   },
-  "known_objects": {},
-  "current_interval_id": "bigBuckBunny:interval:0",
-  "current_timestamp": 2.018733,
-  "current_location": "Big Buck Bunny is in the forest before the conflict escalates.",
+  "known_objects": {
+    "object-7a5179eecc0fe187": {
+      "id": "object-7a5179eecc0fe187",
+      "name": "bird",
+      "entity_type": "object"
+    }
+  },
+  "current_interval_id": "bigBuckBunny:interval:18",
+  "current_timestamp": 542.0,
+  "current_location": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny.",
   "current_goal": null,
   "active_emotions": {
-    "character-big-buck-bunny": "Big Buck Bunny feels calm and content in his peaceful routine."
+    "character-big-buck-bunny": "Big Buck Bunny becomes frustrated by the rodents' pranks."
   },
   "recent_events": [
     {
-      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "character_introduced",
+      "event_id": "bigBuckBunny:story_event:claim-73304954ca1d1064:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
       "semantic_claim_ids": [
-        "claim-38b7653251d0b568"
+        "claim-73304954ca1d1064"
       ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny is introduced",
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
       "is_new": true,
       "requires_memory": true,
-      "requires_prompt": true
+      "requires_prompt": false
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-e84d8e27d0f3770b"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "appears in",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
+      "event_id": "bigBuckBunny:timeline_changed:claim-3b06b829d095e55d:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
       "semantic_claim_ids": [
-        "claim-6b198b0ff4e68625"
+        "claim-3b06b829d095e55d"
       ],
       "entities": [],
-      "summary": "Big Buck Bunny's quiet forest routine.",
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
+      "event_id": "bigBuckBunny:emotion_changed:claim-fd9ca0bb1060948e:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
       "semantic_claim_ids": [
-        "claim-cfbf2e399cb875c2"
+        "claim-fd9ca0bb1060948e"
       ],
       "entities": [
         {
@@ -110,26 +160,10 @@
           "entity_type": "character"
         }
       ],
-      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:location_changed:claim-15564624814f7fd3:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
-      "importance_score": 1.0,
-      "confidence": 0.5545768141746521,
-      "event_type": "location_changed",
-      "semantic_claim_ids": [
-        "claim-15564624814f7fd3"
-      ],
-      "entities": [],
-      "summary": "Big Buck Bunny is in the forest before the conflict escalates.",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": false
     }
   ],
   "story_so_far": [
@@ -230,64 +264,16 @@
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": false
-    }
-  ],
-  "open_story_threads": [],
-  "resolved_threads": [],
-  "memory_reminders": [
-    {
-      "event_id": "bigBuckBunny:character_introduced:claim-38b7653251d0b568:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "character_introduced",
-      "semantic_claim_ids": [
-        "claim-38b7653251d0b568"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "Big Buck Bunny is introduced",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:timeline_changed:claim-e84d8e27d0f3770b:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
-      "importance_score": 2.5,
-      "confidence": 1.0,
-      "event_type": "timeline_changed",
-      "semantic_claim_ids": [
-        "claim-e84d8e27d0f3770b"
-      ],
-      "entities": [
-        {
-          "id": "character-big-buck-bunny",
-          "name": "Big Buck Bunny",
-          "entity_type": "character"
-        }
-      ],
-      "summary": "appears in",
-      "is_new": true,
-      "requires_memory": true,
-      "requires_prompt": true
-    },
-    {
-      "event_id": "bigBuckBunny:timeline_changed:claim-6b198b0ff4e68625:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
+      "event_id": "bigBuckBunny:timeline_changed:claim-8c5315022c4a3e34:32.979",
+      "timestamp_start": 32.979293,
+      "timestamp_end": 32.979293,
       "importance_score": 2.5,
       "confidence": 0.9,
       "event_type": "timeline_changed",
       "semantic_claim_ids": [
-        "claim-6b198b0ff4e68625"
+        "claim-8c5315022c4a3e34"
       ],
       "entities": [],
       "summary": "Big Buck Bunny's quiet forest routine.",
@@ -296,14 +282,14 @@
       "requires_prompt": true
     },
     {
-      "event_id": "bigBuckBunny:emotion_changed:claim-cfbf2e399cb875c2:2.019",
-      "timestamp_start": 2.018733,
-      "timestamp_end": 2.018733,
+      "event_id": "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.979",
+      "timestamp_start": 32.979293,
+      "timestamp_end": 32.979293,
       "importance_score": 2.5,
       "confidence": 1.0,
       "event_type": "emotion_changed",
       "semantic_claim_ids": [
-        "claim-cfbf2e399cb875c2"
+        "claim-e0eaaedb8667c750"
       ],
       "entities": [
         {
@@ -313,6 +299,1316 @@
         }
       ],
       "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-7742977b02e4fc4e:62.974",
+      "timestamp_start": 62.974016,
+      "timestamp_end": 62.974016,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-7742977b02e4fc4e"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:62.974",
+      "timestamp_start": 62.974016,
+      "timestamp_end": 62.974016,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-0ade7df2574f952a"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-de71ffe0fcbffde9:93.006",
+      "timestamp_start": 93.005655,
+      "timestamp_end": 93.005655,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de71ffe0fcbffde9"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.006",
+      "timestamp_start": 93.005655,
+      "timestamp_end": 93.005655,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-1b921e795be366a0"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b2ad18b49f620ae9:122.996",
+      "timestamp_start": 122.995504,
+      "timestamp_end": 122.995504,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b2ad18b49f620ae9"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:122.996",
+      "timestamp_start": 122.995504,
+      "timestamp_end": 122.995504,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-4e4c6ddaef46b1e4"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.006",
+      "timestamp_start": 153.006276,
+      "timestamp_end": 153.006276,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1ae534c193b01b9d"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.006",
+      "timestamp_start": 153.006276,
+      "timestamp_end": 153.006276,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-7ba088e2f7e7ce2f"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_introduced:claim-ed89d308d348465a:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-ed89d308d348465a"
+      ],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Frank is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_introduced:claim-4bf68d58783d2ce3:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-4bf68d58783d2ce3"
+      ],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Rinky is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:character_introduced:claim-332dc3573d107419:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "character_introduced",
+      "semantic_claim_ids": [
+        "claim-332dc3573d107419"
+      ],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Gimera is introduced",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:object_becomes_important:claim-89a73f44972111f7:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 1.5,
+      "confidence": 1.0,
+      "event_type": "object_becomes_important",
+      "semantic_claim_ids": [
+        "claim-89a73f44972111f7"
+      ],
+      "entities": [
+        {
+          "id": "object-7a5179eecc0fe187",
+          "name": "bird",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "bird becomes important",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-ce1f1079faee47cd:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.0,
+      "confidence": 0.8931710720062256,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-ce1f1079faee47cd"
+      ],
+      "entities": [
+        {
+          "id": "object-7a5179eecc0fe187",
+          "name": "bird",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-182f61cbb53ee07f:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-182f61cbb53ee07f"
+      ],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-79a2bc5c0026dad3:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-79a2bc5c0026dad3"
+      ],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-01726cfa712d74e9:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-01726cfa712d74e9"
+      ],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-68784f4b6f41a856:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-68784f4b6f41a856"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-897f1d562e33c42b:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-897f1d562e33c42b"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-1d00b7c1aff385bd:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-1d00b7c1aff385bd"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:location_changed:claim-a2bd118e947135d0:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 1.0,
+      "confidence": 0.552310993274053,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-a2bd118e947135d0"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny, bird.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-699606e53e79b1fb:212.961",
+      "timestamp_start": 212.960685,
+      "timestamp_end": 212.960685,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-699606e53e79b1fb"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-641f76f0d856c243:212.961",
+      "timestamp_start": 212.960685,
+      "timestamp_end": 212.960685,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-641f76f0d856c243"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-f9b54f1f4c17fdfe:212.961",
+      "timestamp_start": 212.960685,
+      "timestamp_end": 212.960685,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-f9b54f1f4c17fdfe"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-08bca5f2d147b1e5:242.960",
+      "timestamp_start": 242.960341,
+      "timestamp_end": 242.960341,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-08bca5f2d147b1e5"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-8043168596b97a54:242.960",
+      "timestamp_start": 242.960341,
+      "timestamp_end": 242.960341,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-8043168596b97a54"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-9769c5ef1f815023:242.960",
+      "timestamp_start": 242.960341,
+      "timestamp_end": 242.960341,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-9769c5ef1f815023"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-c6b7513b6925bdc6:272.975",
+      "timestamp_start": 272.974708,
+      "timestamp_end": 272.974708,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-c6b7513b6925bdc6"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-98d1ba39b71b7957:272.975",
+      "timestamp_start": 272.974708,
+      "timestamp_end": 272.974708,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-98d1ba39b71b7957"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-cc43d7b2c9522f18:272.975",
+      "timestamp_start": 272.974708,
+      "timestamp_end": 272.974708,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-cc43d7b2c9522f18"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-bb9f18e1de209455:302.967",
+      "timestamp_start": 302.966988,
+      "timestamp_end": 302.966988,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-bb9f18e1de209455"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b454a50a4ff3b1a6:302.967",
+      "timestamp_start": 302.966988,
+      "timestamp_end": 302.966988,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b454a50a4ff3b1a6"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-0e4c337955315472:302.967",
+      "timestamp_start": 302.966988,
+      "timestamp_end": 302.966988,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-0e4c337955315472"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-7f243e87bfc21d69:332.998",
+      "timestamp_start": 332.997543,
+      "timestamp_end": 332.997543,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-7f243e87bfc21d69"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-e83ecf52c58728b6:332.998",
+      "timestamp_start": 332.997543,
+      "timestamp_end": 332.997543,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-e83ecf52c58728b6"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-b2d9b5be921157da:332.998",
+      "timestamp_start": 332.997543,
+      "timestamp_end": 332.997543,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-b2d9b5be921157da"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-5b3626555b8f534b:362.968",
+      "timestamp_start": 362.968307,
+      "timestamp_end": 362.968307,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-5b3626555b8f534b"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-78a5f93c7904191e:362.968",
+      "timestamp_start": 362.968307,
+      "timestamp_end": 362.968307,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-78a5f93c7904191e"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-e47028cb51df8462:362.968",
+      "timestamp_start": 362.968307,
+      "timestamp_end": 362.968307,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-e47028cb51df8462"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-2c402de6bb5b8b8e:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-2c402de6bb5b8b8e"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b68771d58025d552:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b68771d58025d552"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-1da2a707ca695578:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-1da2a707ca695578"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:location_changed:claim-6ec2c89ab84a5e43:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 1.0,
+      "confidence": 0.47439194718996686,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-6ec2c89ab84a5e43"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-c5f2a178b888afe8:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-c5f2a178b888afe8"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-de86d8284883de28:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de86d8284883de28"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-32d20b1928fe9dc6:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-32d20b1928fe9dc6"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:location_changed:claim-b971d756807c1b67:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 1.0,
+      "confidence": 0.4764278829097748,
+      "event_type": "location_changed",
+      "semantic_claim_ids": [
+        "claim-b971d756807c1b67"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-fffd1ac9ac4a6397:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-fffd1ac9ac4a6397"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-cff24a108462f7a9:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-cff24a108462f7a9"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-c91455c492376b9f:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-c91455c492376b9f"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-ea15dc964d16e06e:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-ea15dc964d16e06e"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-92785838d0e2cbc5:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-92785838d0e2cbc5"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-08da4272211330aa:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-08da4272211330aa"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-24a57a4de08276da:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-24a57a4de08276da"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-d18b136fc08d764e:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-d18b136fc08d764e"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-8f7a33aad8992e02:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-8f7a33aad8992e02"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:story_event:claim-73304954ca1d1064:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 1.5,
+      "confidence": 0.86,
+      "event_type": "story_event",
+      "semantic_claim_ids": [
+        "claim-73304954ca1d1064"
+      ],
+      "entities": [],
+      "summary": "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": false
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-3b06b829d095e55d:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-3b06b829d095e55d"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-fd9ca0bb1060948e:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-fd9ca0bb1060948e"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    }
+  ],
+  "open_story_threads": [],
+  "resolved_threads": [],
+  "memory_reminders": [
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b68771d58025d552:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b68771d58025d552"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-1da2a707ca695578:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-1da2a707ca695578"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-de86d8284883de28:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de86d8284883de28"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-32d20b1928fe9dc6:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-32d20b1928fe9dc6"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-cff24a108462f7a9:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-cff24a108462f7a9"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-c91455c492376b9f:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-c91455c492376b9f"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-92785838d0e2cbc5:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-92785838d0e2cbc5"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-08da4272211330aa:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-08da4272211330aa"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-d18b136fc08d764e:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-d18b136fc08d764e"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-8f7a33aad8992e02:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-8f7a33aad8992e02"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-3b06b829d095e55d:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-3b06b829d095e55d"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:emotion_changed:claim-fd9ca0bb1060948e:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "emotion_changed",
+      "semantic_claim_ids": [
+        "claim-fd9ca0bb1060948e"
+      ],
+      "entities": [
+        {
+          "id": "character-big-buck-bunny",
+          "name": "Big Buck Bunny",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true
@@ -385,6 +1681,540 @@
         "is_new": true,
         "requires_memory": true,
         "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-e0eaaedb8667c750:32.979",
+        "timestamp_start": 32.979293,
+        "timestamp_end": 32.979293,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-e0eaaedb8667c750"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-0ade7df2574f952a:62.974",
+        "timestamp_start": 62.974016,
+        "timestamp_end": 62.974016,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-0ade7df2574f952a"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-1b921e795be366a0:93.006",
+        "timestamp_start": 93.005655,
+        "timestamp_end": 93.005655,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-1b921e795be366a0"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-4e4c6ddaef46b1e4:122.996",
+        "timestamp_start": 122.995504,
+        "timestamp_end": 122.995504,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-4e4c6ddaef46b1e4"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-7ba088e2f7e7ce2f:153.006",
+        "timestamp_start": 153.006276,
+        "timestamp_end": 153.006276,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-7ba088e2f7e7ce2f"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-1d00b7c1aff385bd:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-1d00b7c1aff385bd"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-f9b54f1f4c17fdfe:212.961",
+        "timestamp_start": 212.960685,
+        "timestamp_end": 212.960685,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-f9b54f1f4c17fdfe"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-9769c5ef1f815023:242.960",
+        "timestamp_start": 242.960341,
+        "timestamp_end": 242.960341,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-9769c5ef1f815023"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-cc43d7b2c9522f18:272.975",
+        "timestamp_start": 272.974708,
+        "timestamp_end": 272.974708,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-cc43d7b2c9522f18"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-0e4c337955315472:302.967",
+        "timestamp_start": 302.966988,
+        "timestamp_end": 302.966988,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-0e4c337955315472"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-b2d9b5be921157da:332.998",
+        "timestamp_start": 332.997543,
+        "timestamp_end": 332.997543,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-b2d9b5be921157da"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-e47028cb51df8462:362.968",
+        "timestamp_start": 362.968307,
+        "timestamp_end": 362.968307,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-e47028cb51df8462"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-1da2a707ca695578:392.000",
+        "timestamp_start": 392.0,
+        "timestamp_end": 392.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-1da2a707ca695578"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-32d20b1928fe9dc6:422.000",
+        "timestamp_start": 422.0,
+        "timestamp_end": 422.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-32d20b1928fe9dc6"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-c91455c492376b9f:452.000",
+        "timestamp_start": 452.0,
+        "timestamp_end": 452.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-c91455c492376b9f"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-08da4272211330aa:482.000",
+        "timestamp_start": 482.0,
+        "timestamp_end": 482.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-08da4272211330aa"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-8f7a33aad8992e02:512.000",
+        "timestamp_start": 512.0,
+        "timestamp_end": 512.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-8f7a33aad8992e02"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:emotion_changed:claim-fd9ca0bb1060948e:542.000",
+        "timestamp_start": 542.0,
+        "timestamp_end": 542.0,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "emotion_changed",
+        "semantic_claim_ids": [
+          "claim-fd9ca0bb1060948e"
+        ],
+        "entities": [
+          {
+            "id": "character-big-buck-bunny",
+            "name": "Big Buck Bunny",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-frank": [
+      {
+        "event_id": "bigBuckBunny:character_introduced:claim-ed89d308d348465a:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-ed89d308d348465a"
+        ],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Frank is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:timeline_changed:claim-182f61cbb53ee07f:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-182f61cbb53ee07f"
+        ],
+        "entities": [
+          {
+            "id": "character-frank",
+            "name": "Frank",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-rinky": [
+      {
+        "event_id": "bigBuckBunny:character_introduced:claim-4bf68d58783d2ce3:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-4bf68d58783d2ce3"
+        ],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Rinky is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:timeline_changed:claim-79a2bc5c0026dad3:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-79a2bc5c0026dad3"
+        ],
+        "entities": [
+          {
+            "id": "character-rinky",
+            "name": "Rinky",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      }
+    ],
+    "character-gimera": [
+      {
+        "event_id": "bigBuckBunny:character_introduced:claim-332dc3573d107419:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "character_introduced",
+        "semantic_claim_ids": [
+          "claim-332dc3573d107419"
+        ],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "Gimera is introduced",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
+      },
+      {
+        "event_id": "bigBuckBunny:timeline_changed:claim-01726cfa712d74e9:182.967",
+        "timestamp_start": 182.966677,
+        "timestamp_end": 182.966677,
+        "importance_score": 2.5,
+        "confidence": 1.0,
+        "event_type": "timeline_changed",
+        "semantic_claim_ids": [
+          "claim-01726cfa712d74e9"
+        ],
+        "entities": [
+          {
+            "id": "character-gimera",
+            "name": "Gimera",
+            "entity_type": "character"
+          }
+        ],
+        "summary": "appears in",
+        "is_new": true,
+        "requires_memory": true,
+        "requires_prompt": true
       }
     ]
   },
@@ -424,6 +2254,382 @@
       ],
       "entities": [],
       "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-8c5315022c4a3e34:32.979",
+      "timestamp_start": 32.979293,
+      "timestamp_end": 32.979293,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-8c5315022c4a3e34"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-7742977b02e4fc4e:62.974",
+      "timestamp_start": 62.974016,
+      "timestamp_end": 62.974016,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-7742977b02e4fc4e"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-de71ffe0fcbffde9:93.006",
+      "timestamp_start": 93.005655,
+      "timestamp_end": 93.005655,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de71ffe0fcbffde9"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b2ad18b49f620ae9:122.996",
+      "timestamp_start": 122.995504,
+      "timestamp_end": 122.995504,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b2ad18b49f620ae9"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-1ae534c193b01b9d:153.006",
+      "timestamp_start": 153.006276,
+      "timestamp_end": 153.006276,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-1ae534c193b01b9d"
+      ],
+      "entities": [],
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-ce1f1079faee47cd:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.0,
+      "confidence": 0.8931710720062256,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-ce1f1079faee47cd"
+      ],
+      "entities": [
+        {
+          "id": "object-7a5179eecc0fe187",
+          "name": "bird",
+          "entity_type": "object"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-182f61cbb53ee07f:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-182f61cbb53ee07f"
+      ],
+      "entities": [
+        {
+          "id": "character-frank",
+          "name": "Frank",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-79a2bc5c0026dad3:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-79a2bc5c0026dad3"
+      ],
+      "entities": [
+        {
+          "id": "character-rinky",
+          "name": "Rinky",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-01726cfa712d74e9:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 1.0,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-01726cfa712d74e9"
+      ],
+      "entities": [
+        {
+          "id": "character-gimera",
+          "name": "Gimera",
+          "entity_type": "character"
+        }
+      ],
+      "summary": "appears in",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-897f1d562e33c42b:182.967",
+      "timestamp_start": 182.966677,
+      "timestamp_end": 182.966677,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-897f1d562e33c42b"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-641f76f0d856c243:212.961",
+      "timestamp_start": 212.960685,
+      "timestamp_end": 212.960685,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-641f76f0d856c243"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-8043168596b97a54:242.960",
+      "timestamp_start": 242.960341,
+      "timestamp_end": 242.960341,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-8043168596b97a54"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-98d1ba39b71b7957:272.975",
+      "timestamp_start": 272.974708,
+      "timestamp_end": 272.974708,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-98d1ba39b71b7957"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b454a50a4ff3b1a6:302.967",
+      "timestamp_start": 302.966988,
+      "timestamp_end": 302.966988,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b454a50a4ff3b1a6"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-e83ecf52c58728b6:332.998",
+      "timestamp_start": 332.997543,
+      "timestamp_end": 332.997543,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-e83ecf52c58728b6"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-78a5f93c7904191e:362.968",
+      "timestamp_start": 362.968307,
+      "timestamp_end": 362.968307,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-78a5f93c7904191e"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-b68771d58025d552:392.000",
+      "timestamp_start": 392.0,
+      "timestamp_end": 392.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-b68771d58025d552"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-de86d8284883de28:422.000",
+      "timestamp_start": 422.0,
+      "timestamp_end": 422.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-de86d8284883de28"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-cff24a108462f7a9:452.000",
+      "timestamp_start": 452.0,
+      "timestamp_end": 452.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-cff24a108462f7a9"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-92785838d0e2cbc5:482.000",
+      "timestamp_start": 482.0,
+      "timestamp_end": 482.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-92785838d0e2cbc5"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-d18b136fc08d764e:512.000",
+      "timestamp_start": 512.0,
+      "timestamp_end": 512.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-d18b136fc08d764e"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "is_new": true,
+      "requires_memory": true,
+      "requires_prompt": true
+    },
+    {
+      "event_id": "bigBuckBunny:timeline_changed:claim-3b06b829d095e55d:542.000",
+      "timestamp_start": 542.0,
+      "timestamp_end": 542.0,
+      "importance_score": 2.5,
+      "confidence": 0.9,
+      "event_type": "timeline_changed",
+      "semantic_claim_ids": [
+        "claim-3b06b829d095e55d"
+      ],
+      "entities": [],
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
       "is_new": true,
       "requires_memory": true,
       "requires_prompt": true

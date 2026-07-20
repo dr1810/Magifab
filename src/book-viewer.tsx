@@ -9,9 +9,7 @@ import { PromptPanel } from './components/PromptPanel'
 import { VisualDrawer } from './components/VisualDrawer'
 import { useAccessibility } from './accessibility-context'
 import { useCompanionProfile } from './hooks/useCompanionProfile'
-import { companionBackendService, type IntervalState } from './services/backend/CompanionBackendService'
-import { BookProvider } from './services/companion/BookProvider'
-import { toSceneState, type SceneState } from './services/scene/SceneState'
+import type { SceneState } from './services/scene/SceneState'
 import type { PromptQuestion } from './types/movie'
 
 GlobalWorkerOptions.workerSrc = workerUrl
@@ -85,14 +83,12 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const [spreadStart, setSpreadStart] = useState(1)
   const [pages, setPages] = useState<RenderedPage[]>([])
   const [loading, setLoading] = useState(false)
-  const [refining, setRefining] = useState(false)
   const [sceneState, setSceneState] = useState<SceneState | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [widgetOpen, setWidgetOpen] = useState(false)
   const [promptOpen, setPromptOpen] = useState(false)
   const [activeBubble, setActiveBubble] = useState<PromptBubbleContent | null>(null)
   const reduceMotion = settings.reduceMotion || settings.disableAnimations
-  const bookProvider = useRef(new BookProvider())
   const prompts: Array<PromptQuestion & { priority?: number }> = useMemo(() => sceneState?.promptBubbles.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '', priority: prompt.priority })) ?? [], [sceneState])
 
   const prepareSpread = useCallback(async (pdf: PDFDocumentProxy, sourceId: string, nextSpreadStart: number, background = false) => {
@@ -115,13 +111,7 @@ export function BookViewer({ onBack }: BookViewerProps) {
         setPages(visiblePages)
         setSceneState(initialSceneState)
         setLoading(false)
-        setRefining(true)
       }
-      const interval = bookProvider.current.createInterval({ contentId: sourceId, pageStart: range.pageStart, pageEnd: range.pageEnd, text: extractedText, image: visiblePages[0]?.image ?? '', metadata: { title, pageCount: pdf.numPages, source: 'pdf', textLayerAvailable: Boolean(extractedText.trim()), pageDocuments: visiblePages.map((page) => ({ pageNumber: page.pageNumber, text: page.text })) } })
-      const snapshot = await companionBackendService.prepare(interval, settings, profile)
-      const enrichedSceneState = toSceneState(snapshot as IntervalState)
-      sceneCacheRef.current.set(cacheKey, { pages: visiblePages, sceneState: enrichedSceneState })
-      if (!background && activeSpreadRef.current === cacheKey) setSceneState(enrichedSceneState)
     } catch (error) {
       if (!background) console.warn('[MagiFab] Book range companion preparation failed; showing local reading context.', error)
       const initialSceneState = fallbackState(sourceId, range.pageStart, range.pageEnd)
@@ -129,9 +119,9 @@ export function BookViewer({ onBack }: BookViewerProps) {
       sceneCacheRef.current.set(cacheKey, { pages: current?.pages ?? [], sceneState: initialSceneState })
       if (!background && activeSpreadRef.current === cacheKey) setSceneState(initialSceneState)
     } finally {
-      if (!background && activeSpreadRef.current === cacheKey) { setLoading(false); setRefining(false) }
+      if (!background && activeSpreadRef.current === cacheKey) setLoading(false)
     }
-  }, [profile, settings, title])
+  }, [])
 
   useEffect(() => {
     if (!document || !bookId) return
@@ -170,7 +160,7 @@ export function BookViewer({ onBack }: BookViewerProps) {
     <input ref={inputRef} type="file" accept="application/pdf" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) void loadFile(file) }}/>
     <header className="top-bar"><div className="left-cluster"><button className="ghost-btn" onClick={onBack}><ChevronLeft size={16}/>Back</button><div><p className="eyebrow">Reading Mode</p><h2>{title}</h2></div></div><div className="right-cluster"><button className="ghost-btn" onClick={() => inputRef.current?.click()}><Upload size={16}/>Open PDF</button><button className="ghost-btn" onClick={() => setPromptOpen(true)}><Sparkles size={16}/>Prompts</button><button className="ghost-btn" onClick={() => setDrawerOpen(true)}><BookOpen size={16}/>Visual Drawer</button></div></header>
     {!document ? <section className="book-upload"><FileText size={42}/><h1>Open a storybook PDF</h1><p>The original PDF stays the source of truth. MagiFab renders each page and its selectable text layer directly in the reader.</p><button className="primary-btn" onClick={() => inputRef.current?.click()}><Upload size={16}/>Choose PDF</button></section> : <section ref={stageRef} className="book-stage">
-      <div className="book-toolbar"><span>Pages {pageRange(spreadStart, pageCount).pageStart}–{pageRange(spreadStart, pageCount).pageEnd} of {pageCount}</span>{loading ? <span><Loader2 className="spin" size={15}/> Loading pages</span> : refining ? <span><Loader2 className="spin" size={15}/> Understanding this moment</span> : <span>Help is ready when you are</span>}</div>
+      <div className="book-toolbar"><span>Pages {pageRange(spreadStart, pageCount).pageStart}–{pageRange(spreadStart, pageCount).pageEnd} of {pageCount}</span>{loading ? <span><Loader2 className="spin" size={15}/> Loading pages</span> : <span>Help is ready when you are</span>}</div>
       <div ref={readingSurfaceRef} className="book-reading-surface">
       <div ref={bookRef} className={`storybook ${reduceMotion ? 'reduced-motion' : ''}`} role="region" aria-label="PDF storybook" tabIndex={0} onPointerDown={(event) => { dragStartRef.current = event.clientX }} onPointerUp={(event) => { const start = dragStartRef.current; dragStartRef.current = null; if (start !== null && Math.abs(event.clientX - start) > 55) turn(event.clientX < start ? 1 : -1) }}>
         <span className="book-navigation-zone left" aria-hidden="true"/><span className="book-navigation-zone right" aria-hidden="true"/>

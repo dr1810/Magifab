@@ -1,0 +1,95 @@
+import type { AIProfile } from '../../types/user'
+
+export type ContentType = 'movie' | 'book'
+export type VisualAidType = 'relationship' | 'timeline' | 'cause' | 'emotion' | 'object' | 'summary' | 'conversation' | 'memory' | 'location'
+export type AccessibilityNeed = 'emotions' | 'characters' | 'relationships' | 'plot' | 'memory' | 'conversations' | 'jokes' | 'sarcasm' | 'vocabulary' | 'objects' | 'nonverbal'
+
+export type NarrativeCharacter = {
+  id: string
+  name: string
+  description: string
+  personality: string
+  goals: string[]
+  relationships: string[]
+  firstAppearance: number
+  importantInformation: string[]
+}
+
+export type NarrativeRelationship = {
+  characterA: string
+  characterB: string
+  relationshipType: string
+  changesOverTime: string[]
+}
+
+export type NarrativePrompt = {
+  id: string
+  triggerType: AccessibilityNeed
+  question: string
+  explanation: string
+  difficultyCategory: string
+  priority?: number
+}
+
+export type VisualAidNode = { type: VisualAidType; content: string; visualizationDescription: string }
+
+export type AccessibilityGraph = {
+  possibleConfusions: string[]
+  support: Partial<Record<AccessibilityNeed, string[]>>
+  memoryPoints: string[]
+  prompts: NarrativePrompt[]
+}
+
+export type NarrativeScene = {
+  sceneId: string
+  startTime: number
+  endTime: number | null
+  chapterReference?: string
+  pageReference?: { start: number; end: number }
+  title: string
+  summary: string
+  characters: string[]
+  events: string[]
+  emotions: Array<{ character?: string; emotion: string; explanation: string }>
+  relationships: string[]
+  objects: string[]
+  conversationSummary: string
+  importantDetails: string[]
+  timelinePosition: string
+  memoryCheckpoint: string[]
+  accessibility: AccessibilityGraph
+  visualAids: VisualAidNode[]
+}
+
+export type NarrativeGraph = {
+  version: 1
+  movie: { id: string; title: string; type: ContentType; metadata: Record<string, string> }
+  scenes: NarrativeScene[]
+  characters: NarrativeCharacter[]
+  relationships: NarrativeRelationship[]
+}
+
+export type NarrativeSource = { contentId: string; type: ContentType; timestamp?: number; page?: number; chapter?: string }
+export type NarrativeProcessorInput = { source: NarrativeSource; metadata: Record<string, string>; transcript?: string; screenplay?: string; scenes?: Array<{ startTime: number; endTime?: number; text?: string }> }
+export interface NarrativeProcessor { analyzeContent(input: NarrativeProcessorInput): Promise<NarrativeGraph> }
+export interface AccessibilityAnalyzer { analyzeScene(scene: NarrativeScene, graph: NarrativeGraph): Promise<AccessibilityGraph> }
+export interface VisionAnalyzer { analyzeFrame(input: { contentId: string; timestamp: number; image: Blob }): Promise<{ objects: string[]; description: string }> }
+
+export function profileNeeds(profile: AIProfile | null): Set<AccessibilityNeed> {
+  const needs = new Set<AccessibilityNeed>()
+  for (const value of profile?.difficultyAreas ?? []) {
+    const normalized = value.toLowerCase()
+    if (/emotion|feeling/.test(normalized)) needs.add('emotions')
+    else if (/character/.test(normalized)) needs.add('characters')
+    else if (/relationship/.test(normalized)) needs.add('relationships')
+    else if (/plot|follow/.test(normalized)) needs.add('plot')
+    else if (/previous|remember|memory/.test(normalized)) needs.add('memory')
+    else if (/conversation|dialogue/.test(normalized)) needs.add('conversations')
+    else if (/joke/.test(normalized)) needs.add('jokes')
+    else if (/sarcasm/.test(normalized)) needs.add('sarcasm')
+    else if (/word|vocabulary/.test(normalized)) needs.add('vocabulary')
+    else if (/object/.test(normalized)) needs.add('objects')
+    else if (/without dialogue|visual|scene/.test(normalized)) needs.add('nonverbal')
+  }
+  return needs
+}

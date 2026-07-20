@@ -4,7 +4,6 @@ import type { ReactNode } from 'react'
 import type { MovieData, SceneData } from '../types/movie'
 import { SubtitleOverlay } from './SubtitleOverlay'
 import { PlaybackControls } from './PlaybackControls'
-import { captureVideoFrame, type CapturedVideoFrame } from '../services/ai/VideoFrameCaptureService'
 
 type MoviePlayerProps = {
   movie: MovieData
@@ -23,7 +22,6 @@ type MoviePlayerProps = {
   onDurationChange: (value: number) => void
   onSeeking?: () => void
   onSeekComplete?: (timestamp: number) => void
-  onVideoFrameCaptureReady?: (capture: ((intervalStart: number, intervalEnd: number) => Promise<CapturedVideoFrame>) | null) => void
   promptOpen: boolean
   onTogglePromptPanel: () => void
   onOpenVisualDrawer: () => void
@@ -53,7 +51,6 @@ export function MoviePlayer({
   onDurationChange,
   onSeeking,
   onSeekComplete,
-  onVideoFrameCaptureReady,
   promptOpen,
   onTogglePromptPanel,
   onOpenVisualDrawer,
@@ -75,12 +72,9 @@ export function MoviePlayer({
   const pendingResumeTimestampRef = useRef<number | null>(null)
   const wasPlayingBeforeSeekRef = useRef(false)
   const isSeekingRef = useRef(false)
-  const frameCaptureInProgressRef = useRef(false)
   const lastReportedTimeRef = useRef(0)
   const eventStateRef = useRef({ currentTime, playing, onTimeChange, onDurationChange, onSeekComplete, onSeeking, onPlayToggle })
-  const frameCaptureReadyRef = useRef(onVideoFrameCaptureReady)
   eventStateRef.current = { currentTime, playing, onTimeChange, onDurationChange, onSeekComplete, onSeeking, onPlayToggle }
-  frameCaptureReadyRef.current = onVideoFrameCaptureReady
 
   const logPlayback = (event: string, details: Record<string, unknown>) => {
     if (import.meta.env.DEV) console.debug(`[MagiFab playback] ${event}`, { movieId: movie.id, ...details })
@@ -162,14 +156,12 @@ export function MoviePlayer({
     if (!video) return
 
     const handleTimeUpdate = () => {
-      if (frameCaptureInProgressRef.current) return
       const nextTime = video.currentTime
       if (nextTime >= lastReportedTimeRef.current && nextTime - lastReportedTimeRef.current < 0.1) return
       lastReportedTimeRef.current = nextTime
       eventStateRef.current.onTimeChange(nextTime)
     }
     const beginSeek = () => {
-      if (frameCaptureInProgressRef.current) return
       if (isSeekingRef.current) return
       isSeekingRef.current = true
       wasPlayingBeforeSeekRef.current = eventStateRef.current.playing && !video.ended
@@ -180,47 +172,7 @@ export function MoviePlayer({
       eventStateRef.current.onDurationChange(video.duration)
       applyPendingResume(video, 'loadedmetadata')
     }
-    const handleCanPlay = () => {
-      applyPendingResume(video, 'canplay')
-      frameCaptureReadyRef.current?.(async (intervalStart: number, intervalEnd: number) => {
-        frameCaptureInProgressRef.current = true
-        try {
-          console.info('[MagiFab] INTERVAL_DISPATCH', {
-            movieId: movie.id,
-            stage: 'video_frame_capture',
-            intervalStart,
-            intervalEnd,
-            currentTime: videoRef.current?.currentTime ?? null,
-            duration: videoRef.current?.duration ?? null,
-            readyState: videoRef.current?.readyState ?? null,
-          })
-          const frame = await captureVideoFrame(videoRef.current, intervalStart, intervalEnd)
-          console.info('[MagiFab] INTERVAL_RESPONSE', {
-            movieId: movie.id,
-            stage: 'video_frame_capture',
-            intervalStart,
-            intervalEnd,
-            capturedTimestamp: frame.timestamp,
-            width: frame.width,
-            height: frame.height,
-          })
-          return frame
-        } catch (error) {
-          console.error('[MagiFab] INTERVAL_FAILED', {
-            movieId: movie.id,
-            stage: 'video_frame_capture',
-            intervalStart,
-            intervalEnd,
-            error: error instanceof Error ? error.message : String(error),
-          })
-          throw error
-        } finally {
-          frameCaptureInProgressRef.current = false
-        }
-      })
-    }
     const handleSeeked = () => {
-      if (frameCaptureInProgressRef.current) return
       logPlayback('resume seeked', { currentTimeAfter: video.currentTime, pendingResumeTimestamp: pendingResumeTimestampRef.current })
       if (pendingResumeTimestampRef.current !== null && Math.abs(video.currentTime - pendingResumeTimestampRef.current) < .35) {
         pendingResumeTimestampRef.current = null
@@ -238,7 +190,6 @@ export function MoviePlayer({
     video.addEventListener('seeking', beginSeek)
     video.addEventListener('seeked', handleSeeked)
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    video.addEventListener('canplay', handleCanPlay)
     video.addEventListener('ended', handleEnded)
     video.addEventListener('error', handleError)
 
@@ -247,13 +198,10 @@ export function MoviePlayer({
       video.removeEventListener('seeking', beginSeek)
       video.removeEventListener('seeked', handleSeeked)
       video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-      video.removeEventListener('canplay', handleCanPlay)
       video.removeEventListener('ended', handleEnded)
       video.removeEventListener('error', handleError)
     }
   }, [])
-
-  useEffect(() => () => frameCaptureReadyRef.current?.(null), [])
 
   const seek = (value: number) => {
     const video = videoRef.current

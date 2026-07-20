@@ -1,0 +1,206 @@
+{
+  "metadata": {
+    "interval_id": "bigBuckBunny:interval:3",
+    "catalog_scene_id": "bbb-01",
+    "movie_id": "bigBuckBunny",
+    "start_time": 90.0,
+    "end_time": 120.0,
+    "interval_number": 3,
+    "knowledge_revision": 5
+  },
+  "prompts": {
+    "prompt_bubbles": [
+      {
+        "id": "interval-prompt:critical:93.006",
+        "kind": "critical",
+        "label": "Critical",
+        "question": "Why is this important now: Big Buck Bunny feels calm and content in his peaceful routine?",
+        "priority": 1,
+        "claim_ids": [],
+        "timestamp_start": 93.005655,
+        "timestamp_end": null,
+        "semantic_event": "emotion_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:memory:93.006",
+        "kind": "memory",
+        "label": "Memory",
+        "question": "Remember when Big Buck Bunny feels calm and content in his peaceful routine? That helps explain Big Buck Bunny feels calm and content in his peaceful routine.",
+        "priority": 2,
+        "claim_ids": [],
+        "timestamp_start": 93.005655,
+        "timestamp_end": null,
+        "semantic_event": "emotion_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:emotion:93.006",
+        "kind": "emotion",
+        "label": "Emotion",
+        "question": "Why is Big Buck Bunny feeling Big Buck Bunny feels calm and content in his peaceful routine after Big Buck Bunny feels calm and content in his peaceful routine?",
+        "priority": 3,
+        "claim_ids": [],
+        "timestamp_start": 93.005655,
+        "timestamp_end": null,
+        "semantic_event": "emotion_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:prediction:93.006",
+        "kind": "prediction",
+        "label": "Watch next",
+        "question": "Watch Big Buck Bunny feels calm and content in his peaceful routine carefully—it may become important next.",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 93.005655,
+        "timestamp_end": null,
+        "semantic_event": "emotion_changed",
+        "screen_location": "bottom-right"
+      }
+    ],
+    "prompt_answers": [],
+    "suggested_questions": [
+      "Why is this important now: Big Buck Bunny feels calm and content in his peaceful routine?",
+      "Remember when Big Buck Bunny feels calm and content in his peaceful routine? That helps explain Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Why is Big Buck Bunny feeling Big Buck Bunny feels calm and content in his peaceful routine after Big Buck Bunny feels calm and content in his peaceful routine?",
+      "Watch Big Buck Bunny feels calm and content in his peaceful routine carefully—it may become important next."
+    ]
+  },
+  "visualDrawer": {
+    "now": "Big Buck Bunny feels calm and content in his peaceful routine.",
+    "who": [
+      "Big Buck Bunny: Big Buck Bunny feels calm and content in his…"
+    ],
+    "important": [
+      "Exploration"
+    ],
+    "remember": [
+      "Big Buck Bunny's quiet forest routine."
+    ],
+    "why": "Because big Buck Bunny's quiet forest routine., big Buck Bunny feels calm and content in his peaceful routine.",
+    "next": "Watch for the next change in the situation.",
+    "word_count": 56,
+    "story_now": [
+      "Big Buck Bunny feels calm and content in his peaceful routine."
+    ],
+    "relationships": [],
+    "timeline": [
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine."
+    ],
+    "emotion": "Big Buck Bunny feel peaceful because big Buck Bunny feels calm and content in his peaceful routine.",
+    "cause_effect": [
+      {
+        "cause": "Big Buck Bunny's quiet forest routine.",
+        "effect": "Big Buck Bunny feels calm and content in his peaceful routine."
+      }
+    ],
+    "objects": [],
+    "memory": [
+      "Big Buck Bunny is introduced",
+      "Big Buck Bunny's quiet forest routine."
+    ]
+  },
+  "storyState": {
+    "scene_summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+    "current_goal": null,
+    "current_interval_id": "bigBuckBunny:interval:3",
+    "timeline_position": "Exploration",
+    "story_so_far": [
+      "Big Buck Bunny is introduced",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates."
+    ],
+    "unresolved_threads": []
+  },
+  "characters": [
+    {
+      "character_id": "character-0",
+      "name": "Big Buck Bunny",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    }
+  ],
+  "relationships": [],
+  "memory": [
+    {
+      "summary": "Big Buck Bunny's quiet forest routine.",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "summary": "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "conversationContext": {
+    "scene_explanation": "Big Buck Bunny feels calm and content in his peaceful routine.",
+    "simplifications": []
+  },
+  "accessibilityHints": {
+    "vocabulary": [],
+    "emotions": [
+      {
+        "emotion_id": "emotion-0",
+        "summary": "Peaceful",
+        "confidence": 1.0,
+        "claim_ids": []
+      }
+    ]
+  },
+  "semanticMemoryBefore": {
+    "active_characters": [
+      "Big Buck Bunny"
+    ],
+    "relationships": [],
+    "emotions": [
+      "Big Buck Bunny feels calm and content in his peaceful routine."
+    ],
+    "important_objects": [],
+    "unresolved_threads": [],
+    "story_events": [
+      "Big Buck Bunny is introduced",
+      "appears in",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates."
+    ]
+  },
+  "semanticMemoryAfter": {
+    "active_characters": [
+      "Big Buck Bunny"
+    ],
+    "relationships": [],
+    "emotions": [
+      "Big Buck Bunny feels calm and content in his peaceful routine."
+    ],
+    "important_objects": [],
+    "unresolved_threads": [],
+    "story_events": [
+      "Big Buck Bunny is introduced",
+      "appears in",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates."
+    ]
+  },
+  "timelineMemory": {
+    "timeline_position": "Exploration",
+    "previous_event": "Big Buck Bunny's quiet forest routine.",
+    "current_event": "Big Buck Bunny feels calm and content in his peaceful routine.",
+    "next_event": null,
+    "is_movie_start": false,
+    "is_movie_end": false
+  },
+  "cacheMetadata": {
+    "semantic_cache_key": "bigBuckBunny:v21:interval:bigBuckBunny:interval:3",
+    "knowledge_source": "expanded",
+    "semantic_map_cached": false,
+    "frame_hash": "5758a6e1427f2663422758c69613f749d220440946a6d6821dfe5e7b1a9e1187"
+  }
+}

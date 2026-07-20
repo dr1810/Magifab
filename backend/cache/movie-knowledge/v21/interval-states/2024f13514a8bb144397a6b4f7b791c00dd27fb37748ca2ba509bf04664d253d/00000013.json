@@ -1,0 +1,261 @@
+{
+  "metadata": {
+    "interval_id": "bigBuckBunny:interval:13",
+    "catalog_scene_id": "bbb-03",
+    "movie_id": "bigBuckBunny",
+    "start_time": 390.0,
+    "end_time": 420.0,
+    "interval_number": 13,
+    "knowledge_revision": 15
+  },
+  "prompts": {
+    "prompt_bubbles": [
+      {
+        "id": "interval-prompt:critical:392.000",
+        "kind": "critical",
+        "label": "Critical",
+        "question": "Why is this important now: The rodents disrupt Big Buck Bunny's routine?",
+        "priority": 1,
+        "claim_ids": [],
+        "timestamp_start": 392.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:memory:392.000",
+        "kind": "memory",
+        "label": "Memory",
+        "question": "Remember when Big Buck Bunny becomes frustrated by the rodents' pranks? That helps explain The rodents disrupt Big Buck Bunny's routine.",
+        "priority": 2,
+        "claim_ids": [],
+        "timestamp_start": 392.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:emotion:392.000",
+        "kind": "emotion",
+        "label": "Emotion",
+        "question": "Why is Big Buck Bunny feeling Big Buck Bunny becomes frustrated by the rodents' pranks after The rodents disrupt Big Buck Bunny's routine?",
+        "priority": 3,
+        "claim_ids": [],
+        "timestamp_start": 392.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      },
+      {
+        "id": "interval-prompt:prediction:392.000",
+        "kind": "prediction",
+        "label": "Watch next",
+        "question": "Watch The rodents disrupt Big Buck Bunny's routine carefully—it may become important next.",
+        "priority": 4,
+        "claim_ids": [],
+        "timestamp_start": 392.0,
+        "timestamp_end": null,
+        "semantic_event": "location_changed",
+        "screen_location": "bottom-right"
+      }
+    ],
+    "prompt_answers": [],
+    "suggested_questions": [
+      "Why is this important now: The rodents disrupt Big Buck Bunny's routine?",
+      "Remember when Big Buck Bunny becomes frustrated by the rodents' pranks? That helps explain The rodents disrupt Big Buck Bunny's routine.",
+      "Why is Big Buck Bunny feeling Big Buck Bunny becomes frustrated by the rodents' pranks after The rodents disrupt Big Buck Bunny's routine?",
+      "Watch The rodents disrupt Big Buck Bunny's routine carefully—it may become important next."
+    ]
+  },
+  "visualDrawer": {
+    "now": "The rodents disrupt Big Buck Bunny's routine.",
+    "who": [
+      "Big Buck Bunny: Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "Frank: Important character"
+    ],
+    "important": [
+      "Bird",
+      "Story develops"
+    ],
+    "remember": [
+      "The rodents' pranks lead Big Buck Bunny to respond."
+    ],
+    "why": "Because big Buck Bunny becomes frustrated by the rodents' pranks., the rodents disrupt Big Buck Bunny's routine.",
+    "next": "Watch for the next change in the situation.",
+    "word_count": 59,
+    "story_now": [
+      "The rodents disrupt Big Buck Bunny's routine."
+    ],
+    "relationships": [],
+    "timeline": [
+      "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "The rodents disrupt Big Buck Bunny's routine."
+    ],
+    "emotion": "Big Buck Bunny, Frank, Rinky, Gimera feel big buck bunny becomes frustrated by the rodents' pranks. because the rodents disrupt Big Buck Bunny's routine.",
+    "cause_effect": [
+      {
+        "cause": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "effect": "The rodents disrupt Big Buck Bunny's routine."
+      }
+    ],
+    "objects": [
+      "Bird is important in the current moment."
+    ],
+    "memory": [
+      "The rodents' pranks lead Big Buck Bunny to respond.",
+      "Big Buck Bunny becomes frustrated by the rodents' pranks."
+    ]
+  },
+  "storyState": {
+    "scene_summary": "The rodents disrupt Big Buck Bunny's routine.",
+    "current_goal": null,
+    "current_interval_id": "bigBuckBunny:interval:13",
+    "timeline_position": "Story develops",
+    "story_so_far": [
+      "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "The rodents' pranks lead Big Buck Bunny to respond.",
+      "The rodents disrupt Big Buck Bunny's routine."
+    ],
+    "unresolved_threads": []
+  },
+  "characters": [
+    {
+      "character_id": "character-0",
+      "name": "Big Buck Bunny",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-1",
+      "name": "Frank",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-2",
+      "name": "Rinky",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    },
+    {
+      "character_id": "character-3",
+      "name": "Gimera",
+      "reminder": "Important in the current story.",
+      "confidence": 1.0,
+      "visual_anchor": null,
+      "claim_ids": []
+    }
+  ],
+  "relationships": [],
+  "memory": [
+    {
+      "summary": "The rodents' pranks lead Big Buck Bunny to respond.",
+      "confidence": 1.0,
+      "claim_ids": []
+    },
+    {
+      "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "confidence": 1.0,
+      "claim_ids": []
+    }
+  ],
+  "conversationContext": {
+    "scene_explanation": "The rodents disrupt Big Buck Bunny's routine.",
+    "simplifications": []
+  },
+  "accessibilityHints": {
+    "vocabulary": [],
+    "emotions": [
+      {
+        "emotion_id": "emotion-0",
+        "summary": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+        "confidence": 1.0,
+        "claim_ids": []
+      }
+    ]
+  },
+  "semanticMemoryBefore": {
+    "active_characters": [
+      "Big Buck Bunny",
+      "Frank",
+      "Rinky",
+      "Gimera"
+    ],
+    "relationships": [],
+    "emotions": [
+      "Big Buck Bunny becomes frustrated by the rodents' pranks."
+    ],
+    "important_objects": [
+      "bird"
+    ],
+    "unresolved_threads": [],
+    "story_events": [
+      "Big Buck Bunny is introduced",
+      "appears in",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates.",
+      "Frank is introduced",
+      "Rinky is introduced",
+      "Gimera is introduced",
+      "bird becomes important",
+      "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "The rodents' pranks lead Big Buck Bunny to respond.",
+      "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny, bird."
+    ]
+  },
+  "semanticMemoryAfter": {
+    "active_characters": [
+      "Big Buck Bunny",
+      "Frank",
+      "Rinky",
+      "Gimera"
+    ],
+    "relationships": [],
+    "emotions": [
+      "Big Buck Bunny becomes frustrated by the rodents' pranks."
+    ],
+    "important_objects": [
+      "bird"
+    ],
+    "unresolved_threads": [],
+    "story_events": [
+      "Big Buck Bunny is introduced",
+      "appears in",
+      "Big Buck Bunny's quiet forest routine.",
+      "Big Buck Bunny feels calm and content in his peaceful routine.",
+      "Big Buck Bunny is in the forest before the conflict escalates.",
+      "Frank is introduced",
+      "Rinky is introduced",
+      "Gimera is introduced",
+      "bird becomes important",
+      "The rodents disrupt Big Buck Bunny's peaceful day.",
+      "The rodents' pranks lead Big Buck Bunny to respond.",
+      "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+      "The rodents disrupt Big Buck Bunny's routine. Visible now: Big Buck Bunny, bird.",
+      "The rodents disrupt Big Buck Bunny's routine."
+    ]
+  },
+  "timelineMemory": {
+    "timeline_position": "Story develops",
+    "previous_event": "Big Buck Bunny becomes frustrated by the rodents' pranks.",
+    "current_event": "The rodents disrupt Big Buck Bunny's routine.",
+    "next_event": null,
+    "is_movie_start": false,
+    "is_movie_end": false
+  },
+  "cacheMetadata": {
+    "semantic_cache_key": "bigBuckBunny:v21:interval:bigBuckBunny:interval:13",
+    "knowledge_source": "expanded",
+    "semantic_map_cached": false,
+    "frame_hash": "ab4e594356a3a7fa6d8fd64007c19d20ea3cc5672b48eac33a0599856af71eb0"
+  }
+}

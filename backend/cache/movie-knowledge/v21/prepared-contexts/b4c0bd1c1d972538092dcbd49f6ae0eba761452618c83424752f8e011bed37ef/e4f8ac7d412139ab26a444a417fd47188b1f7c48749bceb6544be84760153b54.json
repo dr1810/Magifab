@@ -1,7 +1,7 @@
 {
   "movie_id": "spriteFright",
   "interval_id": "spriteFright:interval:1",
-  "timestamp_seconds": 32.01896,
+  "timestamp_seconds": 32.004854,
   "preparation_cache_key": "spriteFright:v21:interval:spriteFright:interval:1",
   "semantic_cache_version": 21,
   "knowledge_revision": 3,
@@ -12,7 +12,7 @@
   "reasoning_context": {
     "movie_id": "spriteFright",
     "scene_id": "spriteFright:interval:1",
-    "timestamp_seconds": 32.01896,
+    "timestamp_seconds": 32.004854,
     "accessibility_profile": {
       "accessibility_needs": [
         "Understanding emotions",
@@ -40,16 +40,16 @@
         "id": "claim-aab2a0b9ff0cbf52",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-rex",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [
@@ -61,16 +61,16 @@
         "id": "claim-26b55a86f61778b8",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-phil",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [
@@ -82,16 +82,16 @@
         "id": "claim-9337baf2c01b1e0d",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-ellie",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -103,16 +103,16 @@
         "id": "claim-69a404aa3db4de27",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-jay",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -124,16 +124,16 @@
         "id": "claim-3ae981d188cdbf30",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-victoria",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:1",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -145,16 +145,16 @@
         "id": "claim-b3c00d1be4a9aab3",
         "kind": "relationship",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "co-presence:character-rex:character-phil",
         "predicate": "active_in",
         "object_id": "spriteFright:interval:1",
         "value": "Rex and Phil are together in this story moment.",
         "confidence": 0.497,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -166,16 +166,16 @@
         "id": "claim-bb8b067cdfadb3e9",
         "kind": "timeline_change",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "timeline-forest-arrival",
         "predicate": "active_at",
         "object_id": "spriteFright:interval:1",
         "value": "The teenagers enter the isolated forest.",
         "confidence": 0.9,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -187,16 +187,16 @@
         "id": "claim-c7d1cff8dd1180c1",
         "kind": "emotion",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-ellie",
         "predicate": "feels",
         "object_id": "spriteFright:interval:1",
         "value": "Ellie is alert and curious as the group enters the forest.",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -208,16 +208,16 @@
         "id": "claim-6c19e49edcf431fe",
         "kind": "scene_state",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "scene-a47beb32b55f1368",
         "predicate": "has_state",
         "object_id": "spriteFright:interval:1",
         "value": "The group enters the isolated forest. Visible now: Rex, Phil.",
         "confidence": 0.47467448314030963,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "perception_verified",
         "knowledge_ids": [],
@@ -283,16 +283,16 @@
         "id": "claim-c797c653ffb9fa59",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:0",
-        "timestamp_seconds": 5.005494,
-        "timestamp_start": 5.005494,
-        "timestamp_end": 5.005494,
+        "timestamp_seconds": 5.004358,
+        "timestamp_start": 5.004358,
+        "timestamp_end": 5.004358,
         "subject_id": "character-ellie",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-8dca502792b0f93128c3"
+          "observation-1e93cc790c3d0c9849d7"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -304,16 +304,16 @@
         "id": "claim-5545d102257563cb",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:0",
-        "timestamp_seconds": 5.005494,
-        "timestamp_start": 5.005494,
-        "timestamp_end": 5.005494,
+        "timestamp_seconds": 5.004358,
+        "timestamp_start": 5.004358,
+        "timestamp_end": 5.004358,
         "subject_id": "character-rex",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-8dca502792b0f93128c3"
+          "observation-1e93cc790c3d0c9849d7"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -325,16 +325,16 @@
         "id": "claim-7bf0ed895f4e099a",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:0",
-        "timestamp_seconds": 5.005494,
-        "timestamp_start": 5.005494,
-        "timestamp_end": 5.005494,
+        "timestamp_seconds": 5.004358,
+        "timestamp_start": 5.004358,
+        "timestamp_end": 5.004358,
         "subject_id": "character-jay",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-8dca502792b0f93128c3"
+          "observation-1e93cc790c3d0c9849d7"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -346,16 +346,16 @@
         "id": "claim-bf06e52fbfa16abf",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:0",
-        "timestamp_seconds": 5.005494,
-        "timestamp_start": 5.005494,
-        "timestamp_end": 5.005494,
+        "timestamp_seconds": 5.004358,
+        "timestamp_start": 5.004358,
+        "timestamp_end": 5.004358,
         "subject_id": "character-victoria",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-8dca502792b0f93128c3"
+          "observation-1e93cc790c3d0c9849d7"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -367,16 +367,16 @@
         "id": "claim-42ee287ac05099d3",
         "kind": "character_present",
         "scene_id": "spriteFright:interval:0",
-        "timestamp_seconds": 5.005494,
-        "timestamp_start": 5.005494,
-        "timestamp_end": 5.005494,
+        "timestamp_seconds": 5.004358,
+        "timestamp_start": 5.004358,
+        "timestamp_end": 5.004358,
         "subject_id": "character-phil",
         "predicate": "present_in",
         "object_id": "spriteFright:interval:0",
         "value": "",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-8dca502792b0f93128c3"
+          "observation-1e93cc790c3d0c9849d7"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
@@ -390,16 +390,16 @@
         "id": "claim-c7d1cff8dd1180c1",
         "kind": "emotion",
         "scene_id": "spriteFright:interval:1",
-        "timestamp_seconds": 32.01896,
-        "timestamp_start": 32.01896,
-        "timestamp_end": 32.01896,
+        "timestamp_seconds": 32.004854,
+        "timestamp_start": 32.004854,
+        "timestamp_end": 32.004854,
         "subject_id": "character-ellie",
         "predicate": "feels",
         "object_id": "spriteFright:interval:1",
         "value": "Ellie is alert and curious as the group enters the forest.",
         "confidence": 1.0,
         "observation_ids": [
-          "observation-010abd66dd57f019e2a2"
+          "observation-85e8006b71587a83b641"
         ],
         "evidence_origin": "movie_knowledge_supported",
         "knowledge_ids": [
