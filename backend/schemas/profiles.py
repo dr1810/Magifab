@@ -9,6 +9,14 @@ class AccessibilityProfile(BaseModel):
     preferred_prompt_types: list[str] = Field(default_factory=list)
     conversation_simplification: bool = True
     vocabulary_assistance: bool = True
+    preferred_explanation_methods: list[str] = Field(default_factory=list, max_length=30)
+    preferred_visual_assistance: list[str] = Field(default_factory=list, max_length=30)
+    prompt_frequency: str = ""
+    interaction_style: str = ""
+    explanation_tone: str = ""
+    reading_level: str = "adaptive"
+    attention_span: str = "adaptive"
+    preferred_examples: bool = False
 
 
 class CompanionProfile(BaseModel):

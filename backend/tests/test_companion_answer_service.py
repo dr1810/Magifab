@@ -29,6 +29,15 @@ class FakeGenerator(AnswerGenerator):
             "suggested_follow_up_prompts": ["What happened before this?"],
         }
 
+    def plan(self, payload):
+        return {
+            "intent": "relationship and cause",
+            "evidence_requirements": ["current scene", "relationship history", "earlier events"],
+            "search_queries": [payload["question"]],
+            "timeline_scope": "earlier and current story events",
+            "use_conversation_memory": True,
+        }
+
 
 def _state(number: int, summary: str) -> IntervalState:
     start = number * 30.0
@@ -60,5 +69,10 @@ def test_answer_service_retrieves_whole_work_and_remembers_followups(tmp_path: P
     assert answered.companionAnswer == CompanionAnswer(**generator.generate(generator.payload))
     assert generator.payload["retrieval_context"]["current_scene"]["interval_id"] == "movie:interval:1"
     assert generator.payload["retrieval_context"]["previous_events"][0]["interval_id"] == "movie:interval:0"
+    assert generator.payload["reasoning_plan"]["intent"] == "relationship and cause"
+    assert generator.payload["personal_memory"]["learning_preferences"]["reading_level"] == "adaptive"
+    entity_memory = generator.payload["retrieval_context"]["entity_memories"]
+    assert {item["entity"] for item in entity_memory} == {"Rex", "Ellie"}
+    assert generator.payload["retrieval_context"]["multi_hop_evidence"]
     assert len(generator.payload["conversation_memory"]) == 1
     assert memory.recall("movie:session-1")[0].question == "Why are they arguing?"

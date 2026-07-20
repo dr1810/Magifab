@@ -57,6 +57,14 @@ type BackendRequest = {
     preferred_prompt_types: string[]
     conversation_simplification: boolean
     vocabulary_assistance: boolean
+    preferred_explanation_methods: string[]
+    preferred_visual_assistance: string[]
+    prompt_frequency: string
+    interaction_style: string
+    explanation_tone: string
+    reading_level: string
+    attention_span: string
+    preferred_examples: boolean
   }
   companion_profile: { name: string; personality: string; conversation_style: string }
 }
@@ -122,6 +130,14 @@ function profilePayload(settings: Settings, companion: CompanionProfile | null, 
       preferred_prompt_types: ai?.preferredPromptTypes ?? [],
       conversation_simplification: !settings.reduceDistractions,
       vocabulary_assistance: true,
+      preferred_explanation_methods: ai?.preferredExplanationMethods ?? [],
+      preferred_visual_assistance: ai?.preferredVisualAssistance ?? [],
+      prompt_frequency: ai?.promptFrequency ?? '',
+      interaction_style: ai?.interactionStyle ?? '',
+      explanation_tone: ai?.explanationTone ?? '',
+      reading_level: detailLevel(ai?.detailLevel),
+      attention_span: attentionSpan(ai?.promptFrequency),
+      preferred_examples: (ai?.preferredExplanationMethods ?? []).some((method) => /example/i.test(method)),
     },
     companion_profile: {
       name: companion?.name ?? saved?.companionProfile.name ?? 'Lumi',
@@ -129,6 +145,18 @@ function profilePayload(settings: Settings, companion: CompanionProfile | null, 
       conversation_style: companion?.conversationStyle ?? saved?.companionProfile.conversationStyle ?? 'simple',
     },
   }
+}
+
+function detailLevel(value: string | undefined): string {
+  if (value === 'Just the essentials') return 'concise'
+  if (value === 'Give me the full picture') return 'detailed'
+  return 'standard'
+}
+
+function attentionSpan(value: string | undefined): string {
+  if (value === 'Only when I ask') return 'focused'
+  if (value === 'Often, with gentle nudges') return 'extended'
+  return 'moderate'
 }
 
 function isBackendResponse(value: unknown): value is CompanionBackendResponse {

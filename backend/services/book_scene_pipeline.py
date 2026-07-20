@@ -14,6 +14,7 @@ from schemas.clean_page_document import CleanPageDocument
 from schemas.companion_pipeline import CompanionInterval, IntervalPreparationResponse
 from schemas.interval_state import AccessibilityHints, ConversationContext, IntervalCacheMetadata, IntervalMetadata, IntervalPrompts, IntervalSemanticMemory, IntervalStoryState, IntervalTimelineMemory, VisualDrawerState
 from services.page_document_normalizer import PageDocumentNormalizer
+from services.interval_state_store import IntervalStateRepository
 
 
 class BookScenePipeline:
@@ -23,8 +24,9 @@ class BookScenePipeline:
     _emotion_words = {"afraid": "afraid", "angry": "angry", "sad": "sad", "worried": "worried", "happy": "happy", "relieved": "relieved", "nervous": "nervous"}
     _ignored_names = {"Chapter", "Page", "The", "A", "An", "He", "She", "They", "This", "That", "When", "What", "Why", "Where"}
 
-    def __init__(self, normalizer: PageDocumentNormalizer | None = None) -> None:
+    def __init__(self, normalizer: PageDocumentNormalizer | None = None, interval_states: IntervalStateRepository | None = None) -> None:
         self._normalizer = normalizer or PageDocumentNormalizer()
+        self._interval_states = interval_states
         self._pages: dict[str, dict[int, CleanPageDocument]] = defaultdict(dict)
         self._states: dict[str, IntervalPreparationResponse] = {}
 
@@ -39,6 +41,8 @@ class BookScenePipeline:
             return self._states[cache_key]
         context = [page for number, page in sorted(self._pages[interval.contentId].items()) if page_start - 2 <= number <= page_end]
         response = self._scene_state(interval, documents, context, page_start, page_end, cache_key)
+        if self._interval_states is not None:
+            self._interval_states.save(response)
         self._states[cache_key] = response
         return response
 
@@ -63,7 +67,7 @@ class BookScenePipeline:
         relationships = self._relationships(current_text, names)
         prompts = self._prompts(page_start, page_end, names, emotion, objects, bool(memories))
         interval_number = int(interval.start // 30)
-        metadata = IntervalMetadata(interval_id=interval.id, movie_id=interval.contentId, start_time=interval.start, end_time=interval.end, interval_number=interval_number, knowledge_revision=1)
+        metadata = IntervalMetadata(interval_id=f"{interval.contentId}:interval:{interval_number}", movie_id=interval.contentId, start_time=interval.start, end_time=interval.end, interval_number=interval_number, knowledge_revision=1)
         return IntervalPreparationResponse(
             metadata=metadata,
             prompts=IntervalPrompts(prompt_bubbles=tuple(prompts), suggested_questions=tuple(item.question for item in prompts)),

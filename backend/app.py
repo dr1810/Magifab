@@ -198,7 +198,7 @@ def get_interval_state_repository() -> IntervalStateRepository:
 @lru_cache
 def get_book_scene_pipeline() -> BookScenePipeline:
     """Book-only source normalization before the shared SceneState boundary."""
-    return BookScenePipeline()
+    return BookScenePipeline(interval_states=get_interval_state_repository())
 
 
 @lru_cache
