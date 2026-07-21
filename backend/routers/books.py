@@ -1,22 +1,67 @@
-"""Whole-book ingestion endpoint; page-level UI preparation never calls this."""
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Separate upload-once, stored-artifact APIs for books."""
+from __future__ import annotations
 
-from adapters.openai_personalizer import PersonalizationConfigurationError, PersonalizationProviderError
-from app import get_book_knowledge_preprocessor
-from schemas.book_knowledge import BookIngestionRequest, BookKnowledgeIngestionResult
-from services.book_knowledge_preprocessor import BookKnowledgePreprocessor
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 
-router = APIRouter(prefix="/api/v1/books", tags=["book knowledge"])
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+
+from app import get_book_pipeline_service
+from schemas.book_pipeline import BookChatRequest, BookChatResponse, BookChapterResponse, BookPreprocessResponse, BookProcessingStatusResponse, BookProfileRequest, BookUploadResponse
+from services.book_pipeline_service import BookPipelineService
+
+router = APIRouter(prefix="/api/v1/books", tags=["book preprocessing"])
 
 
-@router.post("/ingest", response_model=BookKnowledgeIngestionResult, status_code=status.HTTP_201_CREATED)
-def ingest_book(request: BookIngestionRequest, service: BookKnowledgePreprocessor = Depends(get_book_knowledge_preprocessor)) -> BookKnowledgeIngestionResult:
-    """Process every normalized/OCR page into a complete book knowledge base."""
+@router.get("/examples/dune")
+def dune_example(service: BookPipelineService = Depends(get_book_pipeline_service)) -> dict[str, str]:
+    book_id = service.example_id("Dune")
+    if not book_id:
+        raise HTTPException(status_code=404, detail="The Dune example is unavailable.")
+    return {"book_id": book_id}
+
+
+@router.post("/upload", response_model=BookUploadResponse, status_code=status.HTTP_201_CREATED)
+async def upload_book(book: UploadFile = File(...), title: str | None = Form(default=None), service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookUploadResponse:
+    allowed = {"application/pdf", "text/plain", "application/epub+zip"}
+    if book.content_type not in allowed and not (book.filename or "").lower().endswith((".pdf", ".txt", ".epub")):
+        raise HTTPException(status_code=415, detail="Upload a PDF, EPUB, or text file.")
+    suffix = Path(book.filename or "book.pdf").suffix
+    with NamedTemporaryFile(suffix=suffix, delete=False) as temporary:
+        temporary_path = Path(temporary.name)
+        while block := await book.read(1024 * 1024): temporary.write(block)
     try:
-        return service.preprocess(request)
-    except PersonalizationConfigurationError as error:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Gemini book ingestion is not configured") from error
-    except PersonalizationProviderError as error:
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Gemini book extraction is unavailable") from error
-    except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Book ingestion input is incomplete") from error
+        if temporary_path.stat().st_size == 0: raise HTTPException(status_code=422, detail="The uploaded book is empty.")
+        return BookUploadResponse(**service.upload(temporary_path, book.filename or "book", book.content_type or "application/octet-stream", title))
+    finally:
+        await book.close(); temporary_path.unlink(missing_ok=True)
+
+
+@router.post("/{book_id}/preprocess", response_model=BookPreprocessResponse, status_code=status.HTTP_202_ACCEPTED)
+def preprocess(book_id: str, tasks: BackgroundTasks, request: BookProfileRequest = BookProfileRequest(), service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookPreprocessResponse:
+    try: accepted = service.start(book_id)
+    except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
+    if accepted: tasks.add_task(service.preprocess, book_id, request.companion_profile.model_dump(mode="json"))
+    return BookPreprocessResponse(book_id=book_id, status="extracting" if accepted else service.status(book_id).status, accepted=accepted)
+
+
+@router.get("/{book_id}/processing-status", response_model=BookProcessingStatusResponse)
+def processing_status(book_id: str, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookProcessingStatusResponse:
+    try: return service.status(book_id)
+    except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
+
+
+@router.get("/{book_id}/chapter", response_model=BookChapterResponse)
+def chapter(book_id: str, chapter: int = 1, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookChapterResponse:
+    try: return service.chapter(book_id, chapter)
+    except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
+    except ValueError as error: raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@router.post("/{book_id}/companion/chat", response_model=BookChatResponse)
+def chat(book_id: str, request: BookChatRequest, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookChatResponse:
+    try:
+        answer, chapter_number = service.answer(book_id, request.chapter, request.question)
+        return BookChatResponse(answer=answer, chapter=chapter_number)
+    except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
+    except ValueError as error: raise HTTPException(status_code=409, detail=str(error)) from error

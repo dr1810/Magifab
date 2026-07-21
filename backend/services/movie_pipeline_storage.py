@@ -106,6 +106,11 @@ class SqliteMoviePipelineRepository(MoviePipelineRepository):
                 create index if not exists chunks_movie_time_idx on chunks(movie_id, start_seconds);
                 create index if not exists search_context_chunk_idx on search_context(chunk_id);
             """)
+            columns = {row[1] for row in db.execute("pragma table_info(movies)").fetchall()}
+            if "progress_stage" not in columns:
+                db.execute("alter table movies add column progress_stage text not null default 'queued'")
+            if "progress_percentage" not in columns:
+                db.execute("alter table movies add column progress_percentage integer not null default 0")
 
     def find_movie_by_hash(self, content_hash: str) -> MovieRecord | None:
         with self._connect() as db:
@@ -122,9 +127,12 @@ class SqliteMoviePipelineRepository(MoviePipelineRepository):
         movie_id = str(uuid4())
         with self._connect() as db:
             try:
-                db.execute("insert into movies values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (
+                db.execute("""insert into movies (
+                    id, content_hash, title, original_filename, mime_type, source_storage_key,
+                    status, model_versions, error_message, created_at, updated_at, progress_stage, progress_percentage
+                ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
                     movie_id, content_hash, title, original_filename, mime_type, source_storage_key,
-                    MovieProcessingStatus.UPLOADED.value, _dump(model_versions), None, now, now,
+                    MovieProcessingStatus.UPLOADED.value, _dump(model_versions), None, now, now, "queued", 0,
                 ))
             except sqlite3.IntegrityError:
                 row = db.execute("select * from movies where content_hash = ?", (content_hash,)).fetchone()
@@ -234,9 +242,24 @@ class SqliteMoviePipelineRepository(MoviePipelineRepository):
         with self._connect() as db:
             db.execute("insert into processing_attempts values (?, ?, ?, ?, ?, ?, ?, ?)", (str(uuid4()), movie_id, chunk_id, stage, attempt, status, error_message, _now()))
 
+    def set_progress(self, movie_id: str, stage: str, percentage: int) -> None:
+        with self._connect() as db:
+            db.execute("update movies set progress_stage = ?, progress_percentage = ?, updated_at = ? where id = ?", (stage, max(0, min(100, percentage)), _now(), movie_id))
+
+    def progress(self, movie_id: str) -> tuple[str, int]:
+        with self._connect() as db:
+            row = db.execute("select progress_stage, progress_percentage from movies where id = ?", (movie_id,)).fetchone()
+        if row is None:
+            raise KeyError("movie_not_found")
+        return str(row["progress_stage"]), int(row["progress_percentage"])
+
 
 def _movie(row: sqlite3.Row) -> MovieRecord:
     data = dict(row)
+    # Progress belongs to the loading-screen query, not the durable movie
+    # record that is shared with provider-free playback code.
+    data.pop("progress_stage", None)
+    data.pop("progress_percentage", None)
     data["model_versions"] = json.loads(row["model_versions"])
     return MovieRecord(**data)
 

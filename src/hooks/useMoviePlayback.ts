@@ -58,7 +58,6 @@ export function useMoviePlayback(movieId: MovieId) {
     let cancelled = false
     const refresh = async () => {
       try {
-        await moviePreprocessingBackendService.status(movieId)
         const nextMovie = await getMovie(movieId)
         if (!cancelled && nextMovie) setMovie(nextMovie)
       } catch (error) {

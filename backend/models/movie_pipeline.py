@@ -56,6 +56,12 @@ class MoviePipelineRepository(ABC):
     @abstractmethod
     def record_attempt(self, movie_id: str, chunk_id: str | None, stage: str, attempt: int, status: str, error_message: str | None = None) -> None: ...
 
+    @abstractmethod
+    def set_progress(self, movie_id: str, stage: str, percentage: int) -> None: ...
+
+    @abstractmethod
+    def progress(self, movie_id: str) -> tuple[str, int]: ...
+
 
 class MovieBlobStorage(ABC):
     @abstractmethod
@@ -92,4 +98,4 @@ class SearchProvider(ABC):
 
 class SceneReasoningProvider(ABC):
     @abstractmethod
-    def reason(self, visual_scene: GeminiVisualScene, search_context: list[SearchContext]) -> CanonicalMagiFabScene: ...
+    def reason(self, visual_scene: GeminiVisualScene, search_context: list[SearchContext], profile: dict[str, object] | None = None) -> CanonicalMagiFabScene: ...

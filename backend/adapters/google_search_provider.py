@@ -4,6 +4,7 @@ from __future__ import annotations
 from config import Settings
 from models.movie_pipeline import SearchProvider
 from schemas.movie_pipeline import SearchResult
+from services.gemini_client import GeminiClient, get_genai_types
 
 
 class GoogleSearchConfigurationError(RuntimeError):
@@ -12,14 +13,13 @@ class GoogleSearchConfigurationError(RuntimeError):
 
 class GoogleSearchGroundingProvider(SearchProvider):
     """Uses Google's Search grounding capability and persists cited web evidence only."""
-    def __init__(self, settings: Settings) -> None:
-        self._key = settings.gemini_api_key.get_secret_value() if settings.gemini_api_key else None
+    def __init__(self, settings: Settings, gemini_client: GeminiClient | None = None) -> None:
         self._model = settings.gemini_model
-        self._client = None
+        self._gemini = gemini_client or GeminiClient.from_settings(settings)
 
     def search(self, query: str) -> list[SearchResult]:
-        client = self._client_or_raise()
-        from google.genai import types
+        client = self._gemini.client_or_raise()
+        types = get_genai_types()
         response = client.models.generate_content(
             model=self._model,
             contents=f"Search Google for this entity-identification query: {query}. Return a brief factual result with no speculation.",
@@ -40,11 +40,3 @@ class GoogleSearchGroundingProvider(SearchProvider):
             if len(results) == 3:
                 break
         return results
-
-    def _client_or_raise(self):
-        if not self._key:
-            raise GoogleSearchConfigurationError("GEMINI_API_KEY is required for configured Google Search grounding")
-        if self._client is None:
-            from google import genai
-            self._client = genai.Client(api_key=self._key)
-        return self._client

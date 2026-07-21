@@ -16,8 +16,8 @@ class OpenAISceneReasoner(SceneReasoningProvider):
         self._settings = settings
         self._client: OpenAI | None = None
 
-    def reason(self, visual_scene: GeminiVisualScene, search_context: list[SearchContext]) -> CanonicalMagiFabScene:
-        payload = {"gemini_visual_json": visual_scene.model_dump(mode="json"), "google_search_evidence": [item.model_dump(mode="json") for item in search_context]}
+    def reason(self, visual_scene: GeminiVisualScene, search_context: list[SearchContext], profile: dict[str, object] | None = None) -> CanonicalMagiFabScene:
+        payload = {"gemini_visual_json": visual_scene.model_dump(mode="json"), "google_search_evidence": [item.model_dump(mode="json") for item in search_context], "user_companion_profile": profile or {}}
         try:
             response = self._client_or_raise().responses.create(
                 model=self._settings.openai_model,
@@ -47,4 +47,4 @@ def _instructions() -> str:
 
 Use the Gemini visual JSON as the primary evidence. Google Search results are secondary evidence only: resolve an Unknown identity only when a result directly supports the visual description and query. Do not treat a search-result title, snippet, or URL as proof by itself. Keep Unknown and low confidence when evidence is insufficient. Do not invent names, dialogue, plot knowledge, causes, relationships, emotions, locations, or future events. Merge only clearly duplicate entities.
 
-Infer simple relationships, immediate cause/effect, memory cues, timeline refinement, difficulty points, one useful visual aid, and a concise accessibility explanation only when grounded in the supplied evidence. Search context in your output must reproduce the supplied evidence without additions."""
+The supplied user companion profile controls emphasis and wording only. Focus the explanation, memory cues, relationships, and emotions on stated accessibility needs without adding facts. Search context in your output must reproduce the supplied evidence without additions."""

@@ -89,7 +89,7 @@ def test_identical_upload_reuses_movie_and_completed_scenes_without_provider_cal
     assert service.start(first.movie_id).accepted is True
     service.preprocess(first.movie_id)
     assert service.status(first.movie_id).movie.status == "completed"
-    assert len(service.scenes(first.movie_id)) == 1
+    assert service.scene_at(first.movie_id, 0).scene is not None
     calls = (visual.calls, search.calls, reasoner.calls)
 
     duplicate = service.upload(source, "copy.mp4", "video/mp4", "Example")
@@ -109,13 +109,12 @@ def test_failed_chunk_does_not_stop_later_chunks_and_movie_is_partial(tmp_path):
 
     status = service.status(movie.movie_id)
     assert status.movie.status == "partial"
-    assert status.chunk_counts == {"pending": 0, "processing": 0, "completed": 1, "failed": 1}
-    assert len(service.scenes(movie.movie_id)) == 1
+    assert status.scene_counts == {"pending": 0, "processing": 0, "completed": 1, "failed": 1}
     assert search.calls == 1
     assert reasoner.calls == 1
 
 
-def test_active_scene_lookup_reads_persisted_chunk_without_provider_work(tmp_path):
+def test_active_scene_lookup_reads_persisted_scene_without_provider_work(tmp_path):
     service, visual, search, reasoner = _service(tmp_path)
     source = tmp_path / "source.mp4"
     source.write_bytes(b"stored movie")
@@ -126,7 +125,8 @@ def test_active_scene_lookup_reads_persisted_chunk_without_provider_work(tmp_pat
 
     lookup = service.scene_at(movie.movie_id, 12.5)
 
-    assert lookup.chunk is not None
     assert lookup.scene is not None
-    assert lookup.scene.chunk_id == lookup.chunk.id
+    assert lookup.scene_window is not None
+    assert lookup.scene_window.start_seconds == 0
+    assert lookup.scene_window.end_seconds == 90
     assert (visual.calls, search.calls, reasoner.calls) == calls

@@ -1,15 +1,18 @@
-# MagiFab Movie API
+# MagiFab API
 
 This is the slim, server-only backend used by the main MagiFab website.
 
-It has one intelligence path only:
+It has two separate content paths:
 
 ```text
 movie upload → 90-second chunks → Gemini video → Google Search evidence
 → OpenAI canonical scene → stored scene retrieval during playback
+
+book upload / Dune PDF → text extraction → chapter segmentation
+→ OpenAI accessibility artifacts → stored chapter retrieval during reading
 ```
 
-It does **not** install or start YOLO, Florence, Grounding DINO, Torch, Hugging Face, or any frame-analysis model.
+It has no browser-side AI calls or local frame-analysis dependency stack.
 
 ## Run locally
 
@@ -23,6 +26,12 @@ source .venv-movie/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 uvicorn app:app --host 0.0.0.0 --port 8000
+```
+
+The backend depends on the current Gemini SDK package:
+
+```bash
+pip install google-genai
 ```
 
 Use `http://127.0.0.1:8000/docs` to inspect the API. `--reload` is appropriate only while developing.
@@ -39,6 +48,41 @@ GEMINI_MODEL=gemini-2.5-flash
 MAGIFAB_CORS_ORIGINS=https://your-main-website.example
 ```
 
+The backend now performs startup validation and fails fast when any required dependency is unavailable:
+
+- `GEMINI_API_KEY` must be present.
+- Gemini SDK must import successfully via `from google import genai`.
+- OpenAI SDK must import successfully via `from openai import OpenAI`.
+
+If validation fails, `uvicorn` exits with a clear error message.
+
+## Troubleshooting `google-genai` imports
+
+If you see `cannot import name 'genai' from 'google'`:
+
+1. Activate the same virtual environment used to run the backend.
+2. Reinstall dependencies:
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+3. Verify the SDK import directly:
+
+```bash
+python -c "from google import genai; print('Gemini SDK working')"
+```
+
+4. Check for conflicting legacy packages and remove them from the environment if needed:
+
+```bash
+pip uninstall -y google-generativeai
+pip install -U google-genai
+```
+
+5. Restart the backend process after package changes.
+
 Set the frontend build environment variable to the public backend origin, then rebuild/redeploy the website:
 
 ```dotenv
@@ -52,6 +96,12 @@ VITE_MAGIFAB_BACKEND_URL=https://your-movie-api.example
 - `GET /api/v1/movies/{movie_id}/processing-status`
 - `GET /api/v1/movies/{movie_id}/scene?timestamp=…`
 - `GET /api/v1/movies/{movie_id}/video`
+- `POST /api/v1/movies/{movie_id}/companion/chat`
+- `POST /api/v1/books/upload`
+- `POST /api/v1/books/{book_id}/preprocess`
+- `GET /api/v1/books/{book_id}/processing-status`
+- `GET /api/v1/books/{book_id}/chapter?chapter=…`
+- `POST /api/v1/books/{book_id}/companion/chat`
 
 Playback only reads stored scenes; it never triggers Gemini or OpenAI.
 

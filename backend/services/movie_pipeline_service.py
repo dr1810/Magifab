@@ -20,9 +20,11 @@ from schemas.movie_pipeline import (
     MovieUploadResponse,
     SearchContext,
     SceneLookupResponse,
+    SceneWindow,
 )
 from services.movie_pipeline_retry import RetryExecutor
 from services.search_query_planner import SearchQueryPlanner
+from services.gemini_client import GeminiClient
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,7 @@ class MoviePipelineService:
         chunk_duration_seconds: int,
         retry_executor: RetryExecutor,
         model_versions: dict[str, str],
+        gemini_client: GeminiClient | None = None,
         query_planner: SearchQueryPlanner | None = None,
     ) -> None:
         self._repository = repository
@@ -53,6 +56,7 @@ class MoviePipelineService:
         self._chunk_duration_seconds = chunk_duration_seconds
         self._retry = retry_executor
         self._model_versions = model_versions
+        self._gemini_client = gemini_client
         self._query_planner = query_planner or SearchQueryPlanner()
 
     def upload(self, temporary_file: Path, filename: str, mime_type: str, title: str | None = None) -> MovieUploadResponse:
@@ -73,32 +77,36 @@ class MoviePipelineService:
         _log("movie_upload", outcome="cache_miss", movie_id=movie.id, content_hash=content_hash)
         return MovieUploadResponse(movie_id=movie.id, content_hash=content_hash, status=movie.status, reused_existing=False)
 
-    def start(self, movie_id: str) -> MoviePreprocessResponse:
+    def start(self, movie_id: str, profile: dict[str, object] | None = None) -> MoviePreprocessResponse:
         movie = self._require_movie(movie_id)
         if movie.status == MovieProcessingStatus.COMPLETED:
             _log("preprocessing_start", outcome="already_completed", movie_id=movie_id)
             return MoviePreprocessResponse(movie_id=movie_id, status=movie.status, accepted=False)
         accepted = self._repository.try_start_movie(movie_id)
+        if accepted:
+            self._repository.set_progress(movie_id, "queued", 0)
         status = MovieProcessingStatus.PROCESSING if accepted else self._require_movie(movie_id).status
         _log("preprocessing_start", outcome="accepted" if accepted else "already_processing", movie_id=movie_id)
         return MoviePreprocessResponse(movie_id=movie_id, status=status, accepted=accepted)
 
-    def preprocess(self, movie_id: str) -> None:
+    def preprocess(self, movie_id: str, profile: dict[str, object] | None = None) -> None:
         movie = self._require_movie(movie_id)
         if movie.status == MovieProcessingStatus.COMPLETED:
             return
         try:
+            self._repository.set_progress(movie_id, "chunking", 5)
             chunks = self._chunks_for(movie)
         except Exception as error:
             self._repository.set_movie_status(movie_id, MovieProcessingStatus.FAILED, str(error))
             _log("chunk_creation", outcome="failed", movie_id=movie_id, error=str(error))
             return
         failures = 0
-        for chunk in chunks:
+        for index, chunk in enumerate(chunks):
             if chunk.status == ChunkProcessingStatus.COMPLETED:
                 continue
             try:
-                self._process_chunk(movie, chunk)
+                self._process_chunk(movie, chunk, profile)
+                self._repository.set_progress(movie_id, "analyzing", min(85, 10 + int((index + 1) / len(chunks) * 75)))
             except Exception as error:
                 failures += 1
                 self._repository.update_chunk(chunk.id, status=ChunkProcessingStatus.FAILED, error_message=str(error), model_versions=self._model_versions)
@@ -111,18 +119,17 @@ class MoviePipelineService:
         else:
             final_status = MovieProcessingStatus.FAILED
         self._repository.set_movie_status(movie_id, final_status, None if final_status == MovieProcessingStatus.COMPLETED else f"{failures or len(final_chunks)} chunk(s) require retry")
+        self._repository.set_progress(movie_id, "complete" if final_status == MovieProcessingStatus.COMPLETED else "failed", 100 if final_status == MovieProcessingStatus.COMPLETED else 0)
         _log("preprocessing_completion", movie_id=movie_id, status=final_status.value, chunks=len(final_chunks), failures=failures)
 
     def status(self, movie_id: str) -> MovieProcessingStatusResponse:
         movie = self._require_movie(movie_id)
-        counts: dict[str, int] = {status.value: 0 for status in ChunkProcessingStatus}
-        for chunk in self._repository.list_chunks(movie_id):
-            counts[chunk.status.value] += 1
-        return MovieProcessingStatusResponse(movie=movie, chunk_counts=counts)
-
-    def chunks(self, movie_id: str) -> list[ChunkRecord]:
-        self._require_movie(movie_id)
-        return self._repository.list_chunks(movie_id)
+        stage, percentage = self._repository.progress(movie_id)
+        if movie.status == MovieProcessingStatus.COMPLETED:
+            stage, percentage = "complete", 100
+        elif movie.status in {MovieProcessingStatus.FAILED, MovieProcessingStatus.PARTIAL}:
+            stage = "failed"
+        return MovieProcessingStatusResponse(status=stage, progress=_progress_label(stage), percentage=percentage, error=movie.error_message, movie_id=movie.id, title=movie.title or movie.original_filename)
 
     def movie(self, movie_id: str) -> MovieRecord:
         return self._require_movie(movie_id)
@@ -136,7 +143,10 @@ class MoviePipelineService:
         if chunk is None:
             return SceneLookupResponse()
         scene = next((item for item in self._repository.list_scenes(movie_id) if item.chunk_id == chunk.id), None)
-        return SceneLookupResponse(scene=scene, chunk=chunk)
+        return SceneLookupResponse(
+            scene=scene,
+            scene_window=SceneWindow(start_seconds=chunk.start_seconds, end_seconds=chunk.end_seconds),
+        )
 
     def source_path(self, movie_id: str) -> Path:
         movie = self._require_movie(movie_id)
@@ -144,10 +154,6 @@ class MoviePipelineService:
         if not path.is_file():
             raise FileNotFoundError("movie_source_blob_not_found")
         return path
-
-    def scenes(self, movie_id: str):
-        self._require_movie(movie_id)
-        return self._repository.list_scenes(movie_id)
 
     def _chunks_for(self, movie: MovieRecord) -> list[ChunkRecord]:
         existing = self._repository.list_chunks(movie.id)
@@ -173,9 +179,12 @@ class MoviePipelineService:
         _log("chunk_creation", outcome="succeeded", movie_id=movie.id, chunks=len(stored))
         return stored
 
-    def _process_chunk(self, movie: MovieRecord, chunk: ChunkRecord) -> None:
+    def _process_chunk(self, movie: MovieRecord, chunk: ChunkRecord, profile: dict[str, object] | None) -> None:
         self._repository.update_chunk(chunk.id, status=ChunkProcessingStatus.PROCESSING, error_message=None, model_versions=self._model_versions)
         path = self._blobs.path_for_key(chunk.storage_key)
+        if self._gemini_client is not None:
+            # Ensures shared SDK wiring is available before this chunk enters the Gemini stage.
+            self._gemini_client.client_or_raise()
         visual = self._run_stage(movie.id, chunk.id, "gemini", lambda: self._visual_provider.analyze(path, start_seconds=chunk.start_seconds, end_seconds=chunk.end_seconds))
         self._repository.update_chunk(chunk.id, gemini_visual_json=visual, model_versions=self._model_versions)
         _log("gemini_processing", outcome="succeeded", movie_id=movie.id, chunk_id=chunk.id, model=self._model_versions.get("gemini"))
@@ -185,7 +194,11 @@ class MoviePipelineService:
             contexts.append(SearchContext(entity=entity.entity, entity_kind=entity.kind, query=query, results=results, confidence=max((item.confidence for item in results), default=0.0)))
         self._repository.save_search_context(movie.id, chunk.id, contexts)
         _log("search_enrichment", outcome="succeeded", movie_id=movie.id, chunk_id=chunk.id, queries=len(contexts))
-        canonical = self._run_stage(movie.id, chunk.id, "openai", lambda: self._reasoning_provider.reason(visual, contexts))
+        self._repository.set_progress(movie.id, "reasoning", 88)
+        canonical = self._run_stage(
+            movie.id, chunk.id, "openai",
+            lambda: self._reasoning_provider.reason(visual, contexts, profile) if profile else self._reasoning_provider.reason(visual, contexts),
+        )
         canonical = canonical.model_copy(update={"search_context": contexts})
         self._repository.save_scene(movie.id, chunk.id, canonical, self._model_versions)
         self._repository.update_chunk(chunk.id, status=ChunkProcessingStatus.COMPLETED, error_message=None, model_versions=self._model_versions)
@@ -214,3 +227,14 @@ def file_sha256(path: Path) -> str:
 
 def _log(event: str, **fields: object) -> None:
     logger.info(json.dumps({"event": event, **{key: value for key, value in fields.items() if value is not None}}, default=str, sort_keys=True))
+
+
+def _progress_label(stage: str) -> str:
+    return {
+        "queued": "Queued for processing",
+        "chunking": "Creating 90-second video chunks",
+        "analyzing": "Gemini is understanding the video",
+        "reasoning": "Creating personalized accessibility explanations",
+        "complete": "Accessibility artifacts are ready",
+        "failed": "Processing needs attention",
+    }.get(stage, "Queued for processing")

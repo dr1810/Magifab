@@ -1,5 +1,5 @@
 import { demoMovies, getSceneAtTimestamp, movieById } from '../movie-data/index'
-import { moviePreprocessingBackendService, type ProcessedChunk, type ProcessedMovie } from './backend/MoviePreprocessingBackendService'
+import { moviePreprocessingBackendService } from './backend/MoviePreprocessingBackendService'
 import { storedSceneToSceneState } from './scene/StoredSceneState'
 import type { SceneState } from './scene/SceneState'
 import type { MovieData, MovieId, SceneData } from '../types/movie'
@@ -14,67 +14,66 @@ export async function getMovies(): Promise<MovieData[]> {
 
 export async function getMovie(id: MovieId, signal?: AbortSignal): Promise<MovieData | null> {
   if (signal?.aborted) throw new DOMException('Movie request cancelled', 'AbortError')
+  const catalogMovie = movieById[id]
+  // Curated demo movies are local catalog content and must never trigger a
+  // backend lookup for an uploaded-movie UUID.
+  if (catalogMovie) return catalogMovie
   try {
-    const [movie, chunks] = await Promise.all([moviePreprocessingBackendService.getMovie(id, signal), moviePreprocessingBackendService.getTimeline(id, signal)])
-    return backendMovie(movie, chunks)
+    const state = await moviePreprocessingBackendService.status(id, signal)
+    return backendMovie(id, state)
   } catch (error) {
-    // Keep the curated, offline catalog usable when the backend has no matching record.
-    if (isNotFound(error)) return movieById[id] ?? null
+    if (isNotFound(error)) return null
     throw error
   }
 }
 
 export async function getScene(movieId: MovieId, timestamp: number, signal?: AbortSignal): Promise<ResolvedMovieScene | null> {
   if (signal?.aborted) throw new DOMException('Scene request cancelled', 'AbortError')
+  const catalogMovie = movieById[movieId]
+  if (catalogMovie) return { scene: getSceneAtTimestamp(catalogMovie, timestamp), sceneState: null }
   try {
     const result = await moviePreprocessingBackendService.getScene(movieId, timestamp, signal)
-    if (result.scene && result.chunk) {
-      const state = storedSceneToSceneState(result.scene, result.chunk)
-      void moviePreprocessingBackendService.preloadNearbyScenes(movieId, timestamp).catch(() => undefined)
+    if (result) {
+      const state = artifactToSceneState(movieId, result)
       return { scene: sceneDataFromStored(state), sceneState: state }
     }
     return null
   } catch (error) {
-    if (!isNotFound(error)) throw error
-    const movie = movieById[movieId]
-    return movie ? { scene: getSceneAtTimestamp(movie, timestamp), sceneState: null } : null
+    if (isNotFound(error)) return null
+    throw error
   }
 }
 
-function backendMovie(movie: ProcessedMovie, chunks: ProcessedChunk[]): MovieData {
+function backendMovie(id: string, movie: Awaited<ReturnType<typeof moviePreprocessingBackendService.status>>): MovieData {
   return {
-    id: movie.id,
-    title: movie.title || movie.original_filename,
-    description: movie.status === 'completed' ? 'Your movie is ready with scene-by-scene MagiFab guidance.' : 'MagiFab is preparing this movie for you.',
-    runtime: durationLabel(chunks),
+    id,
+    title: movie.title || 'Uploaded movie',
+    description: movie.status === 'complete' ? 'Your movie is ready with scene-by-scene MagiFab guidance.' : movie.progress,
+    runtime: movie.status === 'complete' ? 'Ready to watch' : 'Preparing movie',
     genre: 'Uploaded movie',
     rating: 'Ready',
     accessibilityTags: ['Simple Language Prompts', 'Audio Description', 'Reduced Motion Supported'],
     posterUrl: '/favicon.svg',
-    videoSrc: moviePreprocessingBackendService.videoUrl(movie.id),
+    videoSrc: moviePreprocessingBackendService.videoUrl(id),
     subtitleSrc: '',
     companionTheme: 'ocean',
-    scenes: chunks.map((chunk) => emptyScene(chunk)),
+    scenes: [],
     source: 'backend',
-    processingStatus: movie.status,
-    processingError: movie.error_message,
+    processingStatus: movie.status === 'complete' ? 'completed' : movie.status === 'failed' ? 'failed' : 'processing',
+    processingError: movie.error,
   }
 }
 
-function emptyScene(chunk: ProcessedChunk): SceneData {
+function artifactToSceneState(movieId: string, artifact: Awaited<ReturnType<typeof moviePreprocessingBackendService.getScene>>): SceneState {
+  const prompts = artifact.promptBubble.map((item, index) => ({ id: `${movieId}:${artifact.timestamp}:prompt:${index}`, kind: 'scene', label: item.label, question: item.question, priority: 5 - index }))
   return {
-    sceneId: chunk.id,
-    timestamp: chunk.start_seconds,
-    subtitle: '',
-    prompts: [],
-    characterList: [],
-    emotion: '',
-    relationshipGraph: [],
-    timelineData: [],
-    causeEffectData: { cause: '', action: '', effect: '' },
-    companionPosition: { x: 50, y: 50 },
-    highlightObject: { name: '', reason: '' },
-    voiceNarration: '',
+    sceneId: `${movieId}:${artifact.timestamp}`, interval: Math.floor(artifact.timestamp / 90), startTime: artifact.timestamp, endTime: artifact.timestamp + 90,
+    sceneSummary: artifact.companionExplanation, subtitle: artifact.companionExplanation,
+    characters: artifact.characters.map((item, index) => ({ character_id: `${movieId}:character:${index}`, name: item.name, reminder: item.description, confidence: item.confidence === 'high' ? 1 : item.confidence === 'medium' ? .7 : .4 })),
+    relationships: [], timeline: artifact.visualDrawer.timeline, memory: artifact.memoryCue.map((summary) => ({ summary, confidence: 1 })), importantObjects: artifact.visualDrawer.objects.map((item) => item.name), emotions: artifact.visualDrawer.emotion.map((summary, index) => ({ emotion_id: `${movieId}:emotion:${index}`, summary, confidence: 1 })), causeEffect: artifact.visualDrawer.cause,
+    visualAid: artifact.visualAid, promptBubbles: prompts, promptAnswers: Object.fromEntries(prompts.map((prompt, index) => [prompt.id, artifact.promptBubble[index].answer])),
+    accessibilityHints: { vocabulary: artifact.visualDrawer.objects.map((item, index) => ({ id: `${movieId}:object:${index}`, term: item.name, simple_definition: item.why, confidence: 1 })), emotions: artifact.visualDrawer.emotion.map((summary, index) => ({ emotion_id: `${movieId}:emotion:${index}`, summary, confidence: 1 })) },
+    conversation: { sceneExplanation: artifact.companionExplanation, simplifications: [] }, story: { currentGoal: artifact.visualDrawer.timeline[0] ?? null, timelinePosition: artifact.visualDrawer.timeline[0] ?? null, storySoFar: artifact.memoryCue, unresolvedThreads: [] }, companionEnabled: true, metadata: { movieId, generatedAt: Date.now(), knowledgeRevision: 1, frameTimestamp: artifact.timestamp },
   }
 }
 
@@ -94,11 +93,6 @@ function sceneDataFromStored(state: SceneState): SceneData {
     voiceNarration: state.conversation.sceneExplanation,
     visibleObjects: state.importantObjects,
   }
-}
-
-function durationLabel(chunks: ProcessedChunk[]) {
-  const seconds = Math.max(0, chunks.at(-1)?.end_seconds ?? 0)
-  return seconds ? `${Math.floor(seconds / 60)} min` : 'Preparing runtime'
 }
 
 function isNotFound(error: unknown) {

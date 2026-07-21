@@ -17,6 +17,8 @@ import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion } from './types/movie'
 import { useOverlayManager } from './hooks/useOverlayManager'
+import { moviePreprocessingBackendService } from './services/backend/MoviePreprocessingBackendService'
+import { companionProfilePayload } from './services/backend/profilePayload'
 
 type MovieViewerProps = { movie: MovieId; onBack: () => void; onOpenAccessibilitySettings?: () => void }
 type ScenePrompt = { id: string; kind: string; label: string; question: string; priority: number }
@@ -50,8 +52,8 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const panelPrompts = useMemo<PromptQuestion[]>(() => prompts.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '' })), [prompts])
   const narrativeBanner = movieData?.source === 'backend'
     ? movieData.processingStatus === 'failed'
-      ? 'MagiFab could not finish preparing this movie. Please try preprocessing again.'
-      : sceneState?.subtitle ?? 'MagiFab is preparing scene guidance. The companion will be ready shortly.'
+      ? movieData.processingError || 'MagiFab could not finish preparing this movie. Please try preprocessing again.'
+      : sceneState?.subtitle ?? 'Preparing your companion experience…'
     : sceneState?.phase === 'intro_credits' || !scene?.subtitle ? sceneState?.subtitle ?? '' : ''
 
   useEffect(() => {
@@ -144,12 +146,14 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     overlays.open('assistant')
   }, [accessibilityProfile?.companionProfile, companionGreetingSceneId, companionMessages.length, companionOpen, overlays, sceneState])
   const askCompanion = useCallback(async (question: string) => {
-    // Deterministic retrieval over the persisted SceneState; playback never
-    // invokes Gemini, OpenAI, or the legacy companion endpoint.
-    const answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
+    // The chat API retrieves already-stored scene data. It never starts movie
+    // preprocessing or calls Gemini during playback.
+    const answer = movieData?.source === 'backend'
+      ? (await moviePreprocessingBackendService.chat(movie, currentTime, question, companionProfilePayload(accessibilityProfile))).answer
+      : answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
     const messageId = `${sceneState?.sceneId ?? 'opening'}:${Date.now()}`
     setCompanionMessages((messages) => [...messages, { id: `${messageId}:question`, role: 'user', text: question }, { id: `${messageId}:answer`, role: 'assistant', text: answer }])
-  }, [accessibilityProfile?.aiProfile, sceneState])
+  }, [accessibilityProfile, currentTime, movie, movieData?.source, sceneState])
   const closeOverlays = useCallback(() => {
     if (drawerOpen) closeDrawer()
     else closeInteractionUI()
