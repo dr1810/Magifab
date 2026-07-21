@@ -7,7 +7,16 @@ from tempfile import NamedTemporaryFile
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 
 from app import get_book_pipeline_service
-from schemas.book_pipeline import BookChatRequest, BookChatResponse, BookChapterResponse, BookPreprocessResponse, BookProcessingStatusResponse, BookProfileRequest, BookUploadResponse
+from schemas.book_pipeline import (
+    BookChatRequest,
+    BookChatResponse,
+    BookChapterResponse,
+    BookChaptersResponse,
+    BookPreprocessResponse,
+    BookProcessingStatusResponse,
+    BookProfileRequest,
+    BookUploadResponse,
+)
 from services.book_pipeline_service import BookPipelineService
 
 router = APIRouter(prefix="/api/v1/books", tags=["book preprocessing"])
@@ -51,6 +60,14 @@ def processing_status(book_id: str, service: BookPipelineService = Depends(get_b
     except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
 
 
+@router.get("/{book_id}/chapters", response_model=BookChaptersResponse)
+def chapters(book_id: str, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookChaptersResponse:
+    try:
+        return service.chapters(book_id)
+    except KeyError as error:
+        raise HTTPException(status_code=404, detail="Book was not found.") from error
+
+
 @router.get("/{book_id}/chapter", response_model=BookChapterResponse)
 def chapter(book_id: str, chapter: int = 1, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookChapterResponse:
     try: return service.chapter(book_id, chapter)
@@ -62,6 +79,6 @@ def chapter(book_id: str, chapter: int = 1, service: BookPipelineService = Depen
 def chat(book_id: str, request: BookChatRequest, service: BookPipelineService = Depends(get_book_pipeline_service)) -> BookChatResponse:
     try:
         answer, chapter_number = service.answer(book_id, request.chapter, request.question)
-        return BookChatResponse(answer=answer, chapter=chapter_number)
+        return BookChatResponse(answer=answer, chapter_number=chapter_number)
     except KeyError as error: raise HTTPException(status_code=404, detail="Book was not found.") from error
     except ValueError as error: raise HTTPException(status_code=409, detail=str(error)) from error

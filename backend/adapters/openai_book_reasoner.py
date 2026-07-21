@@ -20,8 +20,25 @@ class OpenAIBookReasoner:
         self._settings = settings
         self._client: OpenAI | None = None
 
-    def reason(self, chapter: int, title: str, text: str, profile: dict[str, object]) -> BookChapterResponse:
-        payload = {"chapter": chapter, "title": title, "extracted_text": text[:12_000], "user_companion_profile": profile}
+    def reason(
+        self,
+        chapter_number: int,
+        chapter_title: str,
+        section_label: str,
+        page_start: int,
+        page_end: int,
+        text: str,
+        profile: dict[str, object],
+    ) -> BookChapterResponse:
+        payload = {
+            "chapter_number": chapter_number,
+            "chapter_title": chapter_title,
+            "section_label": section_label,
+            "page_start": page_start,
+            "page_end": page_end,
+            "extracted_text": text[:14_000],
+            "user_companion_profile": profile,
+        }
         try:
             client = self._client_or_raise()
             if _supports_responses_api(client):
@@ -32,7 +49,7 @@ class OpenAIBookReasoner:
                     max_output_tokens=max(self._settings.openai_max_output_tokens, 2_400),
                     text={"format": {"type": "json_schema", "name": "magifab_book_chapter", "strict": True, "schema": BookChapterResponse.model_json_schema()}},
                 )
-                return BookChapterResponse.model_validate_json(_extract_response_text(response))
+                return _validate_reasoner_payload(_extract_response_text(response), payload)
 
             completion = client.chat.completions.create(
                 model=self._settings.openai_model,
@@ -50,11 +67,11 @@ class OpenAIBookReasoner:
                 max_completion_tokens=max(self._settings.openai_max_output_tokens, 2_400),
             )
             content = _extract_chat_completion_text(completion)
-            return BookChapterResponse.model_validate_json(content)
+            return _validate_reasoner_payload(content, payload)
         except PersonalizationConfigurationError:
             raise
         except Exception as error:
-            logger.exception("Book reasoning failed for chapter %s", chapter, exc_info=error)
+            logger.exception("Book reasoning failed for chapter %s", chapter_number, exc_info=error)
             raise PersonalizationProviderError(f"OpenAI could not create a book accessibility artifact: {type(error).__name__}: {error}") from error
 
     def _client_or_raise(self) -> OpenAI:
@@ -102,9 +119,35 @@ def _extract_chat_completion_text(completion: Any) -> str:
 
 def _book_instructions() -> str:
     return (
-        "You create MagiFab's accessible book artifacts from extracted text only. "
-        "Do not invent plot facts or use outside book knowledge. Produce a concise, personalized "
-        "chapter summary, character cards, relationships, locations, political/social context, "
-        "memory aids, timeline, glossary, and a simple visual relationship map. The profile changes "
-        "emphasis and explanation style, not facts."
+        "You create MagiFab's accessible book chapter artifacts from extracted text only. "
+        "Never use outside knowledge and never invent facts not grounded in the provided extracted text. "
+        "Return data that strictly matches the requested JSON schema with these goals: concise chapter summary, "
+        "simple explanation adapted to the companion profile, character cards, directional relationships, "
+        "important events, difficult concepts, memory aid sentence, visual relationship map nodes/edges, "
+        "and three practical companion questions. Confidence must be between 0 and 1."
     )
+
+
+def _validate_reasoner_payload(raw: str, payload: dict[str, object]) -> BookChapterResponse:
+    parsed = json.loads(raw)
+    if isinstance(parsed, dict):
+        _apply_missing_defaults(parsed, payload)
+    return BookChapterResponse.model_validate(parsed)
+
+
+def _apply_missing_defaults(parsed: dict[str, object], payload: dict[str, object]) -> None:
+    parsed.setdefault("chapter_number", payload.get("chapter_number", 1))
+    parsed.setdefault("chapter_title", payload.get("chapter_title", "Untitled Chapter"))
+    parsed.setdefault("section_label", payload.get("section_label", "chapter"))
+    parsed.setdefault("page_start", payload.get("page_start", 1))
+    parsed.setdefault("page_end", payload.get("page_end", payload.get("page_start", 1)))
+    parsed.setdefault("chapter_summary", "")
+    parsed.setdefault("simple_explanation", parsed.get("chapter_summary", ""))
+    parsed.setdefault("characters", [])
+    parsed.setdefault("relationships", [])
+    parsed.setdefault("important_events", [])
+    parsed.setdefault("difficult_concepts", [])
+    parsed.setdefault("memory_aid", str(parsed.get("chapter_summary", ""))[:220])
+    parsed.setdefault("visual_relationship_map", {"nodes": [], "edges": []})
+    parsed.setdefault("companion_questions", [])
+    parsed.setdefault("confidence", 0.5)

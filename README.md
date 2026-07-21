@@ -26,14 +26,25 @@ Books are a separate text pipeline and are never treated as movies.
 
 ```text
 PDF / EPUB / text upload
-  → text extraction
-  → chapter or section segmentation
+  → text extraction per page
+  → front-matter filtering (cover, copyright, publisher, TOC)
+  → narrative start detection
+  → chapter/section/page-range segmentation
   → accessibility reasoning and relationship construction
   → stored chapter artifacts
   → reading-time retrieval
 ```
 
-The repository includes `books/Frank Herbert - Dune 1 - Dune.pdf`. The backend registers it as the Dune example, and the frontend’s Dune tile starts its book-specific process. Artifacts include chapter summaries, character cards, relationship explanations/maps, locations, simplified political and social context, memory aids, timelines, and a glossary.
+The repository includes `books/Frank Herbert - Dune 1 - Dune.pdf`. The backend registers it as the Dune example, and the frontend’s Dune tile starts its book-specific process. Artifacts include chapter summaries, simplified explanations, character cards, directional relationship maps, important events, difficult concepts, memory aids, and chapter-level companion questions.
+
+The book API stores chapter metadata (chapter number/title and page range) and serves a dedicated reading UI layout:
+
+```text
+Left panel: cover/progress/chapter list
+Center panel: chapter summary + simplified explanation
+Right panel: companion chat and quick questions
+Bottom tabs: Characters, Relationships, Timeline, Memory Aid, Visual Map
+```
 
 ## User experience
 
@@ -61,6 +72,7 @@ For Dune and uploaded books, the loading screen says **“Creating your MagiFab 
 | `POST /api/v1/books/upload` | Upload a PDF, EPUB, or text document. |
 | `POST /api/v1/books/{book_id}/preprocess` | Queue separate book extraction and accessibility processing. |
 | `GET /api/v1/books/{book_id}/processing-status` | Read extraction/reasoning progress. |
+| `GET /api/v1/books/{book_id}/chapters` | Retrieve chapter metadata list and page ranges. |
 | `GET /api/v1/books/{book_id}/chapter?chapter=` | Retrieve a stored chapter artifact. |
 | `POST /api/v1/books/{book_id}/companion/chat` | Answer from the stored chapter context. |
 
