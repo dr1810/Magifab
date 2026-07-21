@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getMovie, getScene } from '../services/movieService'
+import { moviePreprocessingBackendService } from '../services/backend/MoviePreprocessingBackendService'
 import type { MovieData, MovieId, SceneData } from '../types/movie'
+import type { SceneState } from '../services/scene/SceneState'
 
 export function useMoviePlayback(movieId: MovieId) {
   const [movie, setMovie] = useState<MovieData | null>(null)
   const [scene, setScene] = useState<SceneData | null>(null)
+  const [storedSceneState, setStoredSceneState] = useState<SceneState | null>(null)
   const [loading, setLoading] = useState(true)
   const sceneRef = useRef<SceneData | null>(null)
   const sceneTimerRef = useRef<number | null>(null)
@@ -23,6 +26,7 @@ export function useMoviePlayback(movieId: MovieId) {
     setLoading(true)
     setMovie(null)
     setScene(null)
+    setStoredSceneState(null)
     sceneRef.current = null
     pendingTimestampRef.current = 0
 
@@ -49,6 +53,22 @@ export function useMoviePlayback(movieId: MovieId) {
     sceneRequestIdRef.current += 1
   }, [movieId])
 
+  useEffect(() => {
+    if (movie?.source !== 'backend' || movie.processingStatus === 'completed' || movie.processingStatus === 'partial' || movie.processingStatus === 'failed') return
+    let cancelled = false
+    const refresh = async () => {
+      try {
+        await moviePreprocessingBackendService.status(movieId)
+        const nextMovie = await getMovie(movieId)
+        if (!cancelled && nextMovie) setMovie(nextMovie)
+      } catch (error) {
+        if (!cancelled) console.warn('[MagiFab] movie preprocessing status failed', error)
+      }
+    }
+    const timer = window.setInterval(() => { void refresh() }, 3_000)
+    return () => { cancelled = true; window.clearInterval(timer) }
+  }, [movie?.processingStatus, movie?.source, movieId])
+
   const updateScene = useCallback((timestamp: number, immediate = false) => {
     pendingTimestampRef.current = timestamp
     const requestId = ++sceneRequestIdRef.current
@@ -56,11 +76,12 @@ export function useMoviePlayback(movieId: MovieId) {
       sceneControllerRef.current?.abort()
       const controller = new AbortController()
       sceneControllerRef.current = controller
-      void getScene(movieId, timestampToResolve, controller.signal).then((nextScene) => {
+      void getScene(movieId, timestampToResolve, controller.signal).then((next) => {
         if (controller.signal.aborted) return
-        if (resolutionRequestId !== sceneRequestIdRef.current || !nextScene || nextScene.sceneId === sceneRef.current?.sceneId) return
-        sceneRef.current = nextScene
-        setScene(nextScene)
+        if (resolutionRequestId !== sceneRequestIdRef.current || !next || next.scene.sceneId === sceneRef.current?.sceneId) return
+        sceneRef.current = next.scene
+        setScene(next.scene)
+        setStoredSceneState(next.sceneState)
       }).catch((error: unknown) => {
         if (!controller.signal.aborted) console.warn('[MagiFab] scene lookup failed', error)
       })
@@ -82,11 +103,18 @@ export function useMoviePlayback(movieId: MovieId) {
     }, 300)
   }, [movieId])
 
+  useEffect(() => {
+    if (movie?.source === 'backend' && movie.processingStatus === 'completed' && !storedSceneState) {
+      updateScene(pendingTimestampRef.current, true)
+    }
+  }, [movie?.processingStatus, movie?.source, storedSceneState, updateScene])
+
   const totalDuration = useMemo(() => movie?.scenes.at(-1)?.timestamp ?? 0, [movie])
 
   return {
     movie,
     scene,
+    storedSceneState,
     loading,
     totalDuration,
     updateScene,

@@ -4,7 +4,7 @@ import type { MovieData, MovieId, SceneData } from '../types/movie'
 
 export const demoMovies: MovieData[] = [bigBuckBunnyData, spriteFrightData]
 
-export const movieById: Record<MovieId, MovieData> = {
+export const movieById: Partial<Record<MovieId, MovieData>> = {
   bigBuckBunny: bigBuckBunnyData,
   spriteFright: spriteFrightData,
 }

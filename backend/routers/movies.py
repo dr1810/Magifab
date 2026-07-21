@@ -3,11 +3,12 @@ from __future__ import annotations
 
 from uuid import uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 
 from app import get_movie_pipeline_service
 from config import Settings, get_settings
-from schemas.movie_pipeline import ChunkRecord, MoviePreprocessResponse, MovieProcessingStatusResponse, MovieUploadResponse, SceneRecord
+from schemas.movie_pipeline import ChunkRecord, MoviePreprocessResponse, MovieProcessingStatusResponse, MovieRecord, MovieUploadResponse, SceneLookupResponse, SceneRecord
 from services.movie_pipeline_service import MoviePipelineService
 
 
@@ -56,6 +57,35 @@ def preprocessing_status(movie_id: str, service: MoviePipelineService = Depends(
         return service.status(movie_id)
     except KeyError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie was not found.") from error
+
+
+@router.get("/{movie_id}", response_model=MovieRecord)
+def movie_metadata(movie_id: str, service: MoviePipelineService = Depends(get_movie_pipeline_service)) -> MovieRecord:
+    try:
+        return service.movie(movie_id)
+    except KeyError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie was not found.") from error
+
+
+@router.get("/{movie_id}/scene", response_model=SceneLookupResponse)
+def active_scene(movie_id: str, timestamp: float = Query(ge=0), service: MoviePipelineService = Depends(get_movie_pipeline_service)) -> SceneLookupResponse:
+    """Read the persisted scene for a playback timestamp; this endpoint has no AI side effects."""
+    try:
+        return service.scene_at(movie_id, timestamp)
+    except KeyError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie was not found.") from error
+
+
+@router.get("/{movie_id}/video")
+def stream_movie(movie_id: str, service: MoviePipelineService = Depends(get_movie_pipeline_service)) -> FileResponse:
+    """Development source-video delivery. Production storage should issue an authorised signed URL."""
+    try:
+        movie = service.movie(movie_id)
+        return FileResponse(service.source_path(movie_id), media_type=movie.mime_type, filename=movie.original_filename)
+    except KeyError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie was not found.") from error
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie source is unavailable.") from error
 
 
 @router.get("/{movie_id}/scenes", response_model=list[SceneRecord])

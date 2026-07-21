@@ -113,3 +113,20 @@ def test_failed_chunk_does_not_stop_later_chunks_and_movie_is_partial(tmp_path):
     assert len(service.scenes(movie.movie_id)) == 1
     assert search.calls == 1
     assert reasoner.calls == 1
+
+
+def test_active_scene_lookup_reads_persisted_chunk_without_provider_work(tmp_path):
+    service, visual, search, reasoner = _service(tmp_path)
+    source = tmp_path / "source.mp4"
+    source.write_bytes(b"stored movie")
+    movie = service.upload(source, "movie.mp4", "video/mp4")
+    assert service.start(movie.movie_id).accepted
+    service.preprocess(movie.movie_id)
+    calls = (visual.calls, search.calls, reasoner.calls)
+
+    lookup = service.scene_at(movie.movie_id, 12.5)
+
+    assert lookup.chunk is not None
+    assert lookup.scene is not None
+    assert lookup.scene.chunk_id == lookup.chunk.id
+    assert (visual.calls, search.calls, reasoner.calls) == calls

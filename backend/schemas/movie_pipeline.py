@@ -113,6 +113,12 @@ class VisualAid(BaseModel):
     description: str = Field(min_length=1, max_length=2_000)
 
 
+class CauseEffect(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    cause: str = Field(min_length=1, max_length=2_000)
+    effect: str = Field(min_length=1, max_length=2_000)
+
+
 class CanonicalMagiFabScene(BaseModel):
     """The permanent frontend-facing representation for one video chunk."""
     model_config = ConfigDict(extra="forbid")
@@ -124,6 +130,7 @@ class CanonicalMagiFabScene(BaseModel):
     events: list[str] = Field(default_factory=list)
     timeline: list[TimelineEvent] = Field(default_factory=list)
     emotions: list[str] = Field(default_factory=list)
+    cause_effect: list[CauseEffect] = Field(default_factory=list)
     important_memory: list[str] = Field(default_factory=list)
     difficulty_points: list[str] = Field(default_factory=list)
     visual_aid: VisualAid
@@ -195,6 +202,13 @@ class SceneRecord(BaseModel):
     model_versions: dict[str, str] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
+
+
+class SceneLookupResponse(BaseModel):
+    """One stored scene selected by playback time; never triggers model work."""
+    model_config = ConfigDict(extra="forbid")
+    scene: SceneRecord | None = None
+    chunk: ChunkRecord | None = None
 
 
 JSON = dict[str, Any]

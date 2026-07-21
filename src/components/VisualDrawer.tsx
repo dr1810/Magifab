@@ -115,6 +115,7 @@ function SceneStateDrawerContent({ activeTab, state }: { activeTab: TabKey; stat
     ...state.emotions.map((item) => ['Emotion', item.summary] as const),
   ]} empty="No verified emotion information is available yet." />
   if (activeTab === 'objects') return <NodeGrid items={[
+    ...(state.visualAid ? [['Visual aid', state.visualAid.description] as const] : []),
     ...state.importantObjects.map((item) => ['Important object', item] as const),
     ...state.accessibilityHints.vocabulary.map((item) => [item.term, item.simple_definition] as const),
   ]} empty="No object or vocabulary help is available yet." />

@@ -17,13 +17,12 @@ import { speakText, stopSpeech } from './services/speechService'
 import { getPlaybackTimestamp, savePlaybackTimestamp } from './services/playbackSessionService'
 import type { MovieId, PromptQuestion } from './types/movie'
 import { useOverlayManager } from './hooks/useOverlayManager'
-import { companionBackendService } from './services/backend/CompanionBackendService'
 
 type MovieViewerProps = { movie: MovieId; onBack: () => void; onOpenAccessibilitySettings?: () => void }
 type ScenePrompt = { id: string; kind: string; label: string; question: string; priority: number }
 
 export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () => undefined }: MovieViewerProps) {
-  const { movie: movieData, scene, loading, totalDuration, updateScene } = useMoviePlayback(movie)
+  const { movie: movieData, scene, storedSceneState, loading, totalDuration, updateScene } = useMoviePlayback(movie)
   const { profile: accessibilityProfile } = useAccessibilityProfile()
   const { settings } = useAccessibility()
   const graph = useMemo(() => getMovieNarrativeGraph(movie), [movie])
@@ -45,10 +44,15 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
   const drawerOpen = overlays.isOpen('story-companion')
   const companionOpen = overlays.isOpen('assistant')
 
-  const sceneState = useMemo(() => resolver?.resolveTime(currentTime, accessibilityProfile?.aiProfile ?? null) ?? null, [accessibilityProfile?.aiProfile, currentTime, resolver])
+  const sceneState = useMemo(() => storedSceneState ?? resolver?.resolveTime(currentTime, accessibilityProfile?.aiProfile ?? null) ?? null, [accessibilityProfile?.aiProfile, currentTime, resolver, storedSceneState])
   const prompts = useMemo<ScenePrompt[]>(() => sceneState?.promptBubbles ?? [], [sceneState])
+  const companionAvailable = Boolean(sceneState?.companionEnabled)
   const panelPrompts = useMemo<PromptQuestion[]>(() => prompts.map((prompt) => ({ id: prompt.id, label: prompt.label, question: prompt.question, explanation: '' })), [prompts])
-  const narrativeBanner = sceneState?.phase === 'intro_credits' || !scene?.subtitle ? sceneState?.subtitle ?? '' : ''
+  const narrativeBanner = movieData?.source === 'backend'
+    ? movieData.processingStatus === 'failed'
+      ? 'MagiFab could not finish preparing this movie. Please try preprocessing again.'
+      : sceneState?.subtitle ?? 'MagiFab is preparing scene guidance. The companion will be ready shortly.'
+    : sceneState?.phase === 'intro_credits' || !scene?.subtitle ? sceneState?.subtitle ?? '' : ''
 
   useEffect(() => {
     const savedTimestamp = getPlaybackTimestamp(movie)
@@ -104,7 +108,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     if (!sceneState || !promptCard) return
     const prompt = prompts.find((item) => item.id === promptCard.id)
     if (!prompt) return
-    const answer = promptCard.explanation || answerPrompt(sceneState, prompt.question)
+    const answer = promptCard.explanation || sceneState.promptAnswers?.[prompt.id] || answerPrompt(sceneState, prompt.question)
     openStoryCompanion(createStoryCompanionPromptContext(prompt, answer, sceneState))
   }, [openStoryCompanion, promptCard, prompts, sceneState])
   const selectPrompt = useCallback((panelPrompt: PromptQuestion) => {
@@ -112,7 +116,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     const prompt = prompts.find((item) => item.id === panelPrompt.id)
     if (!prompt) return
     setSelectedPromptId(prompt.id)
-    setPromptCard({ id: prompt.id, question: prompt.question, title: prompt.label, relationship: sceneState.emotions[0]?.summary ?? '', explanation: answerPrompt(sceneState, prompt.question), anchor: { x: 78, y: 34 }, highlightTarget: false, lifecycle: 'completed' })
+    setPromptCard({ id: prompt.id, question: prompt.question, title: prompt.label, relationship: sceneState.emotions[0]?.summary ?? '', explanation: sceneState.promptAnswers?.[prompt.id] ?? answerPrompt(sceneState, prompt.question), anchor: { x: 78, y: 34 }, highlightTarget: false, lifecycle: 'completed' })
     overlays.open('prompt-card')
   }, [overlays, prompts, sceneState])
   const expireBubble = useCallback(() => { setPromptCard(null); overlays.close('prompt-card') }, [overlays])
@@ -127,6 +131,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     resumeAfterDrawerRef.current = false
   }, [overlays])
   const toggleCompanionChat = useCallback(() => {
+    if (!sceneState?.companionEnabled) return
     if (companionOpen) {
       overlays.close('assistant')
       return
@@ -139,16 +144,12 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     overlays.open('assistant')
   }, [accessibilityProfile?.companionProfile, companionGreetingSceneId, companionMessages.length, companionOpen, overlays, sceneState])
   const askCompanion = useCallback(async (question: string) => {
-    let answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
-    try {
-      const backend = await companionBackendService.respond({ movieId: movie, scene, question, timestamp: currentTime, settings, companion: accessibilityProfile?.companionProfile ?? null })
-      answer = backend.companionAnswer?.answer ?? backend.prompts.prompt_answers[0]?.answer ?? answer
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('[MagiFab companion] backend answer failed; using local compatibility answer.', error)
-    }
+    // Deterministic retrieval over the persisted SceneState; playback never
+    // invokes Gemini, OpenAI, or the legacy companion endpoint.
+    const answer = answerCompanionQuestion(sceneState, question, accessibilityProfile?.aiProfile ?? null)
     const messageId = `${sceneState?.sceneId ?? 'opening'}:${Date.now()}`
     setCompanionMessages((messages) => [...messages, { id: `${messageId}:question`, role: 'user', text: question }, { id: `${messageId}:answer`, role: 'assistant', text: answer }])
-  }, [accessibilityProfile?.aiProfile, accessibilityProfile?.companionProfile, currentTime, movie, scene, sceneState, settings])
+  }, [accessibilityProfile?.aiProfile, sceneState])
   const closeOverlays = useCallback(() => {
     if (drawerOpen) closeDrawer()
     else closeInteractionUI()
@@ -159,7 +160,7 @@ export function MovieViewer({ movie, onBack, onOpenAccessibilitySettings = () =>
     <div className="viewer-layout" style={{ position: 'relative' }}>
       <MoviePlayer movie={movieData} scene={scene} subtitle={narrativeBanner} playing={playing} muted={muted} volume={volume} currentTime={currentTime} totalTime={duration || totalDuration} onPlayToggle={() => setPlaying((value) => !value)} onMuteToggle={() => setMuted((value) => !value)} onVolumeChange={setVolume} onSeek={(timestamp) => applyTime(timestamp, true)} onTimeChange={applyTime} onDurationChange={setDuration} onSeeking={expireBubble} onSeekComplete={(timestamp) => applyTime(timestamp, true)} promptOpen={promptGuideOpen} onTogglePromptPanel={() => { if (sceneState?.companionEnabled) promptGuideOpen ? closePromptGuide() : overlays.open('prompt-guide') }} onOpenVisualDrawer={() => openStoryCompanion()} onOpenPromptPanel={() => { if (sceneState?.companionEnabled) overlays.open('prompt-guide') }} onCloseOverlays={closeOverlays} onOpenAccessibilitySettings={onOpenAccessibilitySettings} onCloseBubbles={closeInteractionUI} reduceMotion={settings.reduceMotion || settings.disableAnimations}
         overlays={<><FloatingBubble content={promptCard} theme={movieData.companionTheme} reduceMotion={settings.reduceMotion || settings.disableAnimations} visible={promptCardOpen} onOpenCompanion={openStoryCompanionFromBubble} onClose={expireBubble} /><PromptPanel open={promptGuideOpen} prompts={panelPrompts} selectedPromptId={selectedPromptId} onSelectPrompt={selectPrompt} onClose={closePromptGuide} /></>}
-        companionOverlay={<>{!drawerOpen && !promptGuideOpen && <button id="companion-launcher" type="button" className="companion-launcher" onClick={toggleCompanionChat} aria-expanded={companionOpen} aria-controls="companion-chat-panel" aria-label={`${companionOpen ? 'Close' : 'Open'} ${accessibilityProfile?.companionProfile?.name ?? 'Lumi'} companion chat`}><CompanionAvatar appearance={accessibilityProfile?.companionProfile?.appearance} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} /><span>{accessibilityProfile?.companionProfile?.name ?? 'Lumi'}</span></button>}<CompanionChatPanel open={companionOpen} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} appearance={accessibilityProfile?.companionProfile?.appearance} theme={movieData.companionTheme} messages={companionMessages} onClose={() => overlays.close('assistant')} onSend={askCompanion} reduceMotion={settings.reduceMotion || settings.disableAnimations} drawerOpen={drawerOpen} /></>}
+        companionOverlay={<>{!drawerOpen && !promptGuideOpen && <button id="companion-launcher" type="button" className="companion-launcher" onClick={toggleCompanionChat} disabled={!companionAvailable} aria-disabled={!companionAvailable} aria-expanded={companionOpen} aria-controls="companion-chat-panel" aria-label={companionAvailable ? `${companionOpen ? 'Close' : 'Open'} ${accessibilityProfile?.companionProfile?.name ?? 'Lumi'} companion chat` : 'Companion will be ready when scene preparation finishes'}><CompanionAvatar appearance={accessibilityProfile?.companionProfile?.appearance} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} /><span>{accessibilityProfile?.companionProfile?.name ?? 'Lumi'}</span></button>}<CompanionChatPanel open={companionOpen} name={accessibilityProfile?.companionProfile?.name ?? 'Lumi'} appearance={accessibilityProfile?.companionProfile?.appearance} theme={movieData.companionTheme} messages={companionMessages} onClose={() => overlays.close('assistant')} onSend={askCompanion} reduceMotion={settings.reduceMotion || settings.disableAnimations} drawerOpen={drawerOpen} /></>}
         drawerOverlay={<VisualDrawer open={drawerOpen} sceneState={sceneState} promptContext={drawerPrompt} onClose={closeDrawer} />}
       />
     </div>

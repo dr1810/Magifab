@@ -1,5 +1,5 @@
 import { movieById } from '../../movie-data/index'
-import type { MovieId } from '../../types/movie'
+import type { MovieData, MovieId } from '../../types/movie'
 import bigBuckNarrativeJson from '../../data/movies/big-buck-bunny/narrative.json'
 import bigBuckAccessibilityJson from '../../data/movies/big-buck-bunny/accessibility.json'
 import exampleBookNarrativeJson from '../../data/books/example-book/narrative.json'
@@ -14,7 +14,7 @@ export class LocalNarrativeGraphStore implements NarrativeGraphStore {
   private readonly graphs = new Map<string, NarrativeGraph>([
     ['bigBuckBunny', withSubScenes(applyAccessibility(bigBuckNarrativeJson as unknown as NarrativeGraph, bigBuckAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>))],
     ['example-book', withSubScenes(applyAccessibility(exampleBookNarrativeJson as unknown as NarrativeGraph, exampleBookAccessibilityJson.scenes as unknown as Record<string, AccessibilityGraph>))],
-    ...Object.values(movieById).filter((movie) => movie.id !== 'bigBuckBunny').map((movie) => [movie.id, withSubScenes(graphFromMovieData(movie))] as const),
+    ...Object.values(movieById).filter((movie): movie is MovieData => movie !== undefined && movie.id !== 'bigBuckBunny').map((movie) => [movie.id, withSubScenes(graphFromMovieData(movie))] as const),
   ])
   get(contentId: string) { return this.graphs.get(contentId) ?? null }
 }

@@ -19,6 +19,7 @@ from schemas.movie_pipeline import (
     MovieRecord,
     MovieUploadResponse,
     SearchContext,
+    SceneLookupResponse,
 )
 from services.movie_pipeline_retry import RetryExecutor
 from services.search_query_planner import SearchQueryPlanner
@@ -122,6 +123,27 @@ class MoviePipelineService:
     def chunks(self, movie_id: str) -> list[ChunkRecord]:
         self._require_movie(movie_id)
         return self._repository.list_chunks(movie_id)
+
+    def movie(self, movie_id: str) -> MovieRecord:
+        return self._require_movie(movie_id)
+
+    def scene_at(self, movie_id: str, timestamp: float) -> SceneLookupResponse:
+        self._require_movie(movie_id)
+        chunks = self._repository.list_chunks(movie_id)
+        chunk = next((item for item in chunks if item.start_seconds <= timestamp < item.end_seconds), None)
+        if chunk is None and chunks and timestamp >= chunks[-1].end_seconds:
+            chunk = chunks[-1]
+        if chunk is None:
+            return SceneLookupResponse()
+        scene = next((item for item in self._repository.list_scenes(movie_id) if item.chunk_id == chunk.id), None)
+        return SceneLookupResponse(scene=scene, chunk=chunk)
+
+    def source_path(self, movie_id: str) -> Path:
+        movie = self._require_movie(movie_id)
+        path = self._blobs.source_path(movie.source_storage_key)
+        if not path.is_file():
+            raise FileNotFoundError("movie_source_blob_not_found")
+        return path
 
     def scenes(self, movie_id: str):
         self._require_movie(movie_id)

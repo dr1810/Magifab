@@ -21,7 +21,10 @@ export type SceneState = {
   importantObjects: string[]
   emotions: BackendEmotionSummary[]
   causeEffect: Array<{ cause: string; effect: string }>
+  visualAid?: { type: string; description: string }
   promptBubbles: IntervalState['prompts']['prompt_bubbles']
+  /** Persisted answers supplied with backend prompt candidates; no runtime model call is required. */
+  promptAnswers?: Record<string, string>
   accessibilityHints: { vocabulary: BackendVocabularyAssistance[]; emotions: BackendEmotionSummary[] }
   conversation: { sceneExplanation: string; simplifications: BackendConversationSimplification[] }
   story: { currentGoal: string | null; timelinePosition: string | null; storySoFar: string[]; unresolvedThreads: string[] }

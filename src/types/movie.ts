@@ -1,6 +1,7 @@
 import type { StoryBeat } from '../services/narrative/types'
 
-export type MovieId = 'bigBuckBunny' | 'spriteFright'
+/** Opaque backend IDs support uploaded movies as well as the bundled demo catalog. */
+export type MovieId = string
 
 export type AccessibilityTag =
   | 'Audio Description'
@@ -87,4 +88,7 @@ export type MovieData = {
   canonicalCharacters?: Array<{
     id: string; name: string; description: string; personality: string; goals: string[]; relationships: string[]; firstAppearance: number; importantInformation: string[]; visualDescription: string; confidenceThreshold: number; lastAppearance?: number
   }>
+  source?: 'backend' | 'catalog'
+  processingStatus?: 'uploaded' | 'processing' | 'completed' | 'partial' | 'failed'
+  processingError?: string | null
 }

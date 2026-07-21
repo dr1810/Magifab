@@ -34,13 +34,20 @@ Canonical MagiFab scene JSON → durable scene/search/chunk records → companio
 | --- | --- | --- |
 | POST | `/api/v1/movies/upload` | Multipart `video` upload with optional `title`; identical SHA-256 content returns the existing movie ID. |
 | POST | `/api/v1/movies/{movie_id}/preprocess` | Start background preprocessing, or immediately report an existing completed/active job. |
+| GET | `/api/v1/movies/{movie_id}` | Read the persistent movie metadata and processing state. |
 | GET | `/api/v1/movies/{movie_id}/processing-status` | Read movie and per-chunk statuses. |
+| GET | `/api/v1/movies/{movie_id}/scene?timestamp=…` | Read exactly the persisted scene/chunk active at playback time; it cannot invoke AI. |
+| GET | `/api/v1/movies/{movie_id}/video` | Development-only source-video streaming; production should issue an authorised private-storage URL. |
 | GET | `/api/v1/movies/{movie_id}/chunks` | Read durable chunk metadata and Gemini visual JSON. |
 | GET | `/api/v1/movies/{movie_id}/scenes` | Read canonical, frontend-facing scenes only. |
 
 The source blob, chunk blob, SHA-256 hashes, created times, model versions, raw Gemini visual JSON, Google Search context, canonical scene JSON, and attempt history are persisted separately. The local implementation is SQLite plus filesystem blobs under `cache/movie-pipeline`; the repository and blob interfaces map directly to the supplied Supabase migration.
 
 Gemini gets the entire chunk as a video file. It is constrained to visual observations and uses `Unknown` / `low` confidence for uncertainty. Google Search is invoked only for explicit `entities_needing_identification` of an approved type (unknown character, creature, landmark, movie title, object text, organization, book, or historical person), never generic scenery. OpenAI receives only that visual JSON and cited search evidence, and its prompt requires unsupported identities to remain `Unknown`.
+
+## Frontend playback integration
+
+The frontend keeps its existing player, water-bubble prompt UI, companion, visual drawer, onboarding, and accessibility controls. `MoviePreprocessingBackendService` is the only browser API client: it uploads/starts a movie, polls its status, caches metadata/timeline/scene responses, retrieves the active scene from `video.currentTime`, and preloads adjacent chunks. `StoredSceneState` adapts the canonical scene document into the established `SceneState` used by prompt bubbles, the drawer, and the local deterministic companion responder. No provider call or legacy companion-generation endpoint is made during playback.
 
 ## Retrieval and caching
 
@@ -134,7 +141,7 @@ The response includes cache metadata, the personalized response, deterministic a
 1. Install the updated requirements, including `google-genai` and `python-multipart`.
 2. Apply `supabase/migrations/20260721110000_movie_preprocessing_pipeline.sql` and implement a production `MoviePipelineRepository` / `MovieBlobStorage` backed by Supabase Postgres and Storage. The included SQLite implementation is for local development.
 3. Put source videos and chunks in private object storage; do not return their paths or provider keys to the browser.
-4. Change the frontend upload flow to `POST /api/v1/movies/upload`, then start/poll preprocessing and consume `GET /scenes`. Remove any client-side frame preparation for newly uploaded movies.
+4. Change the frontend upload flow to `POST /api/v1/movies/upload`, then start/poll preprocessing and consume `GET /scene?timestamp=…` from the player. Remove any client-side frame preparation for newly uploaded movies.
 5. Existing legacy interval records can remain readable while movies are re-ingested. Do not migrate their unverified frame-level inference into canonical scenes; process the original movie to obtain continuous video evidence.
 
 The React client exposes this boundary through `src/services/backend/MoviePreprocessingBackendService.ts`; it uses only these backend endpoints and contains no Gemini, Google Search, or OpenAI SDK call.
