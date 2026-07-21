@@ -42,6 +42,10 @@ from services.intent_router import SemanticIntentRouter
 from services.book_knowledge_preprocessor import BookKnowledgePreprocessor
 from services.companion_answer_service import CompanionAnswerService
 from services.conversation_memory import ConversationMemory, FileConversationMemory
+from services.movie_pipeline_service import MoviePipelineService
+from services.movie_pipeline_storage import LocalMovieBlobStorage, SqliteMoviePipelineRepository
+from services.movie_pipeline_retry import RetryExecutor
+from services.video_chunk_service import FfmpegVideoChunker
 
 
 def configure_logging(settings: Settings) -> None:
@@ -253,6 +257,36 @@ def get_intent_router() -> SemanticIntentRouter:
 
 
 @lru_cache
+def get_movie_blob_storage() -> LocalMovieBlobStorage:
+    return LocalMovieBlobStorage(get_settings().movie_pipeline_dir)
+
+
+@lru_cache
+def get_movie_pipeline_repository() -> SqliteMoviePipelineRepository:
+    return SqliteMoviePipelineRepository(get_settings().movie_pipeline_dir)
+
+
+@lru_cache
+def get_movie_pipeline_service() -> MoviePipelineService:
+    """New upload-once pipeline; all provider clients remain server-only and lazy."""
+    from adapters.gemini_video_provider import GeminiVideoProvider
+    from adapters.google_search_provider import GoogleSearchGroundingProvider
+    from adapters.openai_scene_reasoner import OpenAISceneReasoner
+    settings = get_settings()
+    return MoviePipelineService(
+        repository=get_movie_pipeline_repository(),
+        blobs=get_movie_blob_storage(),
+        chunker=FfmpegVideoChunker(get_movie_blob_storage()),
+        visual_provider=GeminiVideoProvider(settings),
+        search_provider=GoogleSearchGroundingProvider(settings),
+        reasoning_provider=OpenAISceneReasoner(settings),
+        chunk_duration_seconds=settings.movie_chunk_duration_seconds,
+        retry_executor=RetryExecutor(settings.movie_pipeline_retry_attempts, settings.movie_pipeline_retry_base_seconds),
+        model_versions={"gemini": settings.gemini_model, "openai": settings.openai_model, "scene_schema": "magifab-scene-v1"},
+    )
+
+
+@lru_cache
 def get_companion_pipeline_service() -> CompanionPipelineService:
     """Full retrieval-first runtime composition; heavy providers stay lazy behind dependencies."""
     return CompanionPipelineService(
@@ -325,6 +359,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     from routers.personalization import router as personalization_router
     from routers.understand import router as understand_router
     from routers.books import router as books_router
+    from routers.movies import router as movies_router
     application.include_router(health_router)
     application.include_router(detect_router)
     application.include_router(debug_router)
@@ -339,6 +374,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.include_router(personalization_router)
     application.include_router(understand_router)
     application.include_router(books_router)
+    application.include_router(movies_router)
     return application
 
 

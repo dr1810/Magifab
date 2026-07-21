@@ -2,32 +2,45 @@
 
 ## Overview
 
-This FastAPI backend is the modular runtime for MagiFab’s movie accessibility companion. It separates visual perception, verified movie knowledge, deterministic accessibility reasoning, and GPT-5.6 language personalization. The React application is intentionally not coupled to this service.
+This FastAPI backend is the server-only runtime for MagiFab’s movie accessibility companion. A movie is now ingested once, understood in durable 90-second scene records, and then served to the companion without the browser calling Gemini or OpenAI.
 
 ```text
-Movie frame + request
+Movie upload (content hash)
         │
         ▼
-Scene-level Semantic Movie Knowledge retrieval
+Hash cache hit ───────────────────────────────────────────────► stored scenes
+        │ cache miss
+        ▼
+FFmpeg approximately-90-second MP4 chunks
         │
-        ├─ known scene ────────────────► Accessibility Reasoning ─► Versioned response cache ─► GPT-5.6 wording
+        ▼
+Gemini Video API (visual evidence only)
         │
-        └─ scene miss
-             │
-             ▼
-  YOLO + Florence + optional Grounding DINO + optional face verification
-             │
-             ▼
-      Perception Fusion Layer
-             │
-             ▼
-      Semantic Matching Engine
-             │
-             ▼
-      Semantic Movie Knowledge expansion and versioned persistence
-             │
-             └────────────────────────► Accessibility Reasoning ─► GPT-5.6 wording
+        ▼
+Selective Google Search grounding for unresolved entities
+        │
+        ▼
+OpenAI evidence-bounded reasoning
+        │
+        ▼
+Canonical MagiFab scene JSON → durable scene/search/chunk records → companion API
 ```
+
+`/api/v1/companion/*` remains available for the legacy prepared-interval runtime during migration. New uploaded movies must use `/api/v1/movies/*`; it never decodes client frames or exposes provider credentials.
+
+## Movie preprocessing API
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/v1/movies/upload` | Multipart `video` upload with optional `title`; identical SHA-256 content returns the existing movie ID. |
+| POST | `/api/v1/movies/{movie_id}/preprocess` | Start background preprocessing, or immediately report an existing completed/active job. |
+| GET | `/api/v1/movies/{movie_id}/processing-status` | Read movie and per-chunk statuses. |
+| GET | `/api/v1/movies/{movie_id}/chunks` | Read durable chunk metadata and Gemini visual JSON. |
+| GET | `/api/v1/movies/{movie_id}/scenes` | Read canonical, frontend-facing scenes only. |
+
+The source blob, chunk blob, SHA-256 hashes, created times, model versions, raw Gemini visual JSON, Google Search context, canonical scene JSON, and attempt history are persisted separately. The local implementation is SQLite plus filesystem blobs under `cache/movie-pipeline`; the repository and blob interfaces map directly to the supplied Supabase migration.
+
+Gemini gets the entire chunk as a video file. It is constrained to visual observations and uses `Unknown` / `low` confidence for uncertainty. Google Search is invoked only for explicit `entities_needing_identification` of an approved type (unknown character, creature, landmark, movie title, object text, organization, book, or historical person), never generic scenery. OpenAI receives only that visual JSON and cited search evidence, and its prompt requires unsupported identities to remain `Unknown`.
 
 ## Retrieval and caching
 
@@ -116,9 +129,15 @@ Swagger is available at `http://127.0.0.1:8000/docs` when running locally.
 
 The response includes cache metadata, the personalized response, deterministic accessibility content, and—only on a scene miss—the fused perception and conservative semantic matches.
 
-## Future uploaded movies
+## Migrating uploaded movies
 
-Movie IDs are opaque and are not restricted to bundled content. A newly uploaded movie can send its first representative frame to `/api/v1/knowledge/expand` or `/api/v1/companion/respond`; the backend creates an isolated, hashed knowledge record under `cache/movie-knowledge`. A production deployment should replace `FileKnowledgeStore` with Postgres/Supabase or object-backed storage and connect an authenticated upload/transcoding pipeline that provides stable movie IDs and timestamps.
+1. Install the updated requirements, including `google-genai` and `python-multipart`.
+2. Apply `supabase/migrations/20260721110000_movie_preprocessing_pipeline.sql` and implement a production `MoviePipelineRepository` / `MovieBlobStorage` backed by Supabase Postgres and Storage. The included SQLite implementation is for local development.
+3. Put source videos and chunks in private object storage; do not return their paths or provider keys to the browser.
+4. Change the frontend upload flow to `POST /api/v1/movies/upload`, then start/poll preprocessing and consume `GET /scenes`. Remove any client-side frame preparation for newly uploaded movies.
+5. Existing legacy interval records can remain readable while movies are re-ingested. Do not migrate their unverified frame-level inference into canonical scenes; process the original movie to obtain continuous video evidence.
+
+The React client exposes this boundary through `src/services/backend/MoviePreprocessingBackendService.ts`; it uses only these backend endpoints and contains no Gemini, Google Search, or OpenAI SDK call.
 
 ## Local development
 
@@ -131,6 +150,8 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 export OPENAI_API_KEY="server-side-only-key"
 export OPENAI_MODEL="gpt-5.6" # optional
+export GEMINI_API_KEY="server-side-only-key"
+export GEMINI_MODEL="gemini-2.5-flash" # optional
 MPLCONFIGDIR=/tmp/magifab-mpl uvicorn app:app --host 127.0.0.1 --port 8000
 ```
 
@@ -185,12 +206,13 @@ docker run --rm -p 8000:8000 \
   magifab-backend
 ```
 
-For Render, configure `OPENAI_API_KEY` as a secret, set `OPENAI_MODEL` if overriding the default, and attach persistent storage for `cache/movie-knowledge` if using the development file store. Production deployments should prewarm or provision model weights, bound concurrent inference, and use a persistent database/cache shared across instances.
+For Render, configure `OPENAI_API_KEY` and `GEMINI_API_KEY` as secrets, set either model variable only when overriding defaults, and attach persistent storage for local development. Production deployments should use the supplied Postgres schema plus private object storage, a durable job queue, rate limits, and a shared cache.
 
 ## Limitations
 
 - File-backed knowledge and in-memory response caching are process-local; they are appropriate for development, not multi-instance durability.
-- The backend accepts already-extracted frames; it does not upload, transcode, preprocess, or continuously analyze video.
+- The local upload implementation uses FastAPI background tasks and SQLite. It is durable across restarts but is not a distributed work queue; production should use a worker queue with leases.
+- FFmpeg and ffprobe must be installed on the preprocessing worker.
 - Character identity requires pre-enrolled face references in Semantic Movie Knowledge. Face verification never creates an identity.
 - Grounding DINO locates explicit visual phrases; resolving a character name in a phrase remains a verified semantic-knowledge concern.
 - Model quality varies with animation style, occlusion, tiny objects, lighting, and motion blur. Empty results are valid and must not be replaced with guesses.

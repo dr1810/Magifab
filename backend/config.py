@@ -28,12 +28,19 @@ class Settings(BaseSettings):
     # one-off frame, and persists catalog emotion/timeline graph facts.
     semantic_cache_version: int = Field(default=21, ge=1)
     knowledge_store_dir: Path = Path("cache/movie-knowledge")
+    # Uploaded video originals, chunk files, and the local preprocessing database.
+    # Deployments may replace the file/SQLite implementation through the repository
+    # and blob-storage contracts without changing the pipeline service.
+    movie_pipeline_dir: Path = Path("cache/movie-pipeline")
+    movie_chunk_duration_seconds: int = Field(default=90, ge=30, le=300)
+    movie_pipeline_retry_attempts: int = Field(default=3, ge=1, le=8)
+    movie_pipeline_retry_base_seconds: float = Field(default=1.0, ge=0.1, le=30)
     debug_frames_dir: Path = Path("debug_frames")
     openai_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY", "MAGIFAB_OPENAI_API_KEY"))
     openai_model: str = Field(default="gpt-5.6", validation_alias=AliasChoices("OPENAI_MODEL", "MAGIFAB_OPENAI_MODEL"))
     openai_max_output_tokens: int = 300
     gemini_api_key: SecretStr | None = Field(default=None, validation_alias=AliasChoices("GEMINI_API_KEY", "MAGIFAB_GEMINI_API_KEY"))
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = Field(default="gemini-2.5-flash", validation_alias=AliasChoices("GEMINI_MODEL", "MAGIFAB_GEMINI_MODEL"))
     gemini_embedding_model: str = "gemini-embedding-2"
     debug_companion_pipeline: bool = False
     face_model_pack: str = "buffalo_l"
