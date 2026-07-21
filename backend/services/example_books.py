@@ -35,6 +35,20 @@ def get_example_book_path(book_name: str) -> Path:
             return resolved
         raise FileNotFoundError(f"Example '{book_name}' resolved to '{resolved}', but the file does not exist.")
 
+    # Fuzzy fallback for friendly endpoint names (e.g. "dune") where the
+    # bundled filename stem may be longer (e.g. "frank-herbert-dune-1-dune").
+    fuzzy_matches = [path for discovered_key, path in discovered.items() if key and key in discovered_key]
+    if len(fuzzy_matches) == 1:
+        resolved = fuzzy_matches[0]
+        if resolved.is_file():
+            return resolved
+        raise FileNotFoundError(f"Example '{book_name}' matched '{resolved}', but the file does not exist.")
+    if len(fuzzy_matches) > 1:
+        options = ", ".join(str(path.name) for path in fuzzy_matches)
+        raise FileNotFoundError(
+            f"Example '{book_name}' is ambiguous. Matching bundled files: {options}. Use /examples/{{exact-name}}."
+        )
+
     searched = ", ".join(str(path.resolve()) for path in get_bundled_example_directories())
     available = ", ".join(sorted(discovered)) or "none"
     raise FileNotFoundError(
