@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
 
@@ -17,16 +18,48 @@ from schemas.book_pipeline import (
     BookProfileRequest,
     BookUploadResponse,
 )
+from services.example_books import get_example_book_path
 from services.book_pipeline_service import BookPipelineService
 
 router = APIRouter(prefix="/api/v1/books", tags=["book preprocessing"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/examples/dune")
 def dune_example(service: BookPipelineService = Depends(get_book_pipeline_service)) -> dict[str, str]:
-    book_id = service.example_id("Dune")
+    return _resolve_example("dune", service)
+
+
+@router.get("/examples/{example_name}")
+def named_example(example_name: str, service: BookPipelineService = Depends(get_book_pipeline_service)) -> dict[str, str]:
+    return _resolve_example(example_name, service)
+
+
+def _resolve_example(example_name: str, service: BookPipelineService) -> dict[str, str]:
+    try:
+        source = get_example_book_path(example_name)
+    except FileNotFoundError as error:
+        logger.warning("Example lookup failed for '%s': %s", example_name, error)
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "message": "The requested example is unavailable in bundled backend assets.",
+                "example": example_name,
+                "error": str(error),
+            },
+        ) from error
+    title = "Dune" if example_name.casefold() == "dune" else source.stem
+    book_id = service.register_example(source, title=title)
     if not book_id:
-        raise HTTPException(status_code=404, detail="The Dune example is unavailable.")
+        logger.warning("Example source path was resolved but file could not be registered: %s", source)
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "message": "The requested example path was resolved but the file could not be loaded.",
+                "example": example_name,
+                "resolved_path": str(source),
+            },
+        )
     return {"book_id": book_id}
 
 

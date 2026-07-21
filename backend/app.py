@@ -4,7 +4,6 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 import logging
 from functools import lru_cache
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +14,7 @@ from services.movie_pipeline_retry import RetryExecutor
 from services.movie_pipeline_service import MoviePipelineService
 from services.movie_pipeline_storage import LocalMovieBlobStorage, SqliteMoviePipelineRepository
 from services.book_pipeline_service import BookPipelineService
+from services.example_books import discover_example_books, get_bundled_example_directories
 from services.gemini_client import GeminiClient, GeminiClientConfigurationError, validate_gemini_sdk_import
 from services.video_chunk_service import FfmpegVideoChunker
 
@@ -61,22 +61,12 @@ def get_book_pipeline_service() -> BookPipelineService:
     from adapters.openai_book_reasoner import OpenAIBookReasoner
     settings = get_settings()
     service = BookPipelineService(settings.movie_pipeline_dir / "book-pipeline", OpenAIBookReasoner(settings))
-    # Register Dune from configurable external paths first, then repository fallback.
-    for candidate in _dune_example_candidates(settings):
-        if service.register_example(candidate):
-            logging.getLogger(__name__).info("Registered Dune example from %s", candidate)
-            break
+    logger = logging.getLogger(__name__)
+    for key, path in discover_example_books().items():
+        registered = service.register_example(path, title=_display_title_from_stem(path.stem))
+        if registered:
+            logger.info("Registered bundled example '%s' from %s", key, path)
     return service
-
-
-def _dune_example_candidates(settings: Settings) -> list[Path]:
-    candidates: list[Path] = []
-    if settings.dune_example_path is not None:
-        candidates.append(settings.dune_example_path)
-    if settings.books_dir is not None:
-        candidates.append(settings.books_dir / settings.dune_example_filename)
-    candidates.append(Path(__file__).resolve().parents[1] / "books" / settings.dune_example_filename)
-    return candidates
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -136,7 +126,27 @@ def _validate_startup_dependencies(settings: Settings) -> None:
         ) from error
     if OpenAI is None:
         raise RuntimeError("Backend startup validation failed: OpenAI SDK import returned no client type.")
+    _log_example_books_catalog(logger)
     logger.info("Startup dependency validation succeeded for Gemini and OpenAI SDKs.")
+
+
+def _log_example_books_catalog(logger: logging.Logger) -> None:
+    directories = [path.resolve() for path in get_bundled_example_directories()]
+    logger.info("Bundled example book directories: %s", ", ".join(str(path) for path in directories))
+    discovered = discover_example_books()
+    if not discovered:
+        logger.warning("No bundled example books found in configured directories.")
+        return
+    for key, path in discovered.items():
+        resolved = path.resolve()
+        logger.info("Bundled example discovered: key=%s path=%s exists=%s", key, resolved, resolved.is_file())
+
+
+def _display_title_from_stem(stem: str) -> str:
+    parts = [part.strip() for part in stem.replace("_", " ").split("-") if part.strip()]
+    if "dune" in stem.casefold():
+        return "Dune"
+    return " ".join(parts) if parts else stem
 
 
 app = create_app()

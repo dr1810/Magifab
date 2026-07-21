@@ -20,7 +20,7 @@ FFmpeg and ffprobe are required for chunking:
 
 ```bash
 brew install ffmpeg
-cd /Users/rameshlathimuthu/Desktop/Magifab/backend
+cd backend
 python3 -m venv .venv-movie
 source .venv-movie/bin/activate
 pip install --upgrade pip
@@ -48,17 +48,38 @@ GEMINI_MODEL=gemini-2.5-flash
 MAGIFAB_CORS_ORIGINS=https://your-main-website.example
 ```
 
-If your books are stored outside `backend/books`, configure one of these so
-`GET /api/v1/books/examples/dune` can register and resolve correctly:
+## Bundled example books
 
-```dotenv
-MAGIFAB_BOOKS_DIR=/absolute/path/to/books
-MAGIFAB_DUNE_EXAMPLE_PATH=/absolute/path/to/books/Frank Herbert - Dune 1 - Dune.pdf
-MAGIFAB_DUNE_EXAMPLE_FILENAME=Frank Herbert - Dune 1 - Dune.pdf
-```
+Bundled examples must live inside the backend project so Docker/Render can ship
+them with the image:
 
-`MAGIFAB_DUNE_EXAMPLE_PATH` has highest priority, then
-`MAGIFAB_BOOKS_DIR` + filename, then repository fallback.
+- `backend/assets/books/` (primary)
+- `backend/books/` (secondary fallback)
+
+How discovery works:
+
+1. On startup, the backend scans both directories for `.pdf`, `.epub`, and
+	`.txt` files.
+2. A key is derived from each filename stem (slug format).
+3. `GET /api/v1/books/examples/dune` resolves key `dune` through this catalog,
+	registers it through the same upload-once service path as user uploads, and
+	returns a `book_id`.
+
+If an example is missing, the endpoint returns `404` with a structured JSON
+message and the backend logs the missing lookup details.
+
+To add a new bundled example:
+
+1. Copy the file into `backend/assets/books/`.
+2. Rebuild/redeploy the backend image.
+3. Call the corresponding example endpoint.
+
+Startup logs now include:
+
+- bundled example directories scanned
+- each discovered example key
+- resolved absolute path
+- existence status
 
 The backend now performs startup validation and fails fast when any required dependency is unavailable:
 
@@ -125,5 +146,10 @@ The Docker image installs FFmpeg and starts this exact command:
 ```bash
 uvicorn app:app --host 0.0.0.0 --port $PORT
 ```
+
+Docker packaging for examples:
+
+- `backend/Dockerfile` explicitly copies `assets/books/` into the image.
+- `COPY . ./` keeps fallback `backend/books/` support.
 
 Attach persistent storage for `/app/cache` before production use. The local SQLite and source-video files are stored there; a multi-instance deployment should replace them with the existing Postgres/object-storage repository contracts.

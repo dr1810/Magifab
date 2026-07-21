@@ -153,9 +153,9 @@ class BookPipelineService:
             return f"Remember: {artifact.memory_aid}", artifact.chapter_number
         return artifact.simple_explanation or artifact.chapter_summary, artifact.chapter_number
 
-    def register_example(self, source: Path) -> str | None:
+    def register_example(self, source: Path, title: str | None = None) -> str | None:
         if not source.is_file(): return None
-        return str(self.upload(source, source.name, "application/pdf", "Dune")["book_id"])
+        return str(self.upload(source, source.name, "application/pdf", title or source.stem)["book_id"])
 
     def example_id(self, title: str) -> str | None:
         for book in self._read().values():
