@@ -18,6 +18,7 @@ import {
   type BookChapter,
   type BookChapterMetadata,
 } from './services/backend/BookBackendService'
+import { BackendRequestError } from './services/backend/apiClient'
 import { companionProfilePayload } from './services/backend/profilePayload'
 import { useAccessibilityProfile } from './hooks/useAccessibilityProfile'
 
@@ -31,6 +32,8 @@ export function BookViewer({ onBack }: BookViewerProps) {
   const [bookId, setBookId] = useState('')
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
+  const [initializingExample, setInitializingExample] = useState(true)
+  const [exampleUnavailable, setExampleUnavailable] = useState(false)
   const [chapterCount, setChapterCount] = useState(0)
   const [chapters, setChapters] = useState<BookChapterMetadata[]>([])
   const [activeChapterNumber, setActiveChapterNumber] = useState(1)
@@ -72,12 +75,21 @@ export function BookViewer({ onBack }: BookViewerProps) {
   }
 
   useEffect(() => {
-    void bookBackendService
-      .dune()
-      .then(({ book_id }) => startPipeline(book_id))
-      .catch((err: unknown) => {
+    void (async () => {
+      try {
+        const { book_id } = await bookBackendService.dune()
+        await startPipeline(book_id)
+      } catch (err: unknown) {
+        if (err instanceof BackendRequestError && err.status === 404) {
+          setExampleUnavailable(true)
+          setError('')
+          return
+        }
         setError(err instanceof Error ? err.message : 'The Dune example is unavailable.')
-      })
+      } finally {
+        setInitializingExample(false)
+      }
+    })()
   }, [])
 
   useEffect(() => {
@@ -169,7 +181,34 @@ export function BookViewer({ onBack }: BookViewerProps) {
           </div>
         </header>
 
-        {!bookId || status !== 'complete' ? (
+        {initializingExample ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_18px_40px_rgba(18,30,56,.08)]" aria-live="polite">
+            <div className="flex items-center gap-3">
+              <Loader2 className="animate-spin text-amber-600" />
+              <div>
+                <p className="font-semibold">Connecting to your reading companion</p>
+                <p className="text-sm text-slate-600">Checking for the Dune example on the backend.</p>
+              </div>
+            </div>
+          </section>
+        ) : !bookId ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_18px_40px_rgba(18,30,56,.08)]" aria-live="polite">
+            <div className="space-y-3">
+              <h2 className="font-serif text-2xl text-slate-900">Start your reading companion</h2>
+              <p className="text-sm text-slate-600">
+                {exampleUnavailable
+                  ? 'The deployed backend does not currently have the Dune sample loaded. Upload a PDF, EPUB, or text file to begin.'
+                  : 'Upload a PDF, EPUB, or text file to begin preprocessing.'}
+              </p>
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+              >
+                <Upload size={15} /> Upload a book
+              </button>
+            </div>
+          </section>
+        ) : status !== 'complete' ? (
           <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-[0_18px_40px_rgba(18,30,56,.08)]" aria-live="polite">
             <div className="flex items-center gap-3">
               <Loader2 className="animate-spin text-amber-600" />
