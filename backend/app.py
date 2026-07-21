@@ -61,10 +61,22 @@ def get_book_pipeline_service() -> BookPipelineService:
     from adapters.openai_book_reasoner import OpenAIBookReasoner
     settings = get_settings()
     service = BookPipelineService(settings.movie_pipeline_dir / "book-pipeline", OpenAIBookReasoner(settings))
-    # The repository's first-class Dune asset is registered as a book, never as
-    # a movie. Deployments can replace this with a catalog database entry.
-    service.register_example(Path(__file__).resolve().parents[1] / "books" / "Frank Herbert - Dune 1 - Dune.pdf")
+    # Register Dune from configurable external paths first, then repository fallback.
+    for candidate in _dune_example_candidates(settings):
+        if service.register_example(candidate):
+            logging.getLogger(__name__).info("Registered Dune example from %s", candidate)
+            break
     return service
+
+
+def _dune_example_candidates(settings: Settings) -> list[Path]:
+    candidates: list[Path] = []
+    if settings.dune_example_path is not None:
+        candidates.append(settings.dune_example_path)
+    if settings.books_dir is not None:
+        candidates.append(settings.books_dir / settings.dune_example_filename)
+    candidates.append(Path(__file__).resolve().parents[1] / "books" / settings.dune_example_filename)
+    return candidates
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

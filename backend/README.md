@@ -48,6 +48,18 @@ GEMINI_MODEL=gemini-2.5-flash
 MAGIFAB_CORS_ORIGINS=https://your-main-website.example
 ```
 
+If your books are stored outside `backend/books`, configure one of these so
+`GET /api/v1/books/examples/dune` can register and resolve correctly:
+
+```dotenv
+MAGIFAB_BOOKS_DIR=/absolute/path/to/books
+MAGIFAB_DUNE_EXAMPLE_PATH=/absolute/path/to/books/Frank Herbert - Dune 1 - Dune.pdf
+MAGIFAB_DUNE_EXAMPLE_FILENAME=Frank Herbert - Dune 1 - Dune.pdf
+```
+
+`MAGIFAB_DUNE_EXAMPLE_PATH` has highest priority, then
+`MAGIFAB_BOOKS_DIR` + filename, then repository fallback.
+
 The backend now performs startup validation and fails fast when any required dependency is unavailable:
 
 - `GEMINI_API_KEY` must be present.
@@ -100,6 +112,7 @@ VITE_MAGIFAB_BACKEND_URL=https://your-movie-api.example
 - `POST /api/v1/books/upload`
 - `POST /api/v1/books/{book_id}/preprocess`
 - `GET /api/v1/books/{book_id}/processing-status`
+- `GET /api/v1/books/examples/dune`
 - `GET /api/v1/books/{book_id}/chapter?chapter=…`
 - `POST /api/v1/books/{book_id}/companion/chat`
 
