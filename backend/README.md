@@ -53,17 +53,20 @@ MAGIFAB_CORS_ORIGINS=https://your-main-website.example
 Bundled examples must live inside the backend project so Docker/Render can ship
 them with the image:
 
-- `backend/assets/books/` (primary)
-- `backend/books/` (secondary fallback)
+- `backend/assets/books/` (canonical)
 
 How discovery works:
 
-1. On startup, the backend scans both directories for `.pdf`, `.epub`, and
-	`.txt` files.
+1. On startup, the backend scans `backend/assets/books/` for `.pdf`, `.epub`,
+	and `.txt` files.
 2. A key is derived from each filename stem (slug format).
 3. `GET /api/v1/books/examples/dune` resolves key `dune` through this catalog,
 	registers it through the same upload-once service path as user uploads, and
 	returns a `book_id`.
+
+In local development only, if a monorepo-level `../books` directory exists,
+missing files are copied into `backend/assets/books/` automatically. Production
+never depends on `../books`.
 
 If an example is missing, the endpoint returns `404` with a structured JSON
 message and the backend logs the missing lookup details.
@@ -72,7 +75,15 @@ To add a new bundled example:
 
 1. Copy the file into `backend/assets/books/`.
 2. Rebuild/redeploy the backend image.
-3. Call the corresponding example endpoint.
+3. Call `GET /api/v1/books/examples/{example_name}`.
+
+When an example resolves successfully, response payload includes:
+
+- `book_id`
+- `id`
+- `title`
+- `filename`
+- `status`
 
 Startup logs now include:
 

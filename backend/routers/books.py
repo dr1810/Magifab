@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import JSONResponse
 
 from app import get_book_pipeline_service
 from schemas.book_pipeline import (
@@ -18,7 +19,7 @@ from schemas.book_pipeline import (
     BookProfileRequest,
     BookUploadResponse,
 )
-from services.example_books import get_example_book_path
+from services.example_books import BOOKS_DIR, get_example_book_path, has_any_example_books
 from services.book_pipeline_service import BookPipelineService
 
 router = APIRouter(prefix="/api/v1/books", tags=["book preprocessing"])
@@ -36,31 +37,43 @@ def named_example(example_name: str, service: BookPipelineService = Depends(get_
 
 
 def _resolve_example(example_name: str, service: BookPipelineService) -> dict[str, str]:
+    if not has_any_example_books():
+        logger.warning("No bundled example books installed in %s", BOOKS_DIR.resolve())
+        return JSONResponse(status_code=404, content={"error": "No example books installed"})
+
     try:
         source = get_example_book_path(example_name)
     except FileNotFoundError as error:
         logger.warning("Example lookup failed for '%s': %s", example_name, error)
-        raise HTTPException(
+        return JSONResponse(
             status_code=404,
-            detail={
-                "message": "The requested example is unavailable in bundled backend assets.",
+            content={
+                "error": "Example book not found",
                 "example": example_name,
-                "error": str(error),
+                "books_directory": str(BOOKS_DIR.resolve()),
+                "details": str(error),
             },
-        ) from error
+        )
     title = "Dune" if example_name.casefold() == "dune" else source.stem
     book_id = service.register_example(source, title=title)
     if not book_id:
         logger.warning("Example source path was resolved but file could not be registered: %s", source)
-        raise HTTPException(
+        return JSONResponse(
             status_code=404,
-            detail={
-                "message": "The requested example path was resolved but the file could not be loaded.",
+            content={
+                "error": "Example path resolved but file could not be loaded",
                 "example": example_name,
                 "resolved_path": str(source),
             },
         )
-    return {"book_id": book_id}
+    overview = service.book_overview(book_id)
+    return {
+        "book_id": book_id,
+        "id": overview["id"],
+        "title": overview["title"],
+        "filename": overview["filename"],
+        "status": overview["status"],
+    }
 
 
 @router.post("/upload", response_model=BookUploadResponse, status_code=status.HTTP_201_CREATED)

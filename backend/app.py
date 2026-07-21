@@ -14,7 +14,7 @@ from services.movie_pipeline_retry import RetryExecutor
 from services.movie_pipeline_service import MoviePipelineService
 from services.movie_pipeline_storage import LocalMovieBlobStorage, SqliteMoviePipelineRepository
 from services.book_pipeline_service import BookPipelineService
-from services.example_books import discover_example_books, get_bundled_example_directories
+from services.example_books import BOOKS_DIR, discover_example_books
 from services.gemini_client import GeminiClient, GeminiClientConfigurationError, validate_gemini_sdk_import
 from services.video_chunk_service import FfmpegVideoChunker
 
@@ -131,12 +131,12 @@ def _validate_startup_dependencies(settings: Settings) -> None:
 
 
 def _log_example_books_catalog(logger: logging.Logger) -> None:
-    directories = [path.resolve() for path in get_bundled_example_directories()]
-    logger.info("Bundled example book directories: %s", ", ".join(str(path) for path in directories))
+    logger.info("Books directory:\n%s", BOOKS_DIR.resolve())
     discovered = discover_example_books()
     if not discovered:
-        logger.warning("No bundled example books found in configured directories.")
+        logger.warning("Found books:\n- (none)")
         return
+    logger.info("Found books:\n- %s", "\n- ".join(path.name for path in discovered.values()))
     for key, path in discovered.items():
         resolved = path.resolve()
         logger.info("Bundled example discovered: key=%s path=%s exists=%s", key, resolved, resolved.is_file())

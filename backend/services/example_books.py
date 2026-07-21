@@ -1,19 +1,24 @@
 """Bundled example-book discovery and path resolution helpers."""
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import re
+import shutil
 
 
 _ALLOWED_SUFFIXES = {".pdf", ".epub", ".txt"}
+BOOKS_DIR = Path(__file__).resolve().parent.parent / "assets" / "books"
+LEGACY_BOOKS_DIR = Path(__file__).resolve().parent.parent.parent / "books"
 
 
 def get_bundled_example_directories() -> list[Path]:
-    backend_root = Path(__file__).resolve().parents[1]
-    return [backend_root / "assets" / "books", backend_root / "books"]
+    return [BOOKS_DIR]
 
 
 def discover_example_books() -> dict[str, Path]:
+    _migrate_legacy_books_for_local_dev()
+    BOOKS_DIR.mkdir(parents=True, exist_ok=True)
     discovered: dict[str, Path] = {}
     for directory in get_bundled_example_directories():
         if not directory.is_dir():
@@ -56,5 +61,30 @@ def get_example_book_path(book_name: str) -> Path:
     )
 
 
+def list_discovered_book_filenames() -> list[str]:
+    return sorted(path.name for path in discover_example_books().values())
+
+
+def has_any_example_books() -> bool:
+    return bool(discover_example_books())
+
+
 def _slug(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+
+
+def _migrate_legacy_books_for_local_dev() -> None:
+    environment = os.getenv("MAGIFAB_ENVIRONMENT", os.getenv("ENVIRONMENT", "development")).casefold()
+    if environment in {"production", "prod"}:
+        return
+    if not LEGACY_BOOKS_DIR.is_dir():
+        return
+
+    BOOKS_DIR.mkdir(parents=True, exist_ok=True)
+    for path in LEGACY_BOOKS_DIR.iterdir():
+        if not path.is_file() or path.suffix.lower() not in _ALLOWED_SUFFIXES:
+            continue
+        destination = BOOKS_DIR / path.name
+        if destination.exists():
+            continue
+        shutil.copy2(path, destination)

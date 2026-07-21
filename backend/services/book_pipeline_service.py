@@ -155,7 +155,17 @@ class BookPipelineService:
 
     def register_example(self, source: Path, title: str | None = None) -> str | None:
         if not source.is_file(): return None
-        return str(self.upload(source, source.name, "application/pdf", title or source.stem)["book_id"])
+        mime_type = _mime_type_for_path(source)
+        return str(self.upload(source, source.name, mime_type, title or source.stem)["book_id"])
+
+    def book_overview(self, book_id: str) -> dict[str, str]:
+        book = self._book(self._read(), book_id)
+        return {
+            "id": str(book.get("id", book_id)),
+            "title": str(book.get("title", "")),
+            "filename": str(book.get("filename", "")),
+            "status": str(book.get("status", "queued")),
+        }
 
     def example_id(self, title: str) -> str | None:
         for book in self._read().values():
@@ -586,3 +596,14 @@ def _coerce_positive_int(value: object, fallback: int) -> int:
         if parsed > 0:
             return parsed
     return max(1, fallback)
+
+
+def _mime_type_for_path(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        return "application/pdf"
+    if suffix == ".epub":
+        return "application/epub+zip"
+    if suffix == ".txt":
+        return "text/plain"
+    return "application/octet-stream"
