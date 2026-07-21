@@ -50,7 +50,8 @@ class BookPipelineService:
             target.write_text(json.dumps(artifacts, ensure_ascii=False), encoding="utf-8")
             book.update(status="complete", progress="Reading companion is ready", percentage=100, artifact=str(target)); self._write(data)
         except Exception as error:
-            book.update(status="failed", progress="Processing failed", percentage=0, error=str(error)); self._write(data)
+            current_percentage = int(book.get("percentage", 0)) if isinstance(book.get("percentage"), int) else 0
+            book.update(status="failed", progress="Processing failed", percentage=max(current_percentage, 5), error=str(error)); self._write(data)
 
     def status(self, book_id: str) -> BookProcessingStatusResponse:
         book = self._book(self._read(), book_id)
