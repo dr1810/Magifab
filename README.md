@@ -97,7 +97,15 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://127.0.0.1:8000`. Optionally set `VITE_MAGIFAB_BACKEND_URL` for a separately deployed backend.
+Frontend API calls are always absolute and always use `VITE_MAGIFAB_BACKEND_URL`.
+
+Create a frontend env file (for local dev or Vercel):
+
+```dotenv
+VITE_MAGIFAB_BACKEND_URL=https://magifab.onrender.com
+```
+
+No frontend route or Vite proxy should be used for backend API traffic.
 
 ### Environment variables
 
@@ -114,6 +122,28 @@ CORS_ORIGINS=http://localhost:5173
 
 The browser has no provider credentials.
 
+### Frontend runtime variables
+
+Set this in your frontend environment (`.env.local`, Vercel Project Settings, etc.):
+
+```dotenv
+VITE_MAGIFAB_BACKEND_URL=https://magifab.onrender.com
+```
+
 ## Deployment architecture
+
+```text
+Frontend (Vercel)
+  ↓
+Render FastAPI backend
+  ↓
+Gemini
+  ↓
+Google Search
+  ↓
+OpenAI
+  ↓
+Scene cache
+```
 
 The development implementation uses SQLite and local blobs beneath `MOVIE_PIPELINE_DIR`. In production replace those storage adapters with object storage and a durable database, run preprocessing through a job worker, and keep the API deployment stateless. The player and reader should remain retrieval-only clients. Provider keys stay in the backend worker/API environment; never expose them through Vite or the browser.

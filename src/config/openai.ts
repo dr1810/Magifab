@@ -5,7 +5,7 @@
  *       a Vite `VITE_*` variable or call OpenAI directly from this browser app.
  */
 export const openAIConfig = {
-  apiBaseUrl: import.meta.env.VITE_MAGIFAB_API_URL ?? '',
+  apiBaseUrl: import.meta.env.VITE_MAGIFAB_BACKEND_URL ?? '',
 } as const
 
 /** Returns whether a server-side AI gateway has been configured. */
